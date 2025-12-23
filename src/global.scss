@@ -1,0 +1,497 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils that can be commented out */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/**
+ * Ionic Dark Mode
+ * -----------------------------------------------------
+ * For more info, please see:
+ * https://ionicframework.com/docs/theming/dark-mode
+ */
+
+/* @import "@ionic/angular/css/palettes/dark.always.css"; */
+/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+@import '@ionic/angular/css/palettes/dark.class.css';
+
+/* Professional Mobile Font - Using System Fonts */
+* {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Safe Area Insets for Status Bar */
+ion-app {
+  --ion-safe-area-top: env(safe-area-inset-top);
+  --ion-safe-area-bottom: env(safe-area-inset-bottom);
+  --ion-safe-area-left: env(safe-area-inset-left);
+  --ion-safe-area-right: env(safe-area-inset-right);
+}
+
+ion-header {
+  padding-top: env(safe-area-inset-top) !important;
+}
+
+/* Ensure content starts below status bar */
+ion-content {
+  --padding-top: env(safe-area-inset-top);
+  --padding-bottom: env(safe-area-inset-bottom);
+  --padding-start: env(safe-area-inset-left);
+  --padding-end: env(safe-area-inset-right);
+}
+
+/* Dark Mode Styles */
+body.dark {
+  --ion-background-color: #1a1a1a;
+  --ion-background-color-rgb: 26, 26, 26;
+  --ion-text-color: #ffffff;
+  --ion-text-color-rgb: 255, 255, 255;
+  --ion-border-color: #333333;
+  --ion-color-step-50: #262626;
+  --ion-color-step-100: #333333;
+  --ion-color-step-150: #404040;
+  --ion-color-step-200: #4d4d4d;
+  --ion-color-step-250: #595959;
+  --ion-color-step-300: #666666;
+  --ion-color-step-350: #737373;
+  --ion-color-step-400: #808080;
+  --ion-color-step-450: #8c8c8c;
+  --ion-color-step-500: #999999;
+  --ion-color-step-550: #a6a6a6;
+  --ion-color-step-600: #b3b3b3;
+  --ion-color-step-650: #bfbfbf;
+  --ion-color-step-700: #cccccc;
+  --ion-color-step-750: #d9d9d9;
+  --ion-color-step-800: #e6e6e6;
+  --ion-color-step-850: #f2f2f2;
+  --ion-color-step-900: #ffffff;
+  --ion-color-step-950: #ffffff;
+}
+
+body.dark ion-content {
+  --background: #1a1a1a !important;
+  background: #1a1a1a !important;
+}
+
+body.dark ion-header {
+  --background: #0066CC !important;
+  background: #0066CC !important;
+}
+
+/* Light mode - ensure white backgrounds */
+body:not(.dark) .bg-white {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+/* Dark mode for custom elements */
+body.dark .bg-white {
+  background-color: #1f2937 !important;
+}
+
+body.dark .bg-gray-50 {
+  background-color: #111827 !important;
+}
+
+body.dark .bg-gray-100 {
+  background-color: #1f2937 !important;
+}
+
+body.dark .bg-blue-50 {
+  background-color: #111827 !important;
+  background: #111827 !important;
+}
+
+/* Light mode text colors */
+body:not(.dark) .text-gray-900 {
+  color: #1f2937 !important;
+}
+
+body.dark .text-gray-900 {
+  color: #ffffff !important;
+}
+
+body.dark .text-gray-800 {
+  color: #f3f4f6 !important;
+}
+
+body.dark .text-gray-700 {
+  color: #e5e7eb !important;
+}
+
+/* Light mode text colors */
+body:not(.dark) .text-gray-600 {
+  color: #4b5563 !important;
+}
+
+body.dark .text-gray-600 {
+  color: #d1d5db !important;
+}
+
+/* Light mode text colors */
+body:not(.dark) .text-gray-500 {
+  color: #6b7280 !important;
+}
+
+body.dark .text-gray-500 {
+  color: #9ca3af !important;
+}
+
+body.dark .text-black {
+  color: #ffffff !important;
+}
+
+body.dark .border-gray-200 {
+  border-color: #374151 !important;
+}
+
+body.dark .border-gray-100 {
+  border-color: #4b5563 !important;
+}
+
+/* Dark mode for section headers */
+body.dark .section-header,
+body.dark .section-header.bg-blue-50 {
+  background: #111827 !important;
+  background-color: #111827 !important;
+  border-bottom-color: #374151 !important;
+}
+
+body.dark .section-header h3 {
+  color: #ffffff !important;
+}
+
+/* Dark mode for info boxes and tags */
+body.dark .info-box {
+  background-color: #111827 !important;
+  border-color: #374151 !important;
+}
+
+body.dark .info-box p.text-gray-900,
+body.dark .info-box p[class*="text-gray-900"] {
+  color: #ffffff !important;
+}
+
+body.dark .info-box p.text-gray-500,
+body.dark .info-box p[class*="text-gray-500"] {
+  color: #9ca3af !important;
+}
+
+body.dark .tag-item {
+  background-color: #0066CC !important;
+  color: #ffffff !important;
+  border-color: #0052A3 !important;
+}
+
+body.dark .border-gray-300 {
+  border-color: #4b5563 !important;
+}
+
+/* Dark mode for cards and containers */
+body.dark .record-card,
+body.dark .summary-card,
+body.dark .filter-card {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+body.dark .sticky-header {
+  background: #1a1a1a !important;
+}
+
+/* Dark mode for inputs */
+body.dark ion-input,
+body.dark ion-textarea,
+body.dark .form-input-compact,
+body.dark .search-input,
+body.dark .date-input {
+  --background: #1f2937 !important;
+  background: #1f2937 !important;
+  --color: #ffffff !important;
+  color: #ffffff !important;
+  --border-color: #4b5563 !important;
+  border-color: #4b5563 !important;
+}
+
+body.dark ion-input::part(native),
+body.dark ion-textarea::part(native) {
+  color: #ffffff !important;
+}
+
+/* Dark mode for labels */
+body.dark label,
+body.dark ion-label {
+  color: #d1d5db !important;
+}
+
+/* Dark mode for drawer */
+body.dark .drawer {
+  background-color: #1f2937 !important;
+}
+
+body.dark .drawer-item {
+  color: #ffffff !important;
+}
+
+body.dark .drawer {
+  background: #1f2937 !important;
+  background-color: #1f2937 !important;
+}
+
+body.dark .drawer-overlay {
+  background: rgba(0, 0, 0, 0.7) !important;
+  background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+body.dark .drawer-item {
+  background: transparent !important;
+  color: #ffffff !important;
+  border-bottom-color: #374151 !important;
+}
+
+body.dark .drawer-item span {
+  color: #ffffff !important;
+}
+
+body.dark .drawer-stat-label {
+  color: #9ca3af !important;
+}
+
+body.dark .drawer-stat-value {
+  color: #ffffff !important;
+}
+
+body.dark .drawer-divider {
+  background: #374151 !important;
+  background-color: #374151 !important;
+}
+
+/* Dark mode for profit display */
+body.dark .profit-display-compact {
+  background: #1f2937 !important;
+  background-color: #1f2937 !important;
+}
+
+body.dark .profit-header-compact {
+  background: #111827 !important;
+  background-color: #111827 !important;
+}
+
+body.dark .profit-card-compact {
+  background: #111827 !important;
+  background-color: #111827 !important;
+}
+
+body.dark .loss-card-compact {
+  background: #1f2937 !important;
+  background-color: #1f2937 !important;
+}
+
+body.dark .expected-income-card {
+  background: #1f2937 !important;
+  background-color: #1f2937 !important;
+}
+
+/* Dark mode for popover section titles */
+body.dark .expense-popover-content .section-title,
+body.dark .expense-popover-content .section-total,
+body.dark .stat-popover-content .breakdown-section h4 {
+  color: #ffffff !important;
+}
+
+/* Dark mode for Daily Calculation title */
+body.dark .profit-title-compact,
+body.dark h3.profit-title-compact,
+body.dark .profit-header-compact h3,
+body.dark .profit-header-compact .profit-title-compact {
+  color: #ffffff !important;
+}
+
+/* Dark mode for Ionic Alerts/Modals - Professional Design Matching Image */
+body.dark ion-alert {
+  --background: transparent !important;
+  --backdrop-opacity: 0.75 !important;
+}
+
+body.dark ion-alert .alert-wrapper {
+  background: #2d3748 !important;
+  background-color: #2d3748 !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7) !important;
+  overflow: hidden !important;
+  max-width: 85% !important;
+  width: auto !important;
+  min-width: 280px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark ion-alert .alert-head {
+  background: #1a202c !important;
+  background-color: #1a202c !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding: 1rem 1.25rem 0.875rem 1.25rem !important;
+  position: relative !important;
+  border-radius: 0.75rem 0.75rem 0 0 !important;
+}
+
+body.dark ion-alert .alert-title {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  letter-spacing: -0.01em !important;
+}
+
+body.dark ion-alert .alert-message {
+  color: #ffffff !important;
+  padding: 1rem 1.25rem 1rem 1.25rem !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+  background: #2d3748 !important;
+  background-color: #2d3748 !important;
+  margin: 0 !important;
+  font-weight: 400 !important;
+}
+
+body.dark ion-alert .alert-button-group {
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding: 0.5rem !important;
+  flex-direction: row !important;
+  background: #2d3748 !important;
+  background-color: #2d3748 !important;
+  border-radius: 0 0 0.75rem 0.75rem !important;
+  display: flex !important;
+  margin: 0 !important;
+}
+
+body.dark ion-alert .alert-button {
+  flex: 1 !important;
+  margin: 0.25rem !important;
+  padding: 0.375rem 0.5rem !important;
+  font-weight: 600 !important;
+  font-size: 0.8125rem !important;
+  min-height: 28px !important;
+  height: 28px !important;
+  border-radius: 0.75rem !important;
+  text-transform: none !important;
+  transition: all 0.2s ease !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1.2 !important;
+  background: transparent !important;
+  text-align: center !important;
+}
+
+body.dark ion-alert .alert-button .button-inner,
+body.dark ion-alert .alert-button .button-text,
+body.dark ion-alert .alert-button::part(native),
+body.dark ion-alert .alert-button span {
+  text-align: center !important;
+  justify-content: center !important;
+  align-items: center !important;
+  display: flex !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+}
+
+body.dark ion-alert .alert-button * {
+  text-align: center !important;
+}
+
+body.dark ion-alert .alert-button.alert-button-role-cancel,
+body.dark ion-alert .alert-button[role="cancel"] {
+  background: #6b7280 !important;
+  background-color: #6b7280 !important;
+  color: #ffffff !important;
+  --color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+body.dark ion-alert .alert-button.alert-button-role-cancel:hover,
+body.dark ion-alert .alert-button[role="cancel"]:hover {
+  background: #9ca3af !important;
+  background-color: #9ca3af !important;
+  transform: translateY(-1px) !important;
+}
+
+body.dark ion-alert .alert-button.alert-button-role-destructive,
+body.dark ion-alert .alert-button[role="destructive"] {
+  background: #1a202c !important;
+  background-color: #1a202c !important;
+  color: #ef4444 !important;
+  --color: #ef4444 !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark ion-alert .alert-button.alert-button-role-destructive:hover,
+body.dark ion-alert .alert-button[role="destructive"]:hover {
+  background: #2d3748 !important;
+  background-color: #2d3748 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  transform: translateY(-1px) !important;
+}
+
+body.dark ion-alert .alert-button:active {
+  transform: scale(0.97) !important;
+  opacity: 0.85 !important;
+}
+
+/* Dark mode for alert backdrop */
+body.dark ion-alert::part(backdrop) {
+  background: rgba(0, 0, 0, 0.75) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+/* Close button styling if present */
+body.dark ion-alert .alert-button[aria-label*="close"],
+body.dark ion-alert .alert-button[aria-label*="Close"] {
+  position: absolute !important;
+  top: 1rem !important;
+  right: 1rem !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  font-size: 1.25rem !important;
+  border-radius: 0.5rem !important;
+  flex: 0 0 auto !important;
+}
+
+body.dark ion-alert .alert-button[aria-label*="close"]:hover,
+body.dark ion-alert .alert-button[aria-label*="Close"]:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}

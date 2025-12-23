@@ -1,0 +1,40 @@
+<ion-header class="ion-no-border modern-header">
+  <ion-toolbar class="modern-toolbar" style="--background: #0066CC; background: #0066CC;">
+    <div class="navbar-container">
+      <div class="navbar-left">
+        <ion-button
+          (click)="goBack()"
+          fill="clear"
+          size="small"
+          class="menu-btn"
+        >
+          <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+        </ion-button>
+        <div class="navbar-brand">
+          <div class="brand-text">
+            <h1 class="brand-title">Calculations</h1>
+            <p class="brand-subtitle">Production Calculators</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" [fullscreen]="true" style="--background: #f5f5f5;">
+  <div class="calculations-container">
+    <div class="calculations-grid">
+      <div
+        *ngFor="let option of calculationOptions"
+        class="calculation-card"
+        (click)="goToCalculation(option.route)"
+      >
+        <div class="calculation-icon">
+          <ion-icon name="calculator"></ion-icon>
+        </div>
+        <div class="calculation-title">{{ option.title }}</div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+

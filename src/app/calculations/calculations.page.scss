@@ -1,0 +1,143 @@
+// Navbar styles
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 0.5rem;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.menu-btn {
+  --color: white;
+  margin: 0;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.brand-subtitle {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.modern-header {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modern-toolbar {
+  --min-height: 56px;
+  padding: 0.5rem 0;
+}
+
+.calculations-container {
+  max-width: 100%;
+  padding: 1rem;
+}
+
+.calculations-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.calculation-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  border: 2px solid transparent;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.2);
+    border-color: #0066CC;
+  }
+
+  &:active {
+    transform: translateY(-2px);
+  }
+}
+
+.calculation-icon {
+  font-size: 2.5rem;
+  color: #0066CC;
+  margin-bottom: 0.75rem;
+}
+
+.calculation-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: center;
+  line-height: 1.4;
+}
+
+// Responsive design - Keep 2 columns on all screen sizes
+@media (max-width: 480px) {
+  .calculations-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .calculation-card {
+    padding: 1rem;
+    min-height: 100px;
+  }
+
+  .calculation-icon {
+    font-size: 2rem;
+  }
+
+  .calculation-title {
+    font-size: 0.75rem;
+  }
+}
+
+// Dark mode support
+:host-context(body.dark) {
+  .calculation-card {
+    background: #1f2937;
+    color: white;
+  }
+
+  .calculation-title {
+    color: #f9fafb;
+  }
+}
+

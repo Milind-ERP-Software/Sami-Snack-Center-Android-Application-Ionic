@@ -1,0 +1,230 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar style="--background: #0066CC; background: #0066CC; --border-width: 0;">
+    <div class="navbar-container">
+      <div class="navbar-left">
+        <ion-button
+          (click)="goToHome()"
+          fill="clear"
+          size="small"
+          style="--color: white; --background: rgba(255, 255, 255, 0.1); --background-hover: rgba(255, 255, 255, 0.2); --background-activated: rgba(255, 255, 255, 0.15);"
+          class="h-8 w-8 p-0 navbar-back-btn"
+        >
+          <ion-icon name="arrow-back" slot="icon-only" style="font-size: 16px;"></ion-icon>
+        </ion-button>
+        <ion-title class="navbar-title">
+          Purchase Items
+        </ion-title>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" [fullscreen]="true" style="--background: #f5f5f5;">
+  <!-- Skeleton Loading - Detailed & Polished -->
+  <div *ngIf="isLoading" class="max-w-2xl mx-auto skeleton-container">
+    <!-- Search Bar Skeleton -->
+    <div class="skeleton-card bg-white rounded-lg shadow-sm p-1.5 mb-1.5">
+      <div class="skeleton-input-medium"></div>
+    </div>
+
+    <!-- Add Button Skeleton -->
+    <div class="skeleton-button-large mb-1.5"></div>
+
+    <!-- Items List Skeleton -->
+    <div class="skeleton-card bg-white rounded-lg shadow-sm">
+      <div class="skeleton-items-list">
+        <!-- Item 1 -->
+        <div class="skeleton-item-row">
+          <div class="skeleton-item-name"></div>
+          <div class="flex gap-0.5">
+            <div class="skeleton-icon-button"></div>
+            <div class="skeleton-icon-button skeleton-icon-button-red"></div>
+          </div>
+        </div>
+        <!-- Item 2 -->
+        <div class="skeleton-item-row">
+          <div class="skeleton-item-name skeleton-item-name-wide"></div>
+          <div class="flex gap-0.5">
+            <div class="skeleton-icon-button"></div>
+            <div class="skeleton-icon-button skeleton-icon-button-red"></div>
+          </div>
+        </div>
+        <!-- Item 3 -->
+        <div class="skeleton-item-row">
+          <div class="skeleton-item-name"></div>
+          <div class="flex gap-0.5">
+            <div class="skeleton-icon-button"></div>
+            <div class="skeleton-icon-button skeleton-icon-button-red"></div>
+          </div>
+        </div>
+        <!-- Item 4 -->
+        <div class="skeleton-item-row">
+          <div class="skeleton-item-name skeleton-item-name-medium"></div>
+          <div class="flex gap-0.5">
+            <div class="skeleton-icon-button"></div>
+            <div class="skeleton-icon-button skeleton-icon-button-red"></div>
+          </div>
+        </div>
+        <!-- Item 5 -->
+        <div class="skeleton-item-row">
+          <div class="skeleton-item-name"></div>
+          <div class="flex gap-0.5">
+            <div class="skeleton-icon-button"></div>
+            <div class="skeleton-icon-button skeleton-icon-button-red"></div>
+          </div>
+        </div>
+        <!-- Item 6 -->
+        <div class="skeleton-item-row">
+          <div class="skeleton-item-name skeleton-item-name-medium"></div>
+          <div class="flex gap-0.5">
+            <div class="skeleton-icon-button"></div>
+            <div class="skeleton-icon-button skeleton-icon-button-red"></div>
+          </div>
+        </div>
+        <!-- Item 7 -->
+        <div class="skeleton-item-row">
+          <div class="skeleton-item-name"></div>
+          <div class="flex gap-0.5">
+            <div class="skeleton-icon-button"></div>
+            <div class="skeleton-icon-button skeleton-icon-button-red"></div>
+          </div>
+        </div>
+        <!-- Item 8 -->
+        <div class="skeleton-item-row skeleton-item-row-last">
+          <div class="skeleton-item-name skeleton-item-name-medium"></div>
+          <div class="flex gap-0.5">
+            <div class="skeleton-icon-button"></div>
+            <div class="skeleton-icon-button skeleton-icon-button-red"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading" class="max-w-2xl mx-auto">
+    <!-- Search Bar -->
+    <div class="bg-white rounded-lg shadow-sm p-1.5 mb-1.5">
+      <ion-input
+        type="text"
+        placeholder="Search items..."
+        [(ngModel)]="searchQuery"
+        (ionInput)="onSearchChange($event)"
+        class="form-input-compact"
+        style="--padding-start: 6px; --padding-end: 6px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.375rem; font-size: 11px; height: 26px;"
+      ></ion-input>
+    </div>
+
+    <!-- Add New Item Form -->
+    <div *ngIf="isAdding" class="bg-white rounded-lg shadow-sm p-1.5 mb-1.5">
+      <div class="flex gap-1 items-center">
+        <ion-input
+          type="text"
+          [(ngModel)]="newItemName"
+          placeholder="Enter item name"
+          class="form-input-compact flex-1"
+          style="--padding-start: 6px; --padding-end: 6px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.375rem; font-size: 11px; height: 26px;"
+        ></ion-input>
+        <ion-button
+          (click)="saveNewItem()"
+          fill="clear"
+          size="small"
+          style="--color: #10b981;"
+          class="h-7 w-7 p-0"
+        >
+          <ion-icon name="checkmark" slot="icon-only" style="font-size: 16px;"></ion-icon>
+        </ion-button>
+        <ion-button
+          (click)="cancelAdding()"
+          fill="clear"
+          size="small"
+          style="--color: #ef4444;"
+          class="h-7 w-7 p-0"
+        >
+          <ion-icon name="close" slot="icon-only" style="font-size: 16px;"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Add Button -->
+    <ion-button
+      *ngIf="!isAdding"
+      (click)="startAdding()"
+      expand="block"
+      style="--background: #0066CC; --color: white;"
+      class="rounded-lg font-semibold h-9 text-xs shadow-sm mb-1.5"
+    >
+      <ion-icon name="add" slot="start" style="font-size: 14px;"></ion-icon>
+      Add New Item
+    </ion-button>
+
+    <!-- Items List -->
+    <div class="bg-white rounded-lg shadow-sm">
+      <ion-list>
+        <ion-item
+          *ngFor="let item of filteredItems"
+          class="item-row"
+        >
+          <div *ngIf="editingItem?.id !== item.id" class="flex items-center justify-between w-full py-1">
+            <span class="text-sm font-medium text-gray-900" style="font-size: 12px;">{{ item.name }}</span>
+            <div class="flex gap-0.5">
+              <ion-button
+                (click)="startEditing(item)"
+                fill="clear"
+                size="small"
+                style="--color: #0066CC; --border-radius: 50%; border-radius: 50%;"
+                class="h-7 w-7 p-0"
+              >
+                <ion-icon name="create" slot="icon-only" style="font-size: 14px;"></ion-icon>
+              </ion-button>
+              <ion-button
+                (click)="deleteItem(item)"
+                fill="clear"
+                size="small"
+                style="--color: #ef4444; --border-radius: 50%; border-radius: 50%;"
+                class="h-7 w-7 p-0"
+              >
+                <ion-icon name="trash" slot="icon-only" style="font-size: 14px;"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+          <div *ngIf="editingItem && editingItem.id === item.id" class="flex gap-1 items-center w-full py-1">
+            <ion-input
+              type="text"
+              [ngModel]="editingItem.name"
+              (ngModelChange)="editingItem && (editingItem.name = $event)"
+              class="form-input-compact flex-1"
+              style="--padding-start: 6px; --padding-end: 6px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.375rem; font-size: 11px; height: 26px;"
+            ></ion-input>
+            <ion-button
+              (click)="saveEdit()"
+              fill="clear"
+              size="small"
+              style="--color: #10b981; --border-radius: 50%; border-radius: 50%;"
+              class="h-7 w-7 p-0"
+            >
+              <ion-icon name="checkmark" slot="icon-only" style="font-size: 16px;"></ion-icon>
+            </ion-button>
+            <ion-button
+              (click)="cancelEditing()"
+              fill="clear"
+              size="small"
+              style="--color: #ef4444; --border-radius: 50%; border-radius: 50%;"
+              class="h-7 w-7 p-0"
+            >
+              <ion-icon name="close" slot="icon-only" style="font-size: 16px;"></ion-icon>
+            </ion-button>
+          </div>
+        </ion-item>
+      </ion-list>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredItems.length === 0" class="bg-white rounded-lg border border-gray-200 p-6 text-center mt-1.5">
+      <ion-icon name="document-text" class="text-3xl mb-2" style="color: #9ca3af;"></ion-icon>
+      <p class="text-xs font-medium mb-0.5 text-black">No items found</p>
+      <p class="text-xs text-gray-500" *ngIf="searchQuery">Try a different search term</p>
+      <p class="text-xs text-gray-500" *ngIf="!searchQuery">Add your first purchase item</p>
+    </div>
+  </div>
+</ion-content>
+

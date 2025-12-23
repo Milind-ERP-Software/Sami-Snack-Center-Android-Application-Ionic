@@ -1,0 +1,184 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar style="--background: #0066CC; background: #0066CC; --border-width: 0;">
+    <div class="navbar-container">
+      <div class="navbar-left">
+        <ion-button
+          (click)="goToHome()"
+          fill="clear"
+          size="small"
+          style="--color: white; --background: rgba(255, 255, 255, 0.1); --background-hover: rgba(255, 255, 255, 0.2); --background-activated: rgba(255, 255, 255, 0.15);"
+          class="h-8 w-8 p-0 navbar-back-btn"
+        >
+          <ion-icon name="arrow-back" slot="icon-only" style="font-size: 16px;"></ion-icon>
+        </ion-button>
+        <ion-title class="navbar-title">
+          Settings
+        </ion-title>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" [fullscreen]="true" [style.--background]="isDarkMode ? '#1a1a1a' : '#f5f5f5'" [class.dark-content]="isDarkMode">
+  <div class="max-w-2xl mx-auto space-y-1.5">
+
+    <!-- App Information Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5">
+      <div class="flex items-center gap-2 mb-1.5">
+        <ion-icon name="business" style="font-size: 18px; color: #0066CC;"></ion-icon>
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white" style="font-size: 13px;">App Information</h3>
+      </div>
+      <div class="space-y-1">
+        <div class="flex justify-between items-center py-0.5">
+          <span class="text-xs text-gray-600 dark:text-gray-400" style="font-size: 11px;">App Name</span>
+          <span class="text-xs font-semibold text-gray-900 dark:text-white" style="font-size: 11px;">{{ appName }}</span>
+        </div>
+        <div class="flex justify-between items-center py-0.5">
+          <span class="text-xs text-gray-600 dark:text-gray-400" style="font-size: 11px;">Version</span>
+          <span class="text-xs font-semibold text-gray-900 dark:text-white" style="font-size: 11px;">{{ appVersion }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appearance Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5">
+      <div class="flex items-center gap-2 mb-1.5">
+        <ion-icon name="sunny" style="font-size: 18px; color: #0066CC;"></ion-icon>
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white" style="font-size: 13px;">Appearance</h3>
+      </div>
+      <div class="space-y-1">
+        <!-- Theme Mode Selection with Toggles -->
+        <div class="theme-mode-container">
+          <div class="theme-mode-header">
+            <ion-icon name="phone-portrait" style="font-size: 16px; color: #0066CC;"></ion-icon>
+            <span class="text-xs font-medium text-gray-900 dark:text-white" style="font-size: 11px;">Theme Mode</span>
+          </div>
+
+          <!-- System Mode Toggle -->
+          <div class="theme-option" (click)="setThemeMode('system'); $event.stopPropagation()">
+            <div class="flex items-center gap-2">
+              <ion-icon name="phone-portrait" style="font-size: 16px; color: #0066CC;"></ion-icon>
+              <div class="flex flex-col">
+                <span class="text-xs font-medium text-gray-900 dark:text-white" style="font-size: 11px;">System</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 9px;">Follow device settings</span>
+              </div>
+            </div>
+            <ion-toggle
+              [checked]="themeMode === 'system'"
+              (ionChange)="setThemeMode('system'); $event.stopPropagation()"
+              (click)="$event.stopPropagation()"
+              style="--handle-background-checked: #0066CC; --track-background-checked: rgba(0, 102, 204, 0.3);"
+            ></ion-toggle>
+          </div>
+
+          <!-- Light Mode Toggle -->
+          <div class="theme-option" (click)="setThemeMode('light'); $event.stopPropagation()">
+            <div class="flex items-center gap-2">
+              <ion-icon name="sunny" style="font-size: 16px; color: #f59e0b;"></ion-icon>
+              <div class="flex flex-col">
+                <span class="text-xs font-medium text-gray-900 dark:text-white" style="font-size: 11px;">Light</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 9px;">Always light mode</span>
+              </div>
+            </div>
+            <ion-toggle
+              [checked]="themeMode === 'light'"
+              (ionChange)="setThemeMode('light'); $event.stopPropagation()"
+              (click)="$event.stopPropagation()"
+              style="--handle-background-checked: #f59e0b; --track-background-checked: rgba(245, 158, 11, 0.3);"
+            ></ion-toggle>
+          </div>
+
+          <!-- Dark Mode Toggle -->
+          <div class="theme-option" (click)="setThemeMode('dark'); $event.stopPropagation()">
+            <div class="flex items-center gap-2">
+              <ion-icon name="moon" style="font-size: 16px; color: #3b82f6;"></ion-icon>
+              <div class="flex flex-col">
+                <span class="text-xs font-medium text-gray-900 dark:text-white" style="font-size: 11px;">Dark</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 9px;">Always dark mode</span>
+              </div>
+            </div>
+            <ion-toggle
+              [checked]="themeMode === 'dark'"
+              (ionChange)="setThemeMode('dark'); $event.stopPropagation()"
+              (click)="$event.stopPropagation()"
+              style="--handle-background-checked: #3b82f6; --track-background-checked: rgba(59, 130, 246, 0.3);"
+            ></ion-toggle>
+          </div>
+
+          <!-- Current Status (System Mode) -->
+          <div class="theme-status" *ngIf="themeMode === 'system'">
+            <div class="flex items-center gap-2">
+              <ion-icon [name]="isDarkMode ? 'moon' : 'sunny'" style="font-size: 14px; color: #0066CC;"></ion-icon>
+              <span class="text-xs text-gray-600 dark:text-gray-400" style="font-size: 10px;">
+                Currently following: <strong>{{ isDarkMode ? 'Dark' : 'Light' }} Mode</strong>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5">
+      <div class="flex items-center gap-2 mb-1.5">
+        <ion-icon name="stats-chart" style="font-size: 18px; color: #0066CC;"></ion-icon>
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white" style="font-size: 13px;">Statistics</h3>
+      </div>
+      <div class="space-y-1">
+        <div class="flex justify-between items-center py-0.5">
+          <span class="text-xs text-gray-600 dark:text-gray-400" style="font-size: 11px;">Total Records</span>
+          <span class="text-xs font-semibold text-gray-900 dark:text-white" style="font-size: 11px;">{{ totalRecords }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Management Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5">
+      <div class="flex items-center gap-2 mb-1.5">
+        <ion-icon name="document-text" style="font-size: 18px; color: #0066CC;"></ion-icon>
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white" style="font-size: 13px;">Data Management</h3>
+      </div>
+      <div class="space-y-1">
+        <div class="settings-item" (click)="exportData()">
+          <div class="flex items-center gap-2">
+            <ion-icon name="download" style="font-size: 16px; color: #10b981;"></ion-icon>
+            <span class="text-xs font-medium text-gray-900 dark:text-white" style="font-size: 11px;">Export Data</span>
+          </div>
+          <span class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 10px;">Download backup</span>
+        </div>
+        <div class="settings-item" (click)="importData()">
+          <div class="flex items-center gap-2">
+            <ion-icon name="cloud-upload" style="font-size: 16px; color: #0066CC;"></ion-icon>
+            <span class="text-xs font-medium text-gray-900 dark:text-white" style="font-size: 11px;">Import Data</span>
+          </div>
+          <span class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 10px;">Restore backup</span>
+        </div>
+        <div class="settings-item danger-item" (click)="clearAllData()">
+          <div class="flex items-center gap-2">
+            <ion-icon name="trash" style="font-size: 16px; color: #ef4444;"></ion-icon>
+            <span class="text-xs font-medium text-gray-900 dark:text-white" style="font-size: 11px;">Clear All Data</span>
+          </div>
+          <span class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 10px;">Delete all records</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- About Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5">
+      <div class="flex items-center gap-2 mb-1.5">
+        <ion-icon name="information-circle" style="font-size: 18px; color: #0066CC;"></ion-icon>
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white" style="font-size: 13px;">About</h3>
+      </div>
+      <div class="space-y-1">
+        <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed" style="font-size: 11px; line-height: 1.5;">
+          Business Tracker App for managing daily records, production, expenses, and income tracking.
+        </p>
+        <p class="text-xs text-gray-500 dark:text-gray-500" style="font-size: 10px;">
+          © 2024 Sami Snack Center. All rights reserved.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</ion-content>
+

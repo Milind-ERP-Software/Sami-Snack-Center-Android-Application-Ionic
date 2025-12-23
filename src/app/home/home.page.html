@@ -1,0 +1,643 @@
+<ion-header class="ion-no-border modern-header">
+  <ion-toolbar class="modern-toolbar" style="--background: #0066CC; background: #0066CC;">
+    <div class="navbar-container">
+      <div class="navbar-left">
+        <ion-button
+          (click)="toggleDrawer()"
+          fill="clear"
+          size="small"
+          class="menu-btn"
+        >
+          <ion-icon name="menu" slot="icon-only"></ion-icon>
+        </ion-button>
+        <div class="navbar-brand">
+          <div class="brand-text">
+            <h1 class="brand-title">Sami Snack Center</h1>
+            <p class="brand-subtitle">Business Tracker</p>
+          </div>
+        </div>
+      </div>
+      <div class="navbar-right">
+        <div class="profit-badge" *ngIf="!isLoading && filteredRecords.length > 0">
+          <ion-icon name="trendingUp" class="badge-icon"></ion-icon>
+          <div class="badge-content">
+            <span class="badge-label">Total Profit</span>
+            <span class="badge-value">{{ displayedProfit | number:'1.0-0' }}₹</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<!-- Drawer/Sidebar -->
+<div class="drawer-overlay" *ngIf="isDrawerOpen" (click)="closeDrawer()"></div>
+<div class="drawer" [class.drawer-open]="isDrawerOpen" [class.dark]="isDarkMode">
+  <div class="drawer-header">
+    <h3 class="drawer-title">Menu</h3>
+    <ion-button
+      (click)="closeDrawer()"
+      fill="clear"
+      size="small"
+      style="--color: white;"
+      class="h-8 w-8 p-0"
+    >
+      <ion-icon name="close" slot="icon-only" style="font-size: 20px;"></ion-icon>
+    </ion-button>
+  </div>
+  <div class="drawer-content">
+    <div class="drawer-menu-items">
+      <div class="drawer-item" (click)="addNewRecord(); closeDrawer()">
+        <ion-icon name="add" style="font-size: 20px; color: #0066CC;"></ion-icon>
+        <span>Add New Record</span>
+      </div>
+      <div class="drawer-item" (click)="clearAllFilters(); closeDrawer()">
+        <ion-icon name="refresh" style="font-size: 20px; color: #0066CC;"></ion-icon>
+        <span>Clear All Filters</span>
+      </div>
+      <div class="drawer-item" (click)="goToProductionItems(); closeDrawer()">
+        <ion-icon name="list" style="font-size: 20px; color: #0066CC;"></ion-icon>
+        <span>Production Items</span>
+      </div>
+      <div class="drawer-item" (click)="goToExpenseItems(); closeDrawer()">
+        <ion-icon name="receipt" style="font-size: 20px; color: #0066CC;"></ion-icon>
+        <span>Expense Items</span>
+      </div>
+      <div class="drawer-item" (click)="goToPurchaseItems(); closeDrawer()">
+        <ion-icon name="bag" style="font-size: 20px; color: #0066CC;"></ion-icon>
+        <span>Purchase Items</span>
+      </div>
+      <div class="drawer-item" (click)="goToCalculations(); closeDrawer()">
+        <ion-icon name="calculator" style="font-size: 20px; color: #0066CC;"></ion-icon>
+        <span>Calculations</span>
+      </div>
+      <div class="drawer-item" (click)="goToSettings(); closeDrawer()">
+        <ion-icon name="settings" style="font-size: 20px; color: #0066CC;"></ion-icon>
+        <span>Settings</span>
+      </div>
+      <div class="drawer-item" style="cursor: default;" (click)="$event.stopPropagation()">
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+          <ion-icon [name]="isDarkMode ? 'moon' : 'sunny'" style="font-size: 20px; color: #0066CC;"></ion-icon>
+          <span>{{ isDarkMode ? 'Dark Mode' : 'Light Mode' }}</span>
+        </div>
+        <ion-toggle
+          [checked]="isDarkMode"
+          (ionChange)="toggleTheme()"
+          style="--handle-background-checked: #0066CC; --track-background-checked: rgba(0, 102, 204, 0.3);"
+        ></ion-toggle>
+      </div>
+      <div class="drawer-divider"></div>
+      <div class="drawer-item test-item" (click)="clearLocalStorage()">
+        <ion-icon name="trash" style="font-size: 20px; color: #f59e0b;"></ion-icon>
+        <span>Clear LocalStorage (Test)</span>
+      </div>
+    </div>
+
+    <div class="drawer-stats">
+      <div class="drawer-stat-item">
+        <span class="drawer-stat-label">Total Records</span>
+        <span class="drawer-stat-value">{{ records.length }}</span>
+      </div>
+      <div class="drawer-stat-item">
+        <span class="drawer-stat-label">Total Profit</span>
+        <span class="drawer-stat-value profit">{{ totalProfit | number:'1.0-0' }} ₹</span>
+      </div>
+      <div class="drawer-stat-item">
+        <span class="drawer-stat-label">Total Loss</span>
+        <span class="drawer-stat-value loss">{{ totalLoss | number:'1.0-0' }} ₹</span>
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+      <div class="drawer-divider"></div>
+      <div class="drawer-item logout-item" (click)="logout()">
+        <ion-icon name="log-out" style="font-size: 20px; color: #ef4444;"></ion-icon>
+        <span>Logout</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ion-content class="ion-padding" [fullscreen]="true" style="--background: #f5f5f5;" #content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+  <!-- Skeleton Loading - Detailed & Polished -->
+  <div *ngIf="isLoading" class="max-w-2xl mx-auto skeleton-container">
+    <!-- Summary Cards Skeleton -->
+    <div class="grid grid-cols-2 gap-1.5 mb-1.5">
+      <div class="summary-card profit-card skeleton-card">
+        <div class="skeleton-label-small mb-0.5"></div>
+        <div class="skeleton-value-large"></div>
+      </div>
+      <div class="summary-card loss-card skeleton-card">
+        <div class="skeleton-label-small mb-0.5"></div>
+        <div class="skeleton-value-large"></div>
+      </div>
+    </div>
+
+    <!-- Add Button Skeleton -->
+    <div class="skeleton-button-large mb-1.5"></div>
+
+    <!-- Filter Card Skeleton -->
+    <div class="filter-card skeleton-card rounded-lg shadow-sm p-1.5 mb-1.5">
+      <div class="skeleton-input-medium mb-1"></div>
+      <div class="grid grid-cols-2 gap-1.5">
+        <div>
+          <div class="skeleton-label-tiny mb-0.5"></div>
+          <div class="skeleton-input-small"></div>
+        </div>
+        <div>
+          <div class="skeleton-label-tiny mb-0.5"></div>
+          <div class="skeleton-input-small"></div>
+        </div>
+      </div>
+      <div class="skeleton-button-outline mt-1"></div>
+    </div>
+
+    <!-- Records Header Skeleton -->
+    <div class="records-header-skeleton mb-1">
+      <div class="skeleton-title-small"></div>
+      <div class="skeleton-view-toggle"></div>
+    </div>
+
+    <!-- Record Cards Skeleton - More Detailed -->
+    <div class="skeleton-cards-container">
+      <!-- Card 1 -->
+      <div class="record-card skeleton-card rounded-lg shadow-sm p-1.5">
+        <div class="flex justify-between items-start mb-1.5 pb-1.5 border-b skeleton-border">
+          <div class="flex-1">
+            <div class="skeleton-text-medium mb-1"></div>
+            <div class="skeleton-text-small"></div>
+          </div>
+          <div class="flex gap-0.5">
+            <div class="skeleton-icon-button"></div>
+            <div class="skeleton-icon-button"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-4 gap-1 mb-1.5">
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-1 mb-1.5">
+          <div class="skeleton-tag"></div>
+          <div class="skeleton-tag skeleton-tag-wide"></div>
+          <div class="skeleton-tag"></div>
+        </div>
+        <div class="skeleton-notes pt-1.5 border-t skeleton-border">
+          <div class="skeleton-text-line"></div>
+          <div class="skeleton-text-line skeleton-text-line-short"></div>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="record-card skeleton-card rounded-lg shadow-sm p-1.5">
+        <div class="flex justify-between items-start mb-1.5 pb-1.5 border-b skeleton-border">
+          <div class="flex-1">
+            <div class="skeleton-text-medium mb-1"></div>
+            <div class="skeleton-text-small"></div>
+          </div>
+          <div class="flex gap-0.5">
+            <div class="skeleton-icon-button"></div>
+            <div class="skeleton-icon-button"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-4 gap-1 mb-1.5">
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-1 mb-1.5">
+          <div class="skeleton-tag"></div>
+          <div class="skeleton-tag"></div>
+        </div>
+        <div class="skeleton-notes pt-1.5 border-t skeleton-border">
+          <div class="skeleton-text-line"></div>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="record-card skeleton-card rounded-lg shadow-sm p-1.5">
+        <div class="flex justify-between items-start mb-1.5 pb-1.5 border-b skeleton-border">
+          <div class="flex-1">
+            <div class="skeleton-text-medium mb-1"></div>
+            <div class="skeleton-text-small"></div>
+          </div>
+          <div class="flex gap-0.5">
+            <div class="skeleton-icon-button"></div>
+            <div class="skeleton-icon-button"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-4 gap-1 mb-1.5">
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-1 mb-1.5">
+          <div class="skeleton-tag skeleton-tag-wide"></div>
+          <div class="skeleton-tag"></div>
+          <div class="skeleton-tag"></div>
+        </div>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="record-card skeleton-card rounded-lg shadow-sm p-1.5">
+        <div class="flex justify-between items-start mb-1.5 pb-1.5 border-b skeleton-border">
+          <div class="flex-1">
+            <div class="skeleton-text-medium mb-1"></div>
+            <div class="skeleton-text-small"></div>
+          </div>
+          <div class="flex gap-0.5">
+            <div class="skeleton-icon-button"></div>
+            <div class="skeleton-icon-button"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-4 gap-1 mb-1.5">
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+          <div class="info-box skeleton-info-box">
+            <div class="skeleton-label-tiny mb-0.5"></div>
+            <div class="skeleton-value-small"></div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-1">
+          <div class="skeleton-tag"></div>
+          <div class="skeleton-tag"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading" class="max-w-2xl mx-auto">
+    <!-- Sticky Header Section -->
+    <div class="sticky-header">
+      <!-- Summary Cards -->
+      <div class="grid grid-cols-2 gap-1.5 mb-1.5">
+      <div class="summary-card profit-card">
+        <p class="text-xs text-white/90 mb-0.5 font-medium" style="font-size: 10px;">Total Profit</p>
+        <p class="text-lg font-bold text-white" style="font-size: 15px; line-height: 1.2;">{{ displayedProfit | number:'1.2-2' }} ₹</p>
+      </div>
+      <div class="summary-card loss-card">
+        <p class="text-xs text-gray-600 mb-0.5 font-medium" style="font-size: 10px;">Total Loss</p>
+        <p class="text-lg font-bold text-gray-900" style="font-size: 15px; line-height: 1.2;">{{ displayedLoss | number:'1.2-2' }} ₹</p>
+      </div>
+      </div>
+
+      <!-- Add New Record Button -->
+      <ion-button
+        (click)="addNewRecord()"
+        expand="block"
+        class="rounded-lg font-semibold h-9 text-xs shadow-sm mb-2.5 add-record-btn"
+      >
+        <ion-icon name="add" slot="start" style="font-size: 14px;"></ion-icon>
+        Add New Record
+      </ion-button>
+
+      <!-- Search and Filter Bar -->
+      <div class="filter-card bg-white rounded-lg shadow-sm p-1.5 space-y-1.5 mb-2.5">
+      <!-- Search Input -->
+      <div class="relative flex items-center">
+        <ion-input
+          type="text"
+          placeholder="Search records..."
+          [(ngModel)]="searchQuery"
+          (ionInput)="onSearchChange($event)"
+          class="search-input form-input-compact flex-1"
+          style="--padding-start: 6px; --padding-end: 28px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.375rem; font-size: 11px; height: 26px;"
+        ></ion-input>
+        <ion-button
+          *ngIf="searchQuery"
+          (click)="clearSearch()"
+          fill="clear"
+          size="small"
+          style="--color: #6b6b6b; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); z-index: 10; margin: 0;"
+          class="h-5 w-5 p-0 m-0"
+        >
+          <ion-icon name="close" slot="icon-only" style="font-size: 11px;"></ion-icon>
+        </ion-button>
+      </div>
+
+      <!-- Date Filter -->
+      <div class="grid grid-cols-2 gap-1.5">
+        <div>
+          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">From Date</label>
+          <ion-input
+            type="date"
+            [(ngModel)]="fromDate"
+            (ionChange)="onDateFilterChange()"
+            class="date-input form-input-compact"
+            style="--padding-start: 6px; --padding-end: 6px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.375rem; font-size: 11px; height: 26px;"
+          ></ion-input>
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">To Date</label>
+          <ion-input
+            type="date"
+            [(ngModel)]="toDate"
+            (ionChange)="onDateFilterChange()"
+            class="date-input form-input-compact"
+            style="--padding-start: 6px; --padding-end: 6px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.375rem; font-size: 11px; height: 26px;"
+          ></ion-input>
+        </div>
+      </div>
+
+      <!-- Reset Filter Button -->
+      <ion-button
+        *ngIf="hasActiveFilters()"
+        (click)="clearAllFilters()"
+        fill="outline"
+        size="small"
+        expand="block"
+        style="--border-color: #d1d5db; --color: #0066CC;"
+        class="rounded-lg font-medium h-8 text-xs"
+      >
+        <ion-icon name="refresh" slot="start" style="font-size: 11px;"></ion-icon>
+        Reset Filter
+      </ion-button>
+      </div>
+    </div>
+
+    <!-- Records List -->
+    <div class="space-y-2 records-container">
+      <div class="records-header-section">
+        <div class="records-header-top">
+          <h2 class="text-xs font-bold text-black records-count">
+            {{ filteredRecords.length }} {{ filteredRecords.length === 1 ? 'Record' : 'Records' }}
+            <span *ngIf="searchQuery && filteredRecords.length !== records.length" class="text-gray-500">
+              (of {{ records.length }})
+            </span>
+          </h2>
+
+          <!-- View Mode Toggle -->
+          <div class="view-mode-toggle">
+            <ion-segment [(ngModel)]="viewMode" class="view-segment" mode="md">
+              <ion-segment-button value="card" class="segment-btn">
+                <ion-icon name="grid" slot="start"></ion-icon>
+                <span>Card</span>
+              </ion-segment-button>
+              <ion-segment-button value="list" class="segment-btn">
+                <ion-icon name="list" slot="start"></ion-icon>
+                <span>List</span>
+              </ion-segment-button>
+            </ion-segment>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="filteredRecords.length === 0 && records.length === 0 && viewMode === 'card'" class="bg-white rounded-lg border border-gray-200 p-6 text-center">
+        <ion-icon name="calendar" class="text-3xl mb-2" style="color: #9ca3af;"></ion-icon>
+        <p class="text-xs font-medium mb-0.5 text-black">No records</p>
+        <p class="text-xs text-gray-500">Tap "New Record" to start</p>
+      </div>
+
+      <div *ngIf="filteredRecords.length === 0 && records.length > 0 && searchQuery && viewMode === 'card'" class="bg-white rounded-lg border border-gray-200 p-6 text-center">
+        <ion-icon name="search" class="text-3xl mb-2" style="color: #9ca3af;"></ion-icon>
+        <p class="text-xs font-medium mb-0.5 text-black">No records found</p>
+        <p class="text-xs text-gray-500">Try a different search term</p>
+      </div>
+
+      <!-- Card View -->
+      <div *ngIf="viewMode === 'card'">
+        <div
+          *ngFor="let record of filteredRecords; trackBy: trackByRecordId"
+          class="record-card bg-white rounded-lg shadow-sm p-1.5 animate-fade-in"
+        >
+        <!-- Header -->
+        <div class="flex justify-between items-start mb-1.5 pb-1.5 border-b border-gray-100">
+          <div class="flex-1">
+            <h3 class="text-sm font-bold text-gray-900 mb-0.5" style="font-size: 12px; line-height: 1.3;" [class.saturday-date-text]="isSaturday(record.date)" [class.sunday-date-text]="isSunday(record.date)">{{ formatDate(record.date) }}</h3>
+            <p class="text-xs text-gray-500" style="font-size: 10px;">Chains: <span class="font-semibold text-gray-700">{{ record.chains }} ₹</span></p>
+          </div>
+          <div class="flex gap-0.5">
+            <ion-button
+              (click)="editRecord(record.id)"
+              fill="clear"
+              size="small"
+              style="--color: #0066CC; --border-radius: 50%; border-radius: 50%;"
+              class="h-7 w-7 p-0"
+              [disabled]="!record.id"
+            >
+              <ion-icon name="create" slot="icon-only" style="font-size: 14px;"></ion-icon>
+            </ion-button>
+            <ion-button
+              (click)="deleteRecord(record.id)"
+              fill="clear"
+              size="small"
+              style="--color: #ef4444; --border-radius: 50%; border-radius: 50%;"
+              class="h-7 w-7 p-0"
+              [disabled]="!record.id"
+            >
+              <ion-icon name="trash" slot="icon-only" style="font-size: 14px;"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+
+        <!-- Summary Info -->
+        <div class="grid grid-cols-4 gap-1 mb-1.5">
+          <div class="info-box">
+            <p class="text-xs text-gray-500 mb-0" style="font-size: 9px;">Expected</p>
+            <p class="text-sm font-bold text-gray-900" style="font-size: 11px; line-height: 1.2;">{{ record.expectedIncome | number:'1.0-0' }} ₹</p>
+          </div>
+          <div class="info-box">
+            <p class="text-xs text-gray-500 mb-0" style="font-size: 9px;">Income</p>
+            <p class="text-sm font-bold text-gray-900" style="font-size: 11px; line-height: 1.2;">{{ getTotalIncome(record) | number:'1.0-0' }} ₹</p>
+          </div>
+          <div class="info-box">
+            <p class="text-xs text-gray-500 mb-0" style="font-size: 9px;">Back</p>
+            <p class="text-sm font-bold text-gray-900" style="font-size: 11px; line-height: 1.2;">{{ record.backMoneyInBag | number:'1.0-0' }} ₹</p>
+          </div>
+          <div class="info-box">
+            <p class="text-xs text-gray-500 mb-0" style="font-size: 9px;">Net</p>
+            <p class="text-sm font-bold" style="font-size: 11px; line-height: 1.2;" [ngClass]="(record.dailyProfit.profit || 0) - (record.dailyProfit.loss || 0) >= 0 ? 'text-green-600' : 'text-red-600'">
+              {{ (record.dailyProfit.profit || 0) - (record.dailyProfit.loss || 0) | number:'1.0-0' }} ₹
+            </p>
+          </div>
+        </div>
+
+        <!-- Production Items Preview -->
+        <div *ngIf="record.production && record.production.length > 0" class="mb-1.5">
+          <div class="flex flex-wrap gap-1">
+            <span
+              *ngFor="let item of (expandedRecords.has(record.id || '') ? record.production : record.production.slice(0, 3))"
+              class="tag-item"
+            >
+              {{ item.listOfItem }}
+            </span>
+            <span
+              *ngIf="record.production.length > 3"
+              class="tag-item-more"
+              (click)="toggleItemsExpansion(record.id || '')"
+            >
+              {{ expandedRecords.has(record.id || '') ? 'Show Less' : '+' + (record.production.length - 3) + ' more' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Notes Preview -->
+        <div *ngIf="record.notes" class="pt-1.5 border-t border-gray-100">
+          <p class="text-xs line-clamp-2 text-gray-600 leading-relaxed" style="font-size: 10px; line-height: 1.4;">{{ record.notes }}</p>
+        </div>
+        </div>
+      </div>
+
+      <!-- List View -->
+      <div *ngIf="viewMode === 'list'">
+        <!-- Empty State for List View -->
+        <div *ngIf="filteredRecords.length === 0 && records.length === 0" class="list-empty-state">
+          <ion-icon name="calendar" class="list-empty-icon"></ion-icon>
+          <p class="list-empty-title">No records</p>
+          <p class="list-empty-subtitle">Tap "New Record" to start</p>
+        </div>
+
+        <!-- No Search Results for List View -->
+        <div *ngIf="filteredRecords.length === 0 && records.length > 0 && searchQuery" class="list-empty-state">
+          <ion-icon name="search" class="list-empty-icon"></ion-icon>
+          <p class="list-empty-title">No records found</p>
+          <p class="list-empty-subtitle">Try a different search term</p>
+        </div>
+
+        <!-- List View with Records -->
+        <div *ngIf="filteredRecords.length > 0" class="list-view-container">
+          <div class="list-view-table">
+            <!-- Table Header -->
+            <div class="list-view-header rounded-t-lg">
+              <div class="list-view-row header-row">
+                <div class="list-col date-col">Date</div>
+                <div class="list-col chains-col">Chains</div>
+                <div class="list-col expense-col">Expense</div>
+                <div class="list-col income-col">Income</div>
+                <div class="list-col expected-col">Expected</div>
+                <div class="list-col back-col">Back</div>
+                <div class="list-col net-col">Net</div>
+                <div class="list-col actions-col">Actions</div>
+              </div>
+            </div>
+
+            <!-- Table Body -->
+            <div class="list-view-body">
+              <div
+                *ngFor="let record of filteredRecords; trackBy: trackByRecordId; let last = last"
+                class="list-view-row data-row animate-fade-in"
+                [class.rounded-b-lg]="last"
+              >
+              <div class="list-col date-col" [class.saturday-date]="isSaturday(record.date)" [class.sunday-date]="isSunday(record.date)">
+                <div class="list-cell-content">
+                  <div class="list-cell-primary">{{ formatDate(record.date) }}</div>
+                </div>
+              </div>
+              <div class="list-col chains-col">
+                <div class="list-cell-content">
+                  <div class="list-cell-value">{{ record.chains | number:'1.0-0' }} ₹</div>
+                </div>
+              </div>
+              <div class="list-col expense-col">
+                <div class="list-cell-content">
+                  <div class="list-cell-value">{{ getTotalExpense(record) | number:'1.0-0' }} ₹</div>
+                </div>
+              </div>
+              <div class="list-col income-col">
+                <div class="list-cell-content">
+                  <div class="list-cell-value">{{ getTotalIncome(record) | number:'1.0-0' }} ₹</div>
+                </div>
+              </div>
+              <div class="list-col expected-col">
+                <div class="list-cell-content">
+                  <div class="list-cell-value">{{ record.expectedIncome | number:'1.0-0' }} ₹</div>
+                </div>
+              </div>
+              <div class="list-col back-col">
+                <div class="list-cell-content">
+                  <div class="list-cell-value">{{ record.backMoneyInBag | number:'1.0-0' }} ₹</div>
+                </div>
+              </div>
+              <div class="list-col net-col">
+                <div class="list-cell-content">
+                  <div class="list-cell-value" [ngClass]="(record.dailyProfit.profit || 0) - (record.dailyProfit.loss || 0) >= 0 ? 'text-green-600' : 'text-red-600'">
+                    {{ (record.dailyProfit.profit || 0) - (record.dailyProfit.loss || 0) | number:'1.0-0' }} ₹
+                  </div>
+                </div>
+              </div>
+              <div class="list-col actions-col">
+                <div class="list-cell-content">
+                  <div class="list-actions">
+                    <ion-button
+                      (click)="editRecord(record.id)"
+                      fill="clear"
+                      size="small"
+                      style="--color: #0066CC;"
+                      class="list-action-btn"
+                      [disabled]="!record.id"
+                    >
+                      <ion-icon name="create" slot="icon-only" style="font-size: 14px;"></ion-icon>
+                    </ion-button>
+                    <ion-button
+                      (click)="deleteRecord(record.id)"
+                      fill="clear"
+                      size="small"
+                      style="--color: #ef4444;"
+                      class="list-action-btn"
+                      [disabled]="!record.id"
+                    >
+                      <ion-icon name="trash" slot="icon-only" style="font-size: 14px;"></ion-icon>
+                    </ion-button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

@@ -1,0 +1,309 @@
+ion-content {
+  --background: #f5f7fa !important;
+  background: #f5f7fa !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --padding-start: 0.75rem;
+  --padding-end: 0.75rem;
+  --padding-top: 0.75rem;
+  --padding-bottom: 2rem;
+}
+
+// Light mode styles - Force light colors when not in dark mode
+body:not(.dark) .bg-white,
+body:not(.dark) ion-content .bg-white,
+body:not(.dark) app-settings .bg-white,
+body:not(.dark) app-settings ion-content .bg-white {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+body:not(.dark) .text-gray-900,
+body:not(.dark) ion-content .text-gray-900,
+body:not(.dark) app-settings .text-gray-900,
+body:not(.dark) app-settings ion-content .text-gray-900 {
+  color: #1f2937 !important;
+}
+
+body:not(.dark) .text-gray-600,
+body:not(.dark) ion-content .text-gray-600,
+body:not(.dark) app-settings .text-gray-600,
+body:not(.dark) app-settings ion-content .text-gray-600 {
+  color: #4b5563 !important;
+}
+
+body:not(.dark) .text-gray-500,
+body:not(.dark) ion-content .text-gray-500,
+body:not(.dark) app-settings .text-gray-500,
+body:not(.dark) app-settings ion-content .text-gray-500 {
+  color: #6b7280 !important;
+}
+
+body:not(.dark) .text-gray-400,
+body:not(.dark) ion-content .text-gray-400,
+body:not(.dark) app-settings .text-gray-400,
+body:not(.dark) app-settings ion-content .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+// Ensure light mode content background
+body:not(.dark) ion-content,
+body:not(.dark) app-settings ion-content {
+  --background: #f5f7fa !important;
+  background: #f5f7fa !important;
+}
+
+// Override any dark mode classes in light mode
+body:not(.dark) .dark\:bg-gray-800 {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+body:not(.dark) .dark\:text-white {
+  color: #1f2937 !important;
+}
+
+body:not(.dark) .dark\:text-gray-400 {
+  color: #4b5563 !important;
+}
+
+ion-header {
+  ion-toolbar {
+    --background: #0066CC !important;
+    background: #0066CC !important;
+    --color: white;
+    --border-width: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+    min-height: 56px;
+    padding: 0;
+  }
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+  background: transparent;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.navbar-back-btn {
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    --background: rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  &:active {
+    --background: rgba(255, 255, 255, 0.15) !important;
+  }
+}
+
+.navbar-title {
+  margin: 0;
+  padding: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.2;
+}
+
+.settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  
+  &:hover {
+    background-color: #f9fafb;
+    border-color: #e5e7eb;
+  }
+  
+  &:active {
+    background-color: #f3f4f6;
+  }
+  
+  // Disable hover for items with cursor: default
+  &[style*="cursor: default"],
+  &[style*="cursor:default"],
+  &.no-hover {
+    &:hover {
+      background-color: transparent !important;
+      border-color: transparent !important;
+    }
+    
+    &:active {
+      background-color: transparent !important;
+    }
+  }
+  
+  &.danger-item {
+    &:hover {
+      background-color: #fef2f2;
+      border-color: #fecaca;
+    }
+    
+    &:active {
+      background-color: #fee2e2;
+    }
+  }
+}
+
+body.dark .settings-item {
+  &:hover {
+    background-color: #374151;
+    border-color: #4b5563;
+  }
+  
+  &:active {
+    background-color: #4b5563;
+  }
+  
+  // Disable hover for items with cursor: default in dark mode
+  &[style*="cursor: default"],
+  &[style*="cursor:default"],
+  &.no-hover {
+    &:hover {
+      background-color: transparent !important;
+      border-color: transparent !important;
+    }
+    
+    &:active {
+      background-color: transparent !important;
+    }
+  }
+  
+  &.danger-item {
+    &:hover {
+      background-color: #7f1d1d;
+      border-color: #991b1b;
+    }
+    
+    &:active {
+      background-color: #991b1b;
+    }
+  }
+}
+
+body.dark ion-content {
+  --background: #1a1a1a !important;
+  background: #1a1a1a !important;
+}
+
+ion-content.dark-content {
+  --background: #1a1a1a !important;
+  background: #1a1a1a !important;
+}
+
+// Dark mode overrides
+body.dark .bg-white {
+  background-color: #1f2937 !important;
+  background: #1f2937 !important;
+}
+
+body.dark .dark\:bg-gray-800 {
+  background-color: #1f2937 !important;
+  background: #1f2937 !important;
+}
+
+body.dark .text-gray-900,
+body.dark .dark\:text-white {
+  color: #ffffff !important;
+}
+
+body.dark .text-gray-600,
+body.dark .dark\:text-gray-400 {
+  color: #9ca3af !important;
+}
+
+body.dark .text-gray-500,
+body.dark .dark\:text-gray-500 {
+  color: #6b7280 !important;
+}
+
+// Theme Mode Container Styles
+.theme-mode-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.theme-mode-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.theme-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  background-color: rgba(0, 102, 204, 0.02);
+  
+  &:hover {
+    background-color: rgba(0, 102, 204, 0.05);
+    border-color: rgba(0, 102, 204, 0.2);
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    background-color: rgba(0, 102, 204, 0.1);
+    transform: translateY(0);
+  }
+  
+  ion-toggle {
+    --handle-width: 20px;
+    --handle-height: 20px;
+    --track-width: 40px;
+    --track-height: 22px;
+  }
+}
+
+body.dark .theme-option {
+  background-color: rgba(59, 130, 246, 0.05);
+  
+  &:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+  
+  &:active {
+    background-color: rgba(59, 130, 246, 0.15);
+  }
+}
+
+.theme-status {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  margin-top: 0.25rem;
+  background-color: rgba(0, 102, 204, 0.05);
+  border-radius: 0.5rem;
+  border-left: 3px solid #0066CC;
+}
+
+body.dark .theme-status {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-left-color: #3b82f6;
+}
+

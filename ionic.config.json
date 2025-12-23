@@ -1,0 +1,7 @@
+{
+  "name": "milind-Project",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

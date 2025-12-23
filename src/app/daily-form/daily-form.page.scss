@@ -1,0 +1,2533 @@
+// Professional minimal design - Black, White, Light Gray
+* {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Alert/Modal Styling - Light Mode with Soft Rounded Corners
+::ng-deep {
+  .alert-wrapper {
+    border-radius: 1rem !important;
+    overflow: hidden;
+    background: white !important;
+    --background: white !important;
+  }
+  
+  .alert-head {
+    border-radius: 1rem 1rem 0 0 !important;
+    padding: 1.25rem 1.25rem 0.75rem !important;
+    background: white !important;
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+  
+  .alert-title {
+    font-size: 1.125rem !important;
+    font-weight: 700 !important;
+    color: #1f2937 !important;
+    --color: #1f2937 !important;
+  }
+  
+  .alert-message {
+    padding: 0.75rem 1.25rem !important;
+    font-size: 0.9375rem !important;
+    line-height: 1.5 !important;
+    color: #4b5563 !important;
+    --color: #4b5563 !important;
+    background: white !important;
+  }
+  
+  .alert-button-group {
+    border-radius: 0 0 1rem 1rem !important;
+    padding: 0.5rem !important;
+    background: white !important;
+    border-top: 1px solid #e5e7eb !important;
+  }
+  
+  .alert-button {
+    border-radius: 0.75rem !important;
+    margin: 0.25rem !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    background: transparent !important;
+    text-align: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .alert-button .button-inner,
+  .alert-button .button-text,
+  .alert-button::part(native),
+  .alert-button span,
+  .alert-button * {
+    text-align: center !important;
+    justify-content: center !important;
+    align-items: center !important;
+    display: flex !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+  }
+  
+  // Cancel button styling (secondary)
+  .alert-button.alert-button-role-cancel,
+  .alert-button[role="cancel"] {
+    color: #6b7280 !important;
+    --color: #6b7280 !important;
+  }
+  
+  // Delete/Destructive button styling
+  .alert-button.alert-button-role-destructive,
+  .alert-button[role="destructive"],
+  .alert-button.danger {
+    color: #ef4444 !important;
+    --color: #ef4444 !important;
+    font-weight: 700 !important;
+  }
+  
+  // Secondary button styling
+  .alert-button.secondary {
+    color: #6b7280 !important;
+    --color: #6b7280 !important;
+  }
+  
+  // Alert backdrop/overlay
+  .alert-backdrop {
+    background: rgba(0, 0, 0, 0.5) !important;
+  }
+}
+
+ion-content {
+  --background: #f5f7fa;
+  background: #f5f7fa;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --padding-start: 0.75rem;
+  --padding-end: 0.75rem;
+  --padding-top: 0.75rem;
+  --padding-bottom: 2rem;
+}
+
+ion-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+  padding-top: env(safe-area-inset-top) !important;
+  
+  ion-toolbar {
+    --background: #0066CC !important;
+    background: #0066CC !important;
+    --color: white;
+    --border-width: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+    min-height: 56px;
+    padding: 0;
+  }
+}
+
+// Compact Navbar Styles
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+  background: transparent;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.navbar-back-btn {
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    --background: rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  &:active {
+    --background: rgba(255, 255, 255, 0.15) !important;
+  }
+}
+
+.navbar-title {
+  margin: 0;
+  padding: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.2;
+  width: 100%;
+  flex: 1;
+  overflow: visible;
+  min-width: 0;
+}
+
+.navbar-title-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+
+.navbar-title-main {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.2;
+}
+
+  .navbar-date {
+  font-weight: 600;
+  opacity: 0.95;
+}
+
+.navbar-stats {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 2px;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  width: 100%;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.navbar-stat-item {
+  color: #FFFFFF;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  padding: 3px 7px;
+  border-radius: 5px;
+  font-weight: 700;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  min-width: fit-content;
+  flex-shrink: 0;
+  line-height: 1.2;
+  height: auto;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  
+  &:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.loss-stat {
+  background: rgba(239, 68, 68, 0.35);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  
+  &:hover {
+    background: rgba(239, 68, 68, 0.5);
+    border-color: rgba(239, 68, 68, 0.7);
+  }
+}
+
+.profit-stat {
+  background: rgba(16, 185, 129, 0.35);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  
+  &:hover {
+    background: rgba(16, 185, 129, 0.5);
+    border-color: rgba(16, 185, 129, 0.7);
+  }
+}
+
+.expected-stat {
+  background: rgba(252, 211, 77, 0.4);
+  border: 1px solid rgba(252, 211, 77, 0.6);
+  
+  &:hover {
+    background: rgba(252, 211, 77, 0.55);
+    border-color: rgba(252, 211, 77, 0.75);
+  }
+}
+
+.income-stat {
+  background: rgba(16, 185, 129, 0.35);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  
+  &:hover {
+    background: rgba(16, 185, 129, 0.5);
+    border-color: rgba(16, 185, 129, 0.7);
+  }
+}
+
+.expense-stat {
+  background: rgba(245, 158, 11, 0.35);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  
+  &:hover {
+    background: rgba(245, 158, 11, 0.5);
+    border-color: rgba(245, 158, 11, 0.7);
+  }
+}
+
+.navbar-stat-separator {
+  color: rgba(255, 255, 255, 0.6);
+    font-weight: 400;
+  flex-shrink: 0;
+  font-size: 10px;
+  margin: 0 2px;
+}
+
+.navbar-dates {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 5px;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  line-height: 1.3;
+  padding: 2px 0;
+}
+
+.navbar-date-info {
+  color: rgba(255, 255, 255, 0.95);
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+.navbar-date-separator {
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 400;
+}
+
+// Mobile responsive adjustments for iPhone
+@media (max-width: 480px) {
+  .navbar-title-content {
+    gap: 4px;
+  }
+  
+  .navbar-title-main {
+    font-size: 0.8125rem;
+    gap: 3px;
+  }
+  
+  .navbar-stats {
+    font-size: 10px;
+    gap: 4px;
+    margin-top: 3px;
+  }
+  
+  .navbar-stat-item {
+    padding: 2px 6px;
+    font-size: 10px;
+    border-radius: 4px;
+    line-height: 1.1;
+  }
+  
+  .navbar-stat-separator {
+    font-size: 9px;
+    margin: 0 1px;
+  }
+  
+  .navbar-container {
+    padding: 0.5rem 0.5rem;
+  }
+  
+  .navbar-dates {
+    font-size: 10px;
+    margin-top: 4px;
+    gap: 5px;
+    padding: 2px 0;
+  }
+  
+  .navbar-date-info {
+    font-size: 10px;
+    font-weight: 600;
+  }
+}
+
+// Navbar custom styles
+ion-header {
+  .flex {
+    display: flex;
+  }
+
+  .items-center {
+    align-items: center;
+  }
+
+  .justify-between {
+    justify-content: space-between;
+  }
+
+  .gap-2 {
+    gap: 0.5rem;
+  }
+
+  .gap-2\.5 {
+    gap: 0.625rem;
+  }
+
+  .px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .py-2\.5 {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
+
+  .w-9 {
+    width: 2.25rem;
+  }
+
+  .h-9 {
+    height: 2.25rem;
+  }
+
+  .rounded-lg {
+    border-radius: 0.5rem;
+  }
+
+  .bg-white\/10 {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .text-white {
+    color: white;
+  }
+
+  .text-lg {
+    font-size: 1.125rem;
+  }
+
+  .m-0 {
+    margin: 0;
+  }
+
+  .p-0 {
+    padding: 0;
+  }
+}
+
+// Currency symbol wrapper for amount inputs
+.amount-input-wrapper {
+  position: relative;
+  width: 100%;
+  display: block;
+  overflow: visible !important;
+  
+  ion-input {
+    width: 100%;
+    --padding-end: 24px !important;
+    padding-right: 24px !important;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .currency-symbol {
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: #6b7280 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    pointer-events: none !important;
+    z-index: 999 !important;
+    line-height: 1 !important;
+    user-select: none !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    background: transparent !important;
+    height: auto !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+// Global override to ensure currency symbol is always visible
+::ng-deep .amount-input-wrapper .currency-symbol {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 999 !important;
+}
+
+// Form Input - Compact & Minimal (Extra Small)
+.form-input-compact,
+.form-textarea-compact {
+  --background: white;
+  --color: #1a1a1a;
+  --placeholder-color: #9ca3af;
+  --border-radius: 0.375rem !important;
+  --border-width: 1px;
+  --border-color: #d1d5db;
+  --border-style: solid;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: all 0.15s;
+  overflow: hidden;
+  min-height: auto;
+
+  &::part(native) {
+    font-size: 11px;
+    border-radius: 0.375rem !important;
+    overflow: hidden;
+    line-height: 1.4;
+  }
+
+  &::part(wrapper) {
+    border-radius: 0.375rem !important;
+    overflow: hidden;
+  }
+
+  &::part(container) {
+    border-radius: 0.375rem !important;
+    overflow: hidden;
+  }
+
+  &.item-has-focus {
+    --border-color: #0066CC;
+    border-color: #0066CC;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+  }
+}
+
+// Form Input - RailYatri Style (Clean & Professional)
+.form-input,
+.form-textarea {
+  --background: white;
+  --color: #1a1a1a;
+  --placeholder-color: #9ca3af;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: all 0.2s;
+
+  &::part(native) {
+    font-size: 14px;
+  }
+
+  &.item-has-focus {
+    border-color: #0066CC;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+  }
+}
+
+ion-input,
+ion-textarea {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  --border-radius: 0.5rem !important;
+  --border-width: 1px;
+  --border-color: #d1d5db;
+  --border-style: solid;
+  font-size: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem !important;
+  background: white;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #1a1a1a;
+  transition: all 0.2s;
+  overflow: hidden;
+
+  &::part(native) {
+    border-radius: 0.5rem !important;
+    overflow: hidden;
+  }
+
+  &::part(wrapper) {
+    border-radius: 0.5rem !important;
+    overflow: hidden;
+  }
+
+  &::part(container) {
+    border-radius: 0.5rem !important;
+    overflow: hidden;
+  }
+
+  &::placeholder {
+    color: #9ca3af;
+    font-size: 14px;
+  }
+
+  &.item-has-focus {
+    --border-color: #0066CC;
+    border-color: #0066CC;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+  }
+}
+
+ion-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+// Label styling for form
+label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+  display: block;
+  margin-bottom: 0.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+ion-button {
+  --border-radius: 0.5rem;
+  font-weight: 600;
+  text-transform: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  &.button-solid {
+    box-shadow: 0 2px 6px rgba(0, 102, 204, 0.3);
+    transition: all 0.2s;
+
+    &:active {
+      transform: scale(0.98);
+      box-shadow: 0 1px 3px rgba(0, 102, 204, 0.2);
+    }
+  }
+
+  &[disabled] {
+    opacity: 0.5;
+  }
+}
+
+// Form Section - Compact & Minimal
+.form-section {
+  margin-bottom: 0.25rem;
+  transition: all 0.15s;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+
+.accordion-content {
+  animation: slideDown 0.3s ease-out;
+  overflow: hidden;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 2000px;
+  }
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.accordion-icon {
+  font-size: 20px !important;
+  color: #0066CC !important;
+  font-weight: normal;
+  transition: transform 0.2s ease;
+  min-width: 20px;
+  display: inline-block;
+  opacity: 0.8;
+}
+
+.purchase-accordion-icon {
+  color: #991B1B !important;
+}
+
+.section-header {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  background: #E6F2FF;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: rgba(0, 102, 204, 0.1) !important;
+  }
+  
+  &:active {
+    background-color: rgba(0, 102, 204, 0.15) !important;
+  }
+}
+
+// Production Item Picker Styling
+::ng-deep {
+  .production-item-picker {
+    --background: white !important;
+    --backdrop-opacity: 0.5;
+    
+    .action-sheet-container {
+      background: white !important;
+    }
+    
+    .action-sheet-title {
+      background: white !important;
+      color: #1a1a1a !important;
+      font-weight: 700 !important;
+      font-size: 16px !important;
+    }
+    
+    .action-sheet-button {
+      text-align: left;
+      font-size: 14px;
+      --background: white !important;
+      --color: #1a1a1a;
+      border-bottom: 1px solid #e5e7eb;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+    
+    .action-sheet-button.ion-activatable {
+      --color: #1a1a1a;
+      --background-hover: #f3f4f6;
+      --background-activated: #e5e7eb;
+    }
+    
+    // Target ONLY the create new option button - multiple selectors for reliability
+    .action-sheet-button[data-value="__CREATE_NEW__"],
+    .action-sheet-button.create-new-action-button,
+    .action-sheet-button[data-value*="CREATE_NEW"],
+    button[data-value="__CREATE_NEW__"],
+    .action-sheet-group .action-sheet-button[data-value="__CREATE_NEW__"] {
+      --color: #0066CC !important;
+      color: #0066CC !important;
+      font-weight: 600 !important;
+      --background-hover: #E6F2FF !important;
+      --background-activated: #B3D9FF !important;
+      
+      .button-inner {
+        color: #0066CC !important;
+        --color: #0066CC !important;
+      }
+      
+      .button-text {
+        color: #0066CC !important;
+        --color: #0066CC !important;
+    }
+    
+      // Shadow DOM support
+      &::part(native) {
+        color: #0066CC !important;
+      }
+      
+      // Target all nested text elements
+      span,
+      div {
+        color: #0066CC !important;
+      }
+    }
+    
+    // Ensure regular production items stay gray (not blue) - explicitly reset
+    // Exclude last-child (cancel button) and create new button
+    .action-sheet-button:not([data-value="__CREATE_NEW__"]):not(.create-new-action-button):not([role="cancel"]):not(.cancel-action-button):not(:last-child) {
+      --color: #1a1a1a !important;
+      color: #1a1a1a !important;
+      font-weight: normal !important;
+      --background-hover: #f3f4f6 !important;
+      --background-activated: #e5e7eb !important;
+    }
+    
+    // Cancel button styling - make it red
+    // Target last button (which is typically the cancel button in Ionic action sheets)
+    .action-sheet-button:last-child,
+    .cancel-action-button,
+    .action-sheet-button[role="cancel"],
+    .action-sheet-button.ion-activatable[role="cancel"],
+    .action-sheet-group .action-sheet-button:last-child {
+      --color: #ef4444 !important;
+      color: #ef4444 !important;
+      font-weight: 600 !important;
+      --background-hover: #fef2f2 !important;
+      --background-activated: #fee2e2 !important;
+      
+      .button-inner {
+        color: #ef4444 !important;
+      }
+      
+      .button-text {
+        color: #ef4444 !important;
+      }
+      
+      // Shadow DOM support
+      &::part(native) {
+        color: #ef4444 !important;
+      }
+    }
+    
+    // Ensure cancel button text is red even in nested elements
+    .action-sheet-button:last-child .button-inner,
+    .action-sheet-button:last-child .button-text,
+    .action-sheet-button:last-child .button-inner .button-text,
+    .action-sheet-button[role="cancel"] .button-inner,
+    .action-sheet-button[role="cancel"] .button-text {
+      color: #ef4444 !important;
+      --color: #ef4444 !important;
+    }
+    
+    // Override any default styling for the last button (Cancel)
+    .action-sheet-button:last-child:not([data-value="__CREATE_NEW__"]) {
+      --color: #ef4444 !important;
+      color: #ef4444 !important;
+      
+      &::part(native) {
+        color: #ef4444 !important;
+      }
+      
+      * {
+        color: #ef4444 !important;
+      }
+    }
+  }
+  
+  // Expense Item Picker Styling (same as production)
+  .expense-item-picker {
+    --background: white !important;
+    --backdrop-opacity: 0.5;
+    
+    .action-sheet-container {
+      background: white !important;
+    }
+    
+    .action-sheet-title {
+      background: white !important;
+      color: #1a1a1a !important;
+      font-weight: 700 !important;
+      font-size: 16px !important;
+    }
+    
+    .action-sheet-button {
+      text-align: left;
+      font-size: 14px;
+      --background: white !important;
+      --color: #1a1a1a;
+      border-bottom: 1px solid #e5e7eb;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+    
+    .action-sheet-button.ion-activatable {
+      --color: #1a1a1a;
+      --background-hover: #f3f4f6;
+      --background-activated: #e5e7eb;
+    }
+    
+    // Target ONLY the create new option button
+    .action-sheet-button[data-value="__CREATE_NEW__"],
+    .action-sheet-button.create-new-action-button,
+    .action-sheet-button[data-value*="CREATE_NEW"],
+    button[data-value="__CREATE_NEW__"],
+    .action-sheet-group .action-sheet-button[data-value="__CREATE_NEW__"] {
+      --color: #0066CC !important;
+      color: #0066CC !important;
+      font-weight: 600 !important;
+      --background-hover: #E6F2FF !important;
+      --background-activated: #B3D9FF !important;
+      
+      .button-inner {
+        color: #0066CC !important;
+        --color: #0066CC !important;
+    }
+    
+      .button-text {
+        color: #0066CC !important;
+        --color: #0066CC !important;
+      }
+      
+      &::part(native) {
+        color: #0066CC !important;
+      }
+      
+      span,
+      div {
+        color: #0066CC !important;
+      }
+    }
+    
+    // Ensure regular expense items stay gray (not blue)
+    .action-sheet-button:not([data-value="__CREATE_NEW__"]):not(.create-new-action-button):not([role="cancel"]):not(.cancel-action-button):not(:last-child) {
+      --color: #1a1a1a !important;
+      color: #1a1a1a !important;
+      font-weight: normal !important;
+      --background-hover: #f3f4f6 !important;
+      --background-activated: #e5e7eb !important;
+    }
+    
+    // Cancel button styling - make it red
+    .action-sheet-button:last-child,
+    .cancel-action-button,
+    .action-sheet-button[role="cancel"],
+    .action-sheet-button.ion-activatable[role="cancel"],
+    .action-sheet-group .action-sheet-button:last-child {
+      --color: #ef4444 !important;
+      color: #ef4444 !important;
+      font-weight: 600 !important;
+      --background-hover: #fef2f2 !important;
+      --background-activated: #fee2e2 !important;
+      
+      .button-inner {
+      color: #ef4444 !important;
+    }
+    
+      .button-text {
+        color: #ef4444 !important;
+      }
+      
+      &::part(native) {
+        color: #ef4444 !important;
+      }
+    }
+    
+    // Ensure cancel button text is red even in nested elements
+    .action-sheet-button:last-child .button-inner,
+    .action-sheet-button:last-child .button-text,
+    .action-sheet-button:last-child .button-inner .button-text,
+    .action-sheet-button[role="cancel"] .button-inner,
+    .action-sheet-button[role="cancel"] .button-text {
+      color: #ef4444 !important;
+      --color: #ef4444 !important;
+    }
+    
+    // Override any default styling for the last button (Cancel)
+    .action-sheet-button:last-child:not([data-value="__CREATE_NEW__"]) {
+      --color: #ef4444 !important;
+      color: #ef4444 !important;
+      
+      &::part(native) {
+        color: #ef4444 !important;
+      }
+      
+      * {
+        color: #ef4444 !important;
+      }
+    }
+  }
+  
+  // Income Item Picker Styling (same as production and expense)
+  .purchase-item-picker {
+    --background: white !important;
+    --backdrop-opacity: 0.5;
+    
+    .action-sheet-container {
+      background: white !important;
+    }
+    
+    .action-sheet-title {
+      background: white !important;
+      color: #1a1a1a !important;
+      font-weight: 700 !important;
+      font-size: 16px !important;
+    }
+    
+    .action-sheet-button {
+      text-align: left;
+      font-size: 14px;
+      --background: white !important;
+      --color: #1a1a1a !important;
+      color: #1a1a1a !important;
+      border-bottom: 1px solid #e5e7eb;
+      
+      .button-inner {
+        color: #1a1a1a !important;
+        --color: #1a1a1a !important;
+      }
+      
+      .button-text {
+        color: #1a1a1a !important;
+        --color: #1a1a1a !important;
+      }
+      
+      &::part(native) {
+        color: #1a1a1a !important;
+      }
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+    
+    .action-sheet-button.ion-activatable {
+      --color: #1a1a1a !important;
+      color: #1a1a1a !important;
+      --background-hover: #f3f4f6;
+      --background-activated: #e5e7eb;
+      
+      .button-inner {
+        color: #1a1a1a !important;
+        --color: #1a1a1a !important;
+      }
+      
+      .button-text {
+        color: #1a1a1a !important;
+        --color: #1a1a1a !important;
+      }
+    }
+    
+    // Target ONLY the create new option button
+    .action-sheet-button[data-value="__CREATE_NEW__"],
+    .action-sheet-button.create-new-action-button,
+    .action-sheet-button[data-value*="CREATE_NEW"],
+    button[data-value="__CREATE_NEW__"],
+    .action-sheet-group .action-sheet-button[data-value="__CREATE_NEW__"] {
+      --color: #0066CC !important;
+      color: #0066CC !important;
+      font-weight: 600 !important;
+      --background-hover: #E6F2FF !important;
+      --background-activated: #B3D9FF !important;
+      
+      .button-inner {
+        color: #0066CC !important;
+        --color: #0066CC !important;
+      }
+      
+      .button-text {
+        color: #0066CC !important;
+        --color: #0066CC !important;
+      }
+      
+      &::part(native) {
+        color: #0066CC !important;
+      }
+      
+      span,
+      div {
+        color: #0066CC !important;
+      }
+    }
+    
+    // Cancel button styling
+    .action-sheet-button:last-child,
+    .cancel-action-button,
+    .action-sheet-button[role="cancel"],
+    .action-sheet-button.ion-activatable[role="cancel"],
+    .action-sheet-group .action-sheet-button:last-child {
+      --color: #ef4444 !important;
+      color: #ef4444 !important;
+      font-weight: 600 !important;
+      --background-hover: #fef2f2 !important;
+      --background-activated: #fee2e2 !important;
+      
+      .button-inner {
+        color: #ef4444 !important;
+      }
+      
+      .button-text {
+        color: #ef4444 !important;
+      }
+      
+      &::part(native) {
+        color: #ef4444 !important;
+      }
+    }
+    
+    /* Dark mode styles for purchase item picker */
+    body.dark & {
+      --background: #1f2937 !important;
+      
+      .action-sheet-container {
+        background: #1f2937 !important;
+      }
+      
+      .action-sheet-title {
+        background: #1f2937 !important;
+        color: #ffffff !important;
+      }
+      
+      .action-sheet-button {
+        --background: #1f2937 !important;
+        background: #1f2937 !important;
+        --color: #ffffff !important;
+        color: #ffffff !important;
+        border-bottom-color: #374151 !important;
+        
+        .button-inner {
+          color: #ffffff !important;
+          --color: #ffffff !important;
+        }
+        
+        .button-text {
+          color: #ffffff !important;
+          --color: #ffffff !important;
+        }
+        
+        &::part(native) {
+          color: #ffffff !important;
+        }
+      }
+      
+      .action-sheet-button.ion-activatable {
+        --color: #ffffff !important;
+        color: #ffffff !important;
+        --background-hover: #374151 !important;
+        --background-activated: #4b5563 !important;
+        
+        .button-inner {
+          color: #ffffff !important;
+          --color: #ffffff !important;
+        }
+        
+        .button-text {
+          color: #ffffff !important;
+          --color: #ffffff !important;
+        }
+      }
+      
+      // Create new button in dark mode
+      .action-sheet-button[data-value="__CREATE_NEW__"],
+      .action-sheet-button.create-new-action-button,
+      .action-sheet-button[data-value*="CREATE_NEW"] {
+        --color: #60a5fa !important;
+        color: #60a5fa !important;
+        --background-hover: #1e3a8a !important;
+        --background-activated: #1e40af !important;
+        
+        .button-inner {
+          color: #60a5fa !important;
+          --color: #60a5fa !important;
+        }
+        
+        .button-text {
+          color: #60a5fa !important;
+          --color: #60a5fa !important;
+        }
+      }
+      
+      // Cancel button in dark mode
+      .action-sheet-button:last-child,
+      .action-sheet-button[role="cancel"] {
+        --color: #f87171 !important;
+        color: #f87171 !important;
+        --background-hover: #7f1d1d !important;
+        --background-activated: #991b1b !important;
+        
+        .button-inner {
+          color: #f87171 !important;
+        }
+        
+        .button-text {
+          color: #f87171 !important;
+        }
+      }
+    }
+  }
+
+  .income-item-picker {
+    --background: white !important;
+    --backdrop-opacity: 0.5;
+    
+    .action-sheet-container {
+      background: white !important;
+    }
+    
+    .action-sheet-title {
+      background: white !important;
+      color: #1a1a1a !important;
+      font-weight: 700 !important;
+      font-size: 16px !important;
+    }
+    
+    .action-sheet-button {
+      text-align: left;
+      font-size: 14px;
+      --background: white !important;
+      --color: #1a1a1a;
+      border-bottom: 1px solid #e5e7eb;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+    
+    .action-sheet-button.ion-activatable {
+      --color: #1a1a1a;
+      --background-hover: #f3f4f6;
+      --background-activated: #e5e7eb;
+    }
+    
+    // Target ONLY the create new option button
+    .action-sheet-button[data-value="__CREATE_NEW__"],
+    .action-sheet-button.create-new-action-button,
+    .action-sheet-button[data-value*="CREATE_NEW"],
+    button[data-value="__CREATE_NEW__"],
+    .action-sheet-group .action-sheet-button[data-value="__CREATE_NEW__"] {
+      --color: #0066CC !important;
+      color: #0066CC !important;
+      font-weight: 600 !important;
+      --background-hover: #E6F2FF !important;
+      --background-activated: #B3D9FF !important;
+      
+      .button-inner {
+        color: #0066CC !important;
+        --color: #0066CC !important;
+      }
+      
+      .button-text {
+        color: #0066CC !important;
+        --color: #0066CC !important;
+      }
+      
+      &::part(native) {
+        color: #0066CC !important;
+      }
+      
+      span,
+      div {
+        color: #0066CC !important;
+      }
+    }
+    
+    // Ensure regular income items stay gray (not blue)
+    .action-sheet-button:not([data-value="__CREATE_NEW__"]):not(.create-new-action-button):not([role="cancel"]):not(.cancel-action-button):not(:last-child) {
+      --color: #1a1a1a !important;
+      color: #1a1a1a !important;
+      font-weight: normal !important;
+      --background-hover: #f3f4f6 !important;
+      --background-activated: #e5e7eb !important;
+    }
+    
+    // Cancel button styling - make it red
+    .action-sheet-button:last-child,
+    .cancel-action-button,
+    .action-sheet-button[role="cancel"],
+    .action-sheet-button.ion-activatable[role="cancel"],
+    .action-sheet-group .action-sheet-button:last-child {
+      --color: #ef4444 !important;
+      color: #ef4444 !important;
+      font-weight: 600 !important;
+      --background-hover: #fef2f2 !important;
+      --background-activated: #fee2e2 !important;
+      
+      .button-inner {
+        color: #ef4444 !important;
+      }
+      
+      .button-text {
+        color: #ef4444 !important;
+      }
+      
+      &::part(native) {
+        color: #ef4444 !important;
+      }
+    }
+    
+    // Ensure cancel button text is red even in nested elements
+    .action-sheet-button:last-child .button-inner,
+    .action-sheet-button:last-child .button-text,
+    .action-sheet-button:last-child .button-inner .button-text,
+    .action-sheet-button[role="cancel"] .button-inner,
+    .action-sheet-button[role="cancel"] .button-text {
+      color: #ef4444 !important;
+      --color: #ef4444 !important;
+    }
+    
+    // Override any default styling for the last button (Cancel)
+    .action-sheet-button:last-child:not([data-value="__CREATE_NEW__"]) {
+      --color: #ef4444 !important;
+      color: #ef4444 !important;
+      
+      &::part(native) {
+        color: #ef4444 !important;
+      }
+      
+      * {
+        color: #ef4444 !important;
+      }
+    }
+  }
+  
+  // Global action sheet cancel button styling (fallback)
+  .action-sheet-button:last-child {
+    --color: #ef4444 !important;
+    color: #ef4444 !important;
+    
+    .button-inner,
+    .button-text {
+      color: #ef4444 !important;
+    }
+  }
+}
+
+// Global Action Sheet Styling (outside production-item-picker for higher specificity)
+::ng-deep {
+  // Cancel button styling
+  .action-sheet-button:last-child {
+    --color: #ef4444 !important;
+    color: #ef4444 !important;
+    font-weight: 600 !important;
+    
+    .button-inner,
+    .button-text {
+      color: #ef4444 !important;
+    }
+    
+    &::part(native) {
+      color: #ef4444 !important;
+    }
+  }
+  
+  // Create new item button styling
+  .action-sheet-button[data-value="__CREATE_NEW__"] {
+    --color: #0066CC !important;
+    color: #0066CC !important;
+    font-weight: 600 !important;
+    
+    .button-inner,
+    .button-text {
+      color: #0066CC !important;
+    }
+    
+    &::part(native) {
+      color: #0066CC !important;
+    }
+  }
+}
+
+// Profit Display - Compact & Clean Design
+.profit-display-compact {
+  background: white;
+  background-color: white;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  
+  // Dark mode will override this
+  body.dark & {
+    background: #1f2937 !important;
+    background-color: #1f2937 !important;
+  }
+}
+
+.profit-header-compact {
+  background: #f9fafb;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.625rem 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 40px;
+  
+  // Dark mode will override this
+  body.dark & {
+    background: #111827 !important;
+    background-color: #111827 !important;
+  }
+}
+
+.profit-title-compact {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+}
+
+.profit-cards-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.875rem;
+  
+  .profit-cards-row {
+    display: flex;
+    flex-direction: row;
+    gap: 0.625rem;
+    
+    .profit-card-compact {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+  
+  .profit-card-compact {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.profit-card-compact {
+  background: #f9fafb;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.75rem 0.625rem;
+  text-align: center;
+  transition: all 0.2s ease;
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  // Dark mode will override this
+  body.dark & {
+    background: #111827 !important;
+    background-color: #111827 !important;
+  }
+}
+
+.profit-card-compact-main {
+  background: #f0fdf4;
+  background-color: #f0fdf4;
+  border: 1px solid #10b981;
+  border-width: 1.5px;
+}
+
+.loss-card-compact {
+  background: #fef2f2;
+  background-color: #fef2f2;
+  border: 1px solid #ef4444;
+  border-width: 1.5px;
+  
+  // Dark mode will override this
+  body.dark & {
+    background: #1f2937 !important;
+    background-color: #1f2937 !important;
+    border: 1.5px solid #f87171 !important;
+  }
+}
+
+.profit-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  margin-bottom: 0.5rem;
+}
+
+.profit-label-compact {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.profit-value-compact {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.loss-value-compact {
+  color: #dc2626;
+  font-size: 1.125rem;
+}
+
+.profit-value-compact-main {
+  color: #16a34a;
+  font-size: 1.125rem;
+}
+
+.expected-income-card {
+  background: #E6F2FF;
+  background-color: #E6F2FF;
+  border: 1.5px solid #0066CC;
+  border-color: #0066CC;
+  
+  // Dark mode will override this
+  body.dark & {
+    background: #1f2937 !important;
+    background-color: #1f2937 !important;
+    border: 1.5px solid #60a5fa !important;
+  }
+}
+
+.expected-income-value {
+  color: #0066CC;
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.total-income-card {
+  background: #f0fdf4;
+  background-color: #f0fdf4;
+  border: 1.5px solid #10b981;
+  border-color: #10b981;
+  
+  // Dark mode will override this
+  body.dark & {
+    background: #1f2937 !important;
+    background-color: #1f2937 !important;
+    border: 1.5px solid #10b981 !important;
+  }
+}
+
+.total-income-value {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.total-expense-card {
+  background: #fffbeb;
+  background-color: #fffbeb;
+  border: 1.5px solid #f59e0b;
+  border-color: #f59e0b;
+  
+  // Dark mode will override this
+  body.dark & {
+    background: #1f2937 !important;
+    background-color: #1f2937 !important;
+    border: 1.5px solid #f59e0b !important;
+  }
+}
+
+.total-expense-value {
+  color: #f59e0b;
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.bg-blue-50 {
+  background-color: #E6F2FF;
+}
+
+// Item Card - Compact Design (Extra Small)
+.item-card {
+  margin-bottom: 0.125rem;
+  transition: all 0.15s;
+}
+
+// Loading Animation
+.loader {
+  width: 28px;
+  height: 28px;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #000000;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+.loader-small {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Skeleton Loading Styles
+.skeleton-label {
+  height: 12px;
+  width: 60px;
+  background: linear-gradient(90deg, #e5e7eb 0%, #e5e7eb 30%, #f9fafb 40%, #ffffff 50%, #f9fafb 60%, #e5e7eb 70%, #e5e7eb 100%);
+  background-size: 300% 100%;
+  border-radius: 0.25rem;
+  margin-bottom: 0.5rem;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite;
+}
+
+.skeleton-label-small {
+  height: 10px;
+  width: 40px;
+  background: linear-gradient(90deg, #e5e7eb 0%, #e5e7eb 30%, #f9fafb 40%, #ffffff 50%, #f9fafb 60%, #e5e7eb 70%, #e5e7eb 100%);
+  background-size: 300% 100%;
+  border-radius: 0.25rem;
+  margin-bottom: 0.5rem;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite;
+}
+
+.skeleton-input {
+  height: 32px;
+  width: 100%;
+  background: linear-gradient(90deg, #e5e7eb 0%, #e5e7eb 30%, #f9fafb 40%, #ffffff 50%, #f9fafb 60%, #e5e7eb 70%, #e5e7eb 100%);
+  background-size: 300% 100%;
+  border-radius: 0.375rem;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite;
+}
+
+.skeleton-input-small {
+  height: 28px;
+  width: 100%;
+  background: linear-gradient(90deg, #e5e7eb 0%, #e5e7eb 30%, #f9fafb 40%, #ffffff 50%, #f9fafb 60%, #e5e7eb 70%, #e5e7eb 100%);
+  background-size: 300% 100%;
+  border-radius: 0.375rem;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite;
+}
+
+.skeleton-textarea {
+  height: 60px;
+  width: 100%;
+  background: linear-gradient(90deg, #e5e7eb 0%, #e5e7eb 30%, #f9fafb 40%, #ffffff 50%, #f9fafb 60%, #e5e7eb 70%, #e5e7eb 100%);
+  background-size: 300% 100%;
+  border-radius: 0.375rem;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite;
+}
+
+.skeleton-title {
+  height: 14px;
+  width: 80px;
+  background: linear-gradient(90deg, #d1d5db 0%, #d1d5db 30%, #e5e7eb 40%, #ffffff 50%, #e5e7eb 60%, #d1d5db 70%, #d1d5db 100%);
+  background-size: 300% 100%;
+  border-radius: 0.25rem;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite;
+}
+
+.skeleton-title-large {
+  height: 16px;
+  width: 150px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.3) 30%, rgba(255, 255, 255, 0.6) 40%, rgba(255, 255, 255, 0.9) 50%, rgba(255, 255, 255, 0.6) 60%, rgba(255, 255, 255, 0.3) 70%, rgba(255, 255, 255, 0.3) 100%);
+  background-size: 300% 100%;
+  border-radius: 0.25rem;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite;
+}
+
+.skeleton-icon {
+  height: 20px;
+  width: 20px;
+  background: linear-gradient(90deg, #d1d5db 0%, #d1d5db 30%, #e5e7eb 40%, #ffffff 50%, #e5e7eb 60%, #d1d5db 70%, #d1d5db 100%);
+  background-size: 300% 100%;
+  border-radius: 0.25rem;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite;
+}
+
+.skeleton-icon-small {
+  height: 16px;
+  width: 16px;
+  background: linear-gradient(90deg, #e5e7eb 0%, #e5e7eb 30%, #f9fafb 40%, #ffffff 50%, #f9fafb 60%, #e5e7eb 70%, #e5e7eb 100%);
+  background-size: 300% 100%;
+  border-radius: 0.25rem;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite;
+}
+
+.skeleton-icon-large {
+  height: 32px;
+  width: 32px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.2) 30%, rgba(255, 255, 255, 0.5) 40%, rgba(255, 255, 255, 0.8) 50%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0.2) 70%, rgba(255, 255, 255, 0.2) 100%);
+  background-size: 300% 100%;
+  border-radius: 0.5rem;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite;
+}
+
+.skeleton-badge {
+  height: 12px;
+  width: 20px;
+  background: linear-gradient(90deg, #e5e7eb 0%, #e5e7eb 30%, #f9fafb 40%, #ffffff 50%, #f9fafb 60%, #e5e7eb 70%, #e5e7eb 100%);
+  background-size: 300% 100%;
+  border-radius: 0.25rem;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite;
+}
+
+.skeleton-button {
+  height: 40px;
+  width: 100%;
+  background: linear-gradient(90deg, #d1d5db 0%, #d1d5db 30%, #e5e7eb 40%, #ffffff 50%, #e5e7eb 60%, #d1d5db 70%, #d1d5db 100%);
+  background-size: 300% 100%;
+  border-radius: 0.5rem;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite;
+}
+
+.skeleton-profit-card {
+  height: 100px;
+  width: 100%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.15) 30%, rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.4) 60%, rgba(255, 255, 255, 0.15) 70%, rgba(255, 255, 255, 0.15) 100%);
+  background-size: 300% 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite;
+}
+
+// Additional Skeleton Styles
+.skeleton-container {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.skeleton-card {
+  animation: skeleton-pulse 2s ease-in-out infinite;
+}
+
+.skeleton-item-card {
+  animation: skeleton-pulse 2.2s ease-in-out infinite;
+}
+
+.skeleton-border {
+  border-color: #e5e7eb !important;
+}
+
+.skeleton-title-wide {
+  width: 180px;
+}
+
+.skeleton-label-wide {
+  width: 120px;
+}
+
+.skeleton-value-medium {
+  height: 20px;
+  width: 80px;
+  background: linear-gradient(90deg, #e5e7eb 0%, #e5e7eb 30%, #f9fafb 40%, #ffffff 50%, #f9fafb 60%, #e5e7eb 70%, #e5e7eb 100%);
+  background-size: 300% 100%;
+  border-radius: 0.25rem;
+  margin-top: 0.25rem;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite;
+}
+
+.skeleton-button-outline {
+  height: 40px;
+  width: 100%;
+  background: linear-gradient(90deg, #e5e7eb 0%, #e5e7eb 30%, #f9fafb 40%, #ffffff 50%, #f9fafb 60%, #e5e7eb 70%, #e5e7eb 100%);
+  background-size: 300% 100%;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite;
+}
+
+.skeleton-profit-wrapper {
+  background: transparent;
+}
+
+.skeleton-profit-card-compact {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  animation: skeleton-pulse 2s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+// Enhanced mirror reflection effect for skeleton
+.skeleton-label,
+.skeleton-label-small,
+.skeleton-label-tiny,
+.skeleton-input,
+.skeleton-input-small,
+.skeleton-textarea,
+.skeleton-title,
+.skeleton-title-large,
+.skeleton-icon,
+.skeleton-icon-small,
+.skeleton-icon-large,
+.skeleton-badge,
+.skeleton-button,
+.skeleton-value-medium,
+.skeleton-button-outline,
+.skeleton-title-wide,
+.skeleton-label-wide {
+  background: linear-gradient(
+    90deg,
+    #e5e7eb 0%,
+    #e5e7eb 30%,
+    #f9fafb 40%,
+    #ffffff 50%,
+    #f9fafb 60%,
+    #e5e7eb 70%,
+    #e5e7eb 100%
+  ) !important;
+  background-size: 300% 100% !important;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite !important;
+}
+
+@keyframes skeleton-shimmer-mirror {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+// Fade in animation
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Slide in animation
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// Smooth transitions
+* {
+  transition: all 0.2s ease-in-out;
+}
+
+// Better focus states
+ion-input:focus-within,
+ion-textarea:focus-within {
+  transform: translateY(-1px);
+}
+
+// Professional typography
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #000000;
+}
+
+p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+// Section styling
+.bg-gray-50 {
+  background-color: #f9fafb;
+}
+
+.border-gray-200 {
+  border-color: #e5e7eb;
+}
+
+.border-gray-300 {
+  border-color: #d1d5db;
+}
+
+.border-gray-700 {
+  border-color: #374151;
+}
+
+.border-gray-800 {
+  border-color: #1f2937;
+}
+
+.border-gray-900 {
+  border-color: #111827;
+}
+
+// Compact spacing
+.space-y-2 > * + * {
+  margin-top: 0.5rem;
+}
+
+.space-y-1\.5 > * + * {
+  margin-top: 0.375rem;
+}
+
+// Professional grid spacing
+.grid {
+  gap: 0.5rem;
+}
+
+// Input styling improvements
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+// Textarea styling - Clean
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+// Better input focus states
+.form-input:focus-within,
+.form-textarea:focus-within {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.15);
+}
+
+// Toast styling
+.custom-toast {
+  --border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+
+  &::part(button) {
+    font-weight: 600;
+  }
+
+  // Success toast (green)
+  &.toast-success {
+    --background: #10b981;
+    --color: white;
+
+    &::part(button) {
+      color: white;
+    }
+  }
+
+  // Danger toast (red)
+  &.toast-danger {
+    --background: #ef4444;
+    --color: white;
+
+    &::part(button) {
+      color: white;
+    }
+  }
+
+  // Warning toast (orange/yellow)
+  &.toast-warning {
+    --background: #f59e0b;
+    --color: white;
+
+    &::part(button) {
+      color: white;
+    }
+  }
+}
+
+// Rounded corners
+.rounded-xl {
+  border-radius: 0.75rem;
+}
+
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+
+// Shadows
+.shadow-sm {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+// Expense Details Popover Styling
+::ng-deep {
+  .expense-details-popover {
+    --width: 320px;
+    --max-width: 90vw;
+    
+    .popover-content {
+      border-radius: 12px;
+      overflow: hidden;
+    }
+  }
+}
+
+// Dark Mode Styles
+body.dark {
+  ion-content {
+    --background: #1a1a1a !important;
+    background: #1a1a1a !important;
+  }
+
+  ion-content[style*="--background: #f5f5f5"] {
+    --background: #1a1a1a !important;
+    background: #1a1a1a !important;
+  }
+
+  .form-section {
+    background-color: #1f2937 !important;
+    border-color: #374151 !important;
+  }
+
+  .section-header {
+    background: #111827 !important;
+    background-color: #111827 !important;
+    border-bottom-color: #374151 !important;
+    border-bottom: 1px solid #374151 !important;
+    
+    h3 {
+      color: #ffffff !important;
+    }
+    
+    // Override bg-blue-50 class
+    &.bg-blue-50 {
+      background: #111827 !important;
+      background-color: #111827 !important;
+    }
+    
+    &:hover {
+      background: #1f2937 !important;
+      background-color: #1f2937 !important;
+    }
+    
+    &:active {
+      background: #374151 !important;
+      background-color: #374151 !important;
+    }
+  }
+
+  .form-input-compact,
+  .form-textarea-compact,
+  ion-input,
+  ion-textarea {
+    --background: #1f2937 !important;
+    background: #1f2937 !important;
+    --color: #ffffff !important;
+    color: #ffffff !important;
+    --border-color: #4b5563 !important;
+    border-color: #4b5563 !important;
+  }
+  
+  .amount-input-wrapper {
+    .currency-symbol {
+      color: #d1d5db !important;
+      font-size: 12px !important;
+      font-weight: 700 !important;
+      z-index: 100 !important;
+      background: transparent !important;
+    }
+  }
+
+  label {
+    color: #d1d5db !important;
+  }
+
+  .profit-display-compact {
+    background: #1f2937 !important;
+    background-color: #1f2937 !important;
+    border-color: #374151 !important;
+    border: 1px solid #374151 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  // Override white background specifically
+  .profit-display-compact[style*="background"],
+  .profit-display-compact[style*="background-color"] {
+    background: #1f2937 !important;
+    background-color: #1f2937 !important;
+  }
+
+  .profit-header-compact {
+    background: #111827 !important;
+    background-color: #111827 !important;
+    border-bottom: 1px solid #374151 !important;
+    border-bottom-color: #374151 !important;
+    
+    // Override any inline or computed styles
+    &[style*="background"],
+    &[style*="background-color"] {
+      background: #111827 !important;
+      background-color: #111827 !important;
+    }
+    
+    h3,
+    .profit-title-compact {
+      color: #ffffff !important;
+    }
+    
+    ion-icon {
+      color: #60a5fa !important;
+    }
+  }
+
+  .profit-title-compact {
+    color: #ffffff !important;
+  }
+
+  // Ensure h3 inside profit-header is white - multiple selectors for specificity
+  .profit-header-compact h3.profit-title-compact,
+  .profit-header-compact .profit-title-compact,
+  .profit-header-compact h3,
+  h3.profit-title-compact {
+    color: #ffffff !important;
+  }
+  
+  // Override any inline styles or computed styles
+  .profit-header-compact h3[class*="profit-title-compact"],
+  .profit-header-compact h3[class*="profit-title-compact"],
+  body.dark h3.profit-title-compact {
+    color: #ffffff !important;
+  }
+  
+  // Direct child selector
+  .profit-header-compact > h3,
+  .profit-header-compact > .profit-title-compact {
+    color: #ffffff !important;
+  }
+
+  .profit-cards-compact {
+    background: transparent !important;
+  }
+
+  .profit-card-compact {
+    background: #111827 !important;
+    background-color: #111827 !important;
+    border: 1px solid #374151 !important;
+    border-color: #374151 !important;
+    min-height: 70px !important;
+    
+    // Override any inline or computed styles
+    &[style*="background"],
+    &[style*="background-color"] {
+      background: #111827 !important;
+      background-color: #111827 !important;
+    }
+  }
+
+  .profit-label-compact {
+    color: #9ca3af !important;
+  }
+
+  .profit-value-compact {
+    color: #ffffff !important;
+  }
+
+  .loss-card-compact {
+    background: #1f2937 !important;
+    background-color: #1f2937 !important;
+    border: 1.5px solid #f87171 !important;
+    border-color: #f87171 !important;
+    
+    // Override any inline or computed styles
+    &[style*="background"],
+    &[style*="background-color"] {
+      background: #1f2937 !important;
+      background-color: #1f2937 !important;
+    }
+    
+    .profit-label-compact {
+      color: #fca5a5 !important;
+    }
+    
+    .profit-value-compact,
+    .loss-value-compact {
+      color: #ef4444 !important;
+      font-size: 1.125rem !important;
+    }
+    
+    ion-icon {
+      color: #f87171 !important;
+    }
+  }
+
+  .profit-card-compact-main {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    background-color: transparent !important;
+    border: 1.5px solid #10b981 !important;
+    border-color: #10b981 !important;
+    
+    .profit-label-compact {
+      color: rgba(255, 255, 255, 0.95) !important;
+    }
+    
+    .profit-value-compact,
+    .profit-value-compact-main {
+      color: #ffffff !important;
+      font-size: 1.125rem !important;
+    }
+    
+    ion-icon {
+      color: #ffffff !important;
+    }
+  }
+
+  .expected-income-card {
+    background: #1f2937 !important;
+    background-color: #1f2937 !important;
+    border-color: #60a5fa !important;
+    border: 1.5px solid #60a5fa !important;
+    
+    // Override any inline or computed styles
+    &[style*="background"],
+    &[style*="background-color"] {
+      background: #1f2937 !important;
+      background-color: #1f2937 !important;
+    }
+    
+    .profit-label-compact {
+      color: #60a5fa !important;
+    }
+    
+    .profit-value-compact,
+    .expected-income-value {
+      color: #60a5fa !important;
+      font-size: 1.125rem !important;
+    }
+    
+    ion-icon {
+      color: #60a5fa !important;
+    }
+  }
+  
+  .total-income-card {
+    background: #1f2937 !important;
+    background-color: #1f2937 !important;
+    border-color: #10b981 !important;
+    border: 1.5px solid #10b981 !important;
+    
+    &[style*="background"],
+    &[style*="background-color"] {
+      background: #1f2937 !important;
+      background-color: #1f2937 !important;
+    }
+    
+    .profit-label-compact {
+      color: #10b981 !important;
+    }
+    
+    .profit-value-compact,
+    .total-income-value {
+      color: #10b981 !important;
+      font-size: 1.125rem !important;
+    }
+    
+    ion-icon {
+      color: #10b981 !important;
+    }
+  }
+  
+  .total-expense-card {
+    background: #1f2937 !important;
+    background-color: #1f2937 !important;
+    border-color: #f59e0b !important;
+    border: 1.5px solid #f59e0b !important;
+    
+    &[style*="background"],
+    &[style*="background-color"] {
+      background: #1f2937 !important;
+      background-color: #1f2937 !important;
+    }
+    
+    .profit-label-compact {
+      color: #f59e0b !important;
+    }
+    
+    .profit-value-compact,
+    .total-expense-value {
+      color: #f59e0b !important;
+      font-size: 1.125rem !important;
+    }
+    
+    ion-icon {
+      color: #f59e0b !important;
+    }
+  }
+
+  // Purchase section header (red background)
+  .section-header[style*="background: #FEE2E2"] {
+    background: #7f1d1d !important;
+    background-color: #7f1d1d !important;
+    border-color: #991b1b !important;
+    
+    h3 {
+      color: #fca5a5 !important;
+    }
+  }
+
+  // Item cards
+  .item-card {
+    background-color: #111827 !important;
+    border-color: #374151 !important;
+    
+    &.bg-gray-50 {
+      background-color: #111827 !important;
+      background: #111827 !important;
+    }
+  }
+
+  // Accordion icons
+  .accordion-icon {
+    color: #60a5fa !important;
+  }
+
+  .purchase-accordion-icon {
+    color: #fca5a5 !important;
+  }
+
+  // Skeleton loading dark mode with mirror reflection shimmer
+  .skeleton-input,
+  .skeleton-input-small {
+    background: linear-gradient(
+      90deg,
+      #374151 0%,
+      #374151 30%,
+      #4b5563 40%,
+      rgba(255, 255, 255, 0.5) 50%,
+      #4b5563 60%,
+      #374151 70%,
+      #374151 100%
+    ) !important;
+    background-size: 300% 100% !important;
+    animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite !important;
+  }
+
+  .skeleton-textarea {
+    background: linear-gradient(
+      90deg,
+      #374151 0%,
+      #374151 30%,
+      #4b5563 40%,
+      rgba(255, 255, 255, 0.5) 50%,
+      #4b5563 60%,
+      #374151 70%,
+      #374151 100%
+    ) !important;
+    background-size: 300% 100% !important;
+    animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite !important;
+  }
+
+  .skeleton-label,
+  .skeleton-label-small {
+    background: linear-gradient(
+      90deg,
+      #4b5563 0%,
+      #4b5563 30%,
+      #6b7280 40%,
+      rgba(255, 255, 255, 0.6) 50%,
+      #6b7280 60%,
+      #4b5563 70%,
+      #4b5563 100%
+    ) !important;
+    background-size: 300% 100% !important;
+    animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite !important;
+  }
+
+  .skeleton-title,
+  .skeleton-title-large {
+    background: linear-gradient(
+      90deg,
+      #4b5563 0%,
+      #4b5563 30%,
+      #6b7280 40%,
+      rgba(255, 255, 255, 0.6) 50%,
+      #6b7280 60%,
+      #4b5563 70%,
+      #4b5563 100%
+    ) !important;
+    background-size: 300% 100% !important;
+    animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite !important;
+  }
+
+  .skeleton-icon,
+  .skeleton-icon-small,
+  .skeleton-icon-large {
+    background: linear-gradient(
+      90deg,
+      #4b5563 0%,
+      #4b5563 30%,
+      #6b7280 40%,
+      rgba(255, 255, 255, 0.6) 50%,
+      #6b7280 60%,
+      #4b5563 70%,
+      #4b5563 100%
+    ) !important;
+    background-size: 300% 100% !important;
+    animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite !important;
+  }
+
+  .skeleton-badge {
+    background: linear-gradient(
+      90deg,
+      #4b5563 0%,
+      #4b5563 30%,
+      #6b7280 40%,
+      rgba(255, 255, 255, 0.6) 50%,
+      #6b7280 60%,
+      #4b5563 70%,
+      #4b5563 100%
+    ) !important;
+    background-size: 300% 100% !important;
+    animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite !important;
+  }
+
+  .skeleton-button {
+    background: linear-gradient(
+      90deg,
+      #374151 0%,
+      #374151 30%,
+      #4b5563 40%,
+      rgba(255, 255, 255, 0.5) 50%,
+      #4b5563 60%,
+      #374151 70%,
+      #374151 100%
+    ) !important;
+    background-size: 300% 100% !important;
+    animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite !important;
+  }
+
+  .skeleton-profit-card {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.05) 30%,
+      rgba(255, 255, 255, 0.2) 40%,
+      rgba(255, 255, 255, 0.4) 50%,
+      rgba(255, 255, 255, 0.2) 60%,
+      rgba(255, 255, 255, 0.05) 70%,
+      rgba(255, 255, 255, 0.05) 100%
+    ) !important;
+    background-size: 300% 100% !important;
+    border: 1px solid #374151 !important;
+    animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite !important;
+  }
+
+  .skeleton-card {
+    background-color: #1f2937 !important;
+    border-color: #374151 !important;
+  }
+
+  .skeleton-item-card {
+    background-color: #111827 !important;
+    border-color: #374151 !important;
+  }
+
+  .skeleton-border {
+    border-color: #374151 !important;
+  }
+
+  .skeleton-title-wide {
+    background: linear-gradient(
+      90deg,
+      #4b5563 0%,
+      #4b5563 30%,
+      #6b7280 40%,
+      rgba(255, 255, 255, 0.6) 50%,
+      #6b7280 60%,
+      #4b5563 70%,
+      #4b5563 100%
+    ) !important;
+  background-size: 300% 100% !important;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite !important;
+  }
+
+  .skeleton-label-wide {
+    background: linear-gradient(
+      90deg,
+      #4b5563 0%,
+      #4b5563 30%,
+      #6b7280 40%,
+      rgba(255, 255, 255, 0.6) 50%,
+      #6b7280 60%,
+      #4b5563 70%,
+      #4b5563 100%
+    ) !important;
+  background-size: 300% 100% !important;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite !important;
+  }
+
+  .skeleton-value-medium {
+    background: linear-gradient(
+      90deg,
+      #4b5563 0%,
+      #4b5563 30%,
+      #6b7280 40%,
+      rgba(255, 255, 255, 0.6) 50%,
+      #6b7280 60%,
+      #4b5563 70%,
+      #4b5563 100%
+    ) !important;
+  background-size: 300% 100% !important;
+  animation: skeleton-shimmer-mirror 2.5s ease-in-out infinite !important;
+  }
+
+  .skeleton-button-outline {
+    background: linear-gradient(
+      90deg,
+      #374151 0%,
+      #374151 30%,
+      #4b5563 40%,
+      rgba(255, 255, 255, 0.5) 50%,
+      #4b5563 60%,
+      #374151 70%,
+      #374151 100%
+    ) !important;
+    background-size: 200% 100% !important;
+    border-color: #4b5563 !important;
+    animation: skeleton-shimmer-mirror 1.8s ease-in-out infinite !important;
+  }
+
+  .skeleton-profit-card-compact {
+    background: #1f2937 !important;
+    border-color: #374151 !important;
+  }
+}

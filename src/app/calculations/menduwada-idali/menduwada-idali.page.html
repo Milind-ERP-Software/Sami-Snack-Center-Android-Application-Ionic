@@ -1,0 +1,234 @@
+<ion-header class="ion-no-border modern-header">
+  <ion-toolbar class="modern-toolbar" style="--background: #0066CC; background: #0066CC;">
+    <div class="navbar-container">
+      <div class="navbar-left">
+        <ion-button
+          (click)="goBack()"
+          fill="clear"
+          size="small"
+          class="menu-btn"
+        >
+          <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+        </ion-button>
+        <div class="navbar-brand">
+          <div class="brand-text">
+            <h1 class="brand-title">Menduwada/Idali</h1>
+            <p class="brand-subtitle">Calculation</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ion-breadcrumbs>
+      <ion-breadcrumb (click)="goToHome()">
+        <span>Home</span>
+      </ion-breadcrumb>
+      <ion-breadcrumb (click)="goToCalculations()">
+        <span>Calculations</span>
+      </ion-breadcrumb>
+      <ion-breadcrumb>
+        <span>Menduwada/Idali</span>
+      </ion-breadcrumb>
+    </ion-breadcrumbs>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" [fullscreen]="true" style="--background: #f5f5f5;">
+  <div class="max-w-2xl mx-auto space-y-0.5">
+    <!-- Menduwada Calculation -->
+    <div class="item-card bg-gray-50 rounded border border-gray-200 p-0.5">
+      <div class="flex gap-1 items-end">
+        <div class="flex-1">
+          <div class="flex items-center gap-1 mb-0.5">
+            <span class="text-xs font-medium text-gray-600" style="font-size: 10px;">Item #1</span>
+          </div>
+          <ion-input
+            type="text"
+            [value]="'Menduwada'"
+            class="form-input-compact"
+            style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+            [disabled]="true"
+          ></ion-input>
+        </div>
+        <div style="width: 60px;">
+          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Plate</label>
+          <ion-input
+            type="number"
+            [(ngModel)]="menduwadaPlate"
+            placeholder="0"
+            class="form-input-compact"
+            style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+            min="0"
+            step="any"
+            (ionInput)="onMenduwadaPlateChange()"
+            (ionFocus)="selectAllText($event)"
+          ></ion-input>
+        </div>
+        <div style="width: 70px;">
+          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Pieces</label>
+          <ion-input
+            type="number"
+            [(ngModel)]="menduwadaTotalPieces"
+            placeholder="0"
+            class="form-input-compact"
+            style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+            min="0"
+            step="any"
+            (ionInput)="onMenduwadaPiecesChange()"
+            (ionFocus)="selectAllText($event)"
+          ></ion-input>
+        </div>
+        <div style="width: 60px;">
+          <div class="flex items-center gap-1 mb-0.5">
+            <label class="block text-xs font-medium text-gray-600" style="font-size: 10px;">Rate</label>
+            <ion-checkbox
+              [(ngModel)]="menduwadaRateEnabled"
+              (ionChange)="calculate()"
+              style="--size: 12px; --checkbox-background-checked: #0066CC;"
+            ></ion-checkbox>
+          </div>
+          <ion-input
+            type="number"
+            [(ngModel)]="menduwadaRate"
+            placeholder="0"
+            class="form-input-compact"
+            style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+            min="0"
+            step="any"
+            [disabled]="!menduwadaRateEnabled"
+            (ionInput)="calculate()"
+            (ionFocus)="selectAllText($event)"
+          ></ion-input>
+        </div>
+        <div style="width: 85px;">
+          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Amount</label>
+          <div class="amount-input-wrapper">
+            <ion-input
+              type="number"
+              [(ngModel)]="menduwadaAmount"
+              placeholder="0"
+              class="form-input-compact"
+              style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+              min="0"
+              step="any"
+              (ionInput)="onMenduwadaAmountChange()"
+              (ionFocus)="selectAllText($event)"
+            ></ion-input>
+            <span class="currency-symbol">₹</span>
+          </div>
+        </div>
+        <ion-button
+          (click)="resetMenduwada()"
+          fill="clear"
+          size="small"
+          style="--color: #0066CC;"
+          class="h-6 w-6 p-0 mb-0.5"
+        >
+          <ion-icon name="refresh" slot="icon-only" style="font-size: 10px;"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Idali Calculation -->
+    <div class="item-card bg-gray-50 rounded border border-gray-200 p-0.5">
+      <div class="flex gap-1 items-end">
+        <div class="flex-1">
+          <div class="flex items-center gap-1 mb-0.5">
+            <span class="text-xs font-medium text-gray-600" style="font-size: 10px;">Item #2</span>
+          </div>
+          <ion-input
+            type="text"
+            [value]="'Idali'"
+            class="form-input-compact"
+            style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+            [disabled]="true"
+          ></ion-input>
+        </div>
+        <div style="width: 60px;">
+          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Plate</label>
+          <ion-input
+            type="number"
+            [(ngModel)]="idaliPlate"
+            placeholder="0"
+            class="form-input-compact"
+            style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+            min="0"
+            step="any"
+            (ionInput)="onIdaliPlateChange()"
+            (ionFocus)="selectAllText($event)"
+          ></ion-input>
+        </div>
+        <div style="width: 70px;">
+          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Pieces</label>
+          <ion-input
+            type="number"
+            [(ngModel)]="idaliTotalPieces"
+            placeholder="0"
+            class="form-input-compact"
+            style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+            min="0"
+            step="any"
+            (ionInput)="onIdaliPiecesChange()"
+            (ionFocus)="selectAllText($event)"
+          ></ion-input>
+        </div>
+        <div style="width: 60px;">
+          <div class="flex items-center gap-1 mb-0.5">
+            <label class="block text-xs font-medium text-gray-600" style="font-size: 10px;">Rate</label>
+            <ion-checkbox
+              [(ngModel)]="idaliRateEnabled"
+              (ionChange)="calculate()"
+              style="--size: 12px; --checkbox-background-checked: #0066CC;"
+            ></ion-checkbox>
+          </div>
+          <ion-input
+            type="number"
+            [(ngModel)]="idaliRate"
+            placeholder="0"
+            class="form-input-compact"
+            style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+            min="0"
+            step="any"
+            [disabled]="!idaliRateEnabled"
+            (ionInput)="calculate()"
+            (ionFocus)="selectAllText($event)"
+          ></ion-input>
+        </div>
+        <div style="width: 85px;">
+          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Amount</label>
+          <div class="amount-input-wrapper">
+            <ion-input
+              type="number"
+              [(ngModel)]="idaliAmount"
+              placeholder="0"
+              class="form-input-compact"
+              style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+              min="0"
+              step="any"
+              (ionInput)="onIdaliAmountChange()"
+              (ionFocus)="selectAllText($event)"
+            ></ion-input>
+            <span class="currency-symbol">₹</span>
+          </div>
+        </div>
+        <ion-button
+          (click)="resetIdali()"
+          fill="clear"
+          size="small"
+          style="--color: #0066CC;"
+          class="h-6 w-6 p-0 mb-0.5"
+        >
+          <ion-icon name="refresh" slot="icon-only" style="font-size: 10px;"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Total Amount Card -->
+    <div class="item-card bg-white rounded border border-gray-200 p-1 mt-1">
+      <div class="total-card-compact">
+        <div class="total-label-compact">Total Amount</div>
+        <div class="total-value-compact">₹ {{ totalAmount | number:'1.2-2' }}</div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
