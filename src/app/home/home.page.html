@@ -1,5 +1,5 @@
 <ion-header class="ion-no-border modern-header">
-  <ion-toolbar class="modern-toolbar" style="--background: #0066CC; background: #0066CC;">
+  <ion-toolbar class="modern-toolbar" [class.developer-mode]="isDeveloperMode" [style.--background]="isDeveloperMode ? '#10b981' : '#0066CC'" [style.background]="isDeveloperMode ? '#10b981' : '#0066CC'">
     <div class="navbar-container">
       <div class="navbar-left">
         <ion-button
@@ -12,13 +12,27 @@
         </ion-button>
         <div class="navbar-brand">
           <div class="brand-text">
-            <h1 class="brand-title">Sami Snack Center</h1>
-            <p class="brand-subtitle">Business Tracker</p>
+            <div *ngIf="companyLogo" class="brand-logo-wrapper">
+              <img [src]="companyLogo" alt="Company Logo" class="brand-logo" />
+            </div>
+            <div class="brand-text-content">
+              <h1 class="brand-title">{{ companyName }}</h1>
+              <p class="brand-subtitle">Business Tracker</p>
+            </div>
           </div>
         </div>
       </div>
       <div class="navbar-right">
-        <div class="profit-badge" *ngIf="!isLoading && filteredRecords.length > 0">
+        <!-- Profit Badge Skeleton -->
+        <div class="profit-badge skeleton-profit-badge" *ngIf="isLoading || (filteredRecords.length === 0 && records.length > 0)">
+          <div class="skeleton-badge-icon"></div>
+          <div class="badge-content">
+            <div class="skeleton-badge-label"></div>
+            <div class="skeleton-badge-value"></div>
+          </div>
+        </div>
+        <!-- Actual Profit Badge -->
+        <div class="profit-badge" [class.developer-mode]="isDeveloperMode" *ngIf="!isLoading && filteredRecords.length > 0">
           <ion-icon name="trendingUp" class="badge-icon"></ion-icon>
           <div class="badge-content">
             <span class="badge-label">Total Profit</span>
@@ -67,15 +81,24 @@
         <ion-icon name="bag" style="font-size: 20px; color: #0066CC;"></ion-icon>
         <span>Purchase Items</span>
       </div>
+      <div class="drawer-item" (click)="goToNotifications(); closeDrawer()">
+        <ion-icon name="notifications" style="font-size: 20px; color: #0066CC;"></ion-icon>
+        <span>Notifications</span>
+        <span *ngIf="notificationCount > 0" class="menu-badge">{{ notificationCount }}</span>
+      </div>
       <div class="drawer-item" (click)="goToCalculations(); closeDrawer()">
         <ion-icon name="calculator" style="font-size: 20px; color: #0066CC;"></ion-icon>
         <span>Calculations</span>
+      </div>
+      <div class="drawer-item" (click)="goToReports(); closeDrawer()">
+        <ion-icon name="document-text" style="font-size: 20px; color: #0066CC;"></ion-icon>
+        <span>Reports</span>
       </div>
       <div class="drawer-item" (click)="goToSettings(); closeDrawer()">
         <ion-icon name="settings" style="font-size: 20px; color: #0066CC;"></ion-icon>
         <span>Settings</span>
       </div>
-      <div class="drawer-item" style="cursor: default;" (click)="$event.stopPropagation()">
+      <div class="drawer-item" style="cursor: pointer;" (click)="toggleTheme()">
         <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
           <ion-icon [name]="isDarkMode ? 'moon' : 'sunny'" style="font-size: 20px; color: #0066CC;"></ion-icon>
           <span>{{ isDarkMode ? 'Dark Mode' : 'Light Mode' }}</span>
@@ -83,17 +106,18 @@
         <ion-toggle
           [checked]="isDarkMode"
           (ionChange)="toggleTheme()"
+          (click)="$event.stopPropagation()"
           style="--handle-background-checked: #0066CC; --track-background-checked: rgba(0, 102, 204, 0.3);"
         ></ion-toggle>
       </div>
-      <div class="drawer-divider"></div>
-      <div class="drawer-item test-item" (click)="clearLocalStorage()">
+      <div class="drawer-divider" *ngIf="isDeveloperMode"></div>
+      <div class="drawer-item test-item" *ngIf="isDeveloperMode" (click)="clearLocalStorage()">
         <ion-icon name="trash" style="font-size: 20px; color: #f59e0b;"></ion-icon>
         <span>Clear LocalStorage (Test)</span>
       </div>
     </div>
 
-    <div class="drawer-stats">
+    <!-- <div class="drawer-stats">
       <div class="drawer-stat-item">
         <span class="drawer-stat-label">Total Records</span>
         <span class="drawer-stat-value">{{ records.length }}</span>
@@ -106,7 +130,7 @@
         <span class="drawer-stat-label">Total Loss</span>
         <span class="drawer-stat-value loss">{{ totalLoss | number:'1.0-0' }} ₹</span>
       </div>
-    </div>
+    </div> -->
 
     <div class="drawer-footer">
       <div class="drawer-divider"></div>
@@ -118,7 +142,7 @@
   </div>
 </div>
 
-<ion-content class="ion-padding" [fullscreen]="true" style="--background: #f5f5f5;" #content>
+<ion-content class="ion-padding" [fullscreen]="true" [scrollY]="false" style="--background: #f5f5f5;" #content (click)="handleContentClick($event)">
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
@@ -408,7 +432,7 @@
     </div>
 
     <!-- Records List -->
-    <div class="space-y-2 records-container">
+    <div class="space-y-2 records-container scrollable-records" #scrollableRecords>
       <div class="records-header-section">
         <div class="records-header-top">
           <h2 class="text-xs font-bold text-black records-count">
@@ -566,9 +590,8 @@
             <!-- Table Body -->
             <div class="list-view-body">
               <div
-                *ngFor="let record of filteredRecords; trackBy: trackByRecordId; let last = last"
+                *ngFor="let record of filteredRecords; trackBy: trackByRecordId"
                 class="list-view-row data-row animate-fade-in"
-                [class.rounded-b-lg]="last"
               >
               <div class="list-col date-col" [class.saturday-date]="isSaturday(record.date)" [class.sunday-date]="isSunday(record.date)">
                 <div class="list-cell-content">
@@ -634,10 +657,76 @@
                 </div>
               </div>
             </div>
+
+            <!-- Totals Row -->
+            <div *ngIf="filteredRecords.length > 0" class="list-view-footer rounded-b-lg">
+              <div class="list-view-row totals-row">
+                <div class="list-col date-col">
+                  <div class="list-cell-content">
+                    <div class="list-cell-primary" style="font-weight: 700;">TOTAL</div>
+                  </div>
+                </div>
+                <div class="list-col chains-col">
+                  <div class="list-cell-content">
+                    <div class="list-cell-value" style="font-weight: 700;">{{ getTotalChains() | number:'1.0-0' }} ₹</div>
+                  </div>
+                </div>
+                <div class="list-col expense-col">
+                  <div class="list-cell-content">
+                    <div class="list-cell-value" style="font-weight: 700;">{{ getTotalExpenses() | number:'1.0-0' }} ₹</div>
+                  </div>
+                </div>
+                <div class="list-col income-col">
+                  <div class="list-cell-content">
+                    <div class="list-cell-value" style="font-weight: 700;">{{ getTotalIncomes() | number:'1.0-0' }} ₹</div>
+                  </div>
+                </div>
+                <div class="list-col expected-col">
+                  <div class="list-cell-content">
+                    <div class="list-cell-value" style="font-weight: 700;">{{ getTotalExpected() | number:'1.0-0' }} ₹</div>
+                  </div>
+                </div>
+                <div class="list-col back-col">
+                  <div class="list-cell-content">
+                    <div class="list-cell-value" style="font-weight: 700;">{{ getTotalBack() | number:'1.0-0' }} ₹</div>
+                  </div>
+                </div>
+                <div class="list-col net-col">
+                  <div class="list-cell-content">
+                    <div class="list-cell-value" style="font-weight: 700;" [ngClass]="getTotalNet() >= 0 ? 'text-green-600' : 'text-red-600'">
+                      {{ getTotalNet() | number:'1.0-0' }} ₹
+                    </div>
+                  </div>
+                </div>
+                <div class="list-col actions-col">
+                  <div class="list-cell-content">
+                    <!-- Empty for totals row -->
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Floating Action Button with Speed Dial -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" [activated]="isSpeedDialOpen" *ngIf="showSpeedDial">
+    <ion-fab-button (click)="toggleSpeedDial()" style="--background: #0066CC !important; --background-activated: #0052a3 !important; --background-hover: #0073e6 !important; --color: white !important; background: #0066CC !important;">
+      <ion-icon [name]="isSpeedDialOpen ? 'close' : 'add'" style="color: white;"></ion-icon>
+    </ion-fab-button>
+    <ion-fab-list side="top">
+      <ion-fab-button (click)="speedDialAction('calculator')" style="--background: #0066CC !important; --background-activated: #0052a3 !important; --background-hover: #0073e6 !important; --color: white !important; background: #0066CC !important;" title="Calculations">
+        <ion-icon name="calculator" style="color: white;"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button (click)="speedDialAction('document-text')" style="--background: #0066CC !important; --background-activated: #0052a3 !important; --background-hover: #0073e6 !important; --color: white !important; background: #0066CC !important;" title="Reports">
+        <ion-icon name="document-text" style="color: white;"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button (click)="speedDialAction('settings')" style="--background: #0066CC !important; --background-activated: #0052a3 !important; --background-hover: #0073e6 !important; --color: white !important; background: #0066CC !important;" title="Settings">
+        <ion-icon name="settings" style="color: white;"></ion-icon>
+      </ion-fab-button>
+    </ion-fab-list>
+  </ion-fab>
 </ion-content>

@@ -654,6 +654,13 @@
             </div>
           </div>
         </div>
+        <!-- Production Total -->
+        <div class="mt-1 pt-1 border-t border-gray-200">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-semibold text-gray-800" style="font-size: 10px;">Total</label>
+            <span class="text-xs font-semibold text-blue-600" style="font-size: 10px;">{{ getProductionCost() | number:'1.2-2' }} ₹</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -759,6 +766,13 @@
             </div>
           </div>
         </div>
+        <!-- Expenses Total -->
+        <div class="mt-1 pt-1 border-t border-gray-200">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-semibold text-gray-800" style="font-size: 10px;">Total</label>
+            <span class="text-xs font-semibold text-blue-600" style="font-size: 10px;">{{ getDailyExpenses() | number:'1.2-2' }} ₹</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -801,7 +815,7 @@
                   style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
                 (ionChange)="onPurchaseItemSelect($event, i)"
               >
-                <ion-select-option *ngFor="let item of getPurchaseItems()" [value]="item.name">
+                <ion-select-option *ngFor="let item of purchaseItemOptions" [value]="item.name">
                   {{ item.name }}
                 </ion-select-option>
                 <ion-select-option value="__CREATE_NEW__" class="create-new-option">
@@ -859,6 +873,13 @@
               >
               <ion-icon name="trash" slot="icon-only" style="font-size: 10px;"></ion-icon>
               </ion-button>
+          </div>
+        </div>
+        <!-- Purchase Total -->
+        <div class="mt-1 pt-1 border-t border-gray-200">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-semibold text-gray-800" style="font-size: 10px;">Total</label>
+            <span class="text-xs font-semibold text-red-600" style="font-size: 10px;">{{ getPurchaseTotal() | number:'1.2-2' }} ₹</span>
           </div>
         </div>
       </div>

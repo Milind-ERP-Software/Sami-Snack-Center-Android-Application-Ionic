@@ -22,24 +22,6 @@
 <ion-content class="ion-padding" [fullscreen]="true" [style.--background]="isDarkMode ? '#1a1a1a' : '#f5f5f5'" [class.dark-content]="isDarkMode">
   <div class="max-w-2xl mx-auto space-y-1.5">
 
-    <!-- App Information Section -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5">
-      <div class="flex items-center gap-2 mb-1.5">
-        <ion-icon name="business" style="font-size: 18px; color: #0066CC;"></ion-icon>
-        <h3 class="text-sm font-bold text-gray-900 dark:text-white" style="font-size: 13px;">App Information</h3>
-      </div>
-      <div class="space-y-1">
-        <div class="flex justify-between items-center py-0.5">
-          <span class="text-xs text-gray-600 dark:text-gray-400" style="font-size: 11px;">App Name</span>
-          <span class="text-xs font-semibold text-gray-900 dark:text-white" style="font-size: 11px;">{{ appName }}</span>
-        </div>
-        <div class="flex justify-between items-center py-0.5">
-          <span class="text-xs text-gray-600 dark:text-gray-400" style="font-size: 11px;">Version</span>
-          <span class="text-xs font-semibold text-gray-900 dark:text-white" style="font-size: 11px;">{{ appVersion }}</span>
-        </div>
-      </div>
-    </div>
-
     <!-- Appearance Section -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5">
       <div class="flex items-center gap-2 mb-1.5">
@@ -118,22 +100,60 @@
       </div>
     </div>
 
-    <!-- Statistics Section -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5">
+    <!-- Company Customization Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5" *ngIf="isDeveloperMode">
       <div class="flex items-center gap-2 mb-1.5">
-        <ion-icon name="stats-chart" style="font-size: 18px; color: #0066CC;"></ion-icon>
-        <h3 class="text-sm font-bold text-gray-900 dark:text-white" style="font-size: 13px;">Statistics</h3>
+        <ion-icon name="business" style="font-size: 18px; color: #0066CC;"></ion-icon>
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white" style="font-size: 13px;">Company Customization</h3>
       </div>
       <div class="space-y-1">
-        <div class="flex justify-between items-center py-0.5">
-          <span class="text-xs text-gray-600 dark:text-gray-400" style="font-size: 11px;">Total Records</span>
-          <span class="text-xs font-semibold text-gray-900 dark:text-white" style="font-size: 11px;">{{ totalRecords }}</span>
+        <!-- Company Name -->
+        <div class="settings-item" style="cursor: default;" (click)="$event.stopPropagation()">
+          <div class="flex items-center gap-2">
+            <ion-icon name="text" style="font-size: 16px; color: #0066CC;"></ion-icon>
+            <div class="flex flex-col flex-1">
+              <span class="text-xs font-medium text-gray-900 dark:text-white" style="font-size: 11px;">Company Name</span>
+              <input
+                type="text"
+                [(ngModel)]="companyName"
+                (blur)="saveCompanyName()"
+                (keyup.enter)="saveCompanyName()"
+                placeholder="Enter company name"
+                class="text-xs text-gray-600 dark:text-gray-400 mt-0.5 w-full bg-transparent border-none outline-none"
+                style="font-size: 10px; padding: 2px 0;"
+              />
+            </div>
+          </div>
+        </div>
+        
+        <!-- Company Logo -->
+        <div class="settings-item" style="cursor: pointer;">
+          <div class="flex items-center gap-2 flex-1" (click)="selectCompanyLogo()">
+            <ion-icon name="image" style="font-size: 16px; color: #0066CC;"></ion-icon>
+            <div class="flex flex-col flex-1">
+              <span class="text-xs font-medium text-gray-900 dark:text-white" style="font-size: 11px;">Company Logo</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 9px;">{{ companyLogo ? 'Logo set' : 'Tap to select logo' }}</span>
+            </div>
+            <div *ngIf="companyLogo" class="company-logo-preview">
+              <img [src]="companyLogo" alt="Company Logo" style="width: 32px; height: 32px; border-radius: 4px; object-fit: cover;" />
+            </div>
+          </div>
+          <ion-button
+            *ngIf="companyLogo"
+            (click)="removeCompanyLogo(); $event.stopPropagation()"
+            fill="clear"
+            size="small"
+            style="--color: #ef4444; margin: 0; padding: 0; min-width: auto;"
+            class="remove-logo-btn"
+          >
+            <ion-icon name="trash" slot="icon-only" style="font-size: 16px;"></ion-icon>
+          </ion-button>
         </div>
       </div>
     </div>
 
     <!-- Data Management Section -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5" *ngIf="isDeveloperMode">
       <div class="flex items-center gap-2 mb-1.5">
         <ion-icon name="document-text" style="font-size: 18px; color: #0066CC;"></ion-icon>
         <h3 class="text-sm font-bold text-gray-900 dark:text-white" style="font-size: 13px;">Data Management</h3>
@@ -159,6 +179,74 @@
             <span class="text-xs font-medium text-gray-900 dark:text-white" style="font-size: 11px;">Clear All Data</span>
           </div>
           <span class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 10px;">Delete all records</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Developer Mode Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5">
+      <div class="flex items-center gap-2 mb-1.5">
+        <ion-icon name="code" style="font-size: 18px; color: #f59e0b;"></ion-icon>
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white" style="font-size: 13px;">Developer Testing Mode</h3>
+      </div>
+      <div class="space-y-1">
+        <div class="settings-item" style="cursor: default;" (click)="$event.stopPropagation()">
+          <div class="flex items-center gap-2">
+            <ion-icon name="code" style="font-size: 16px; color: #f59e0b;"></ion-icon>
+            <div class="flex flex-col">
+              <span class="text-xs font-medium text-gray-900 dark:text-white" style="font-size: 11px;">Developer Mode</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 9px;">Enable testing features</span>
+            </div>
+          </div>
+          <ion-toggle
+            [checked]="isDeveloperMode"
+            (ionChange)="toggleDeveloperMode()"
+            (click)="$event.stopPropagation()"
+            style="--handle-background-checked: #f59e0b; --track-background-checked: rgba(245, 158, 11, 0.3);"
+          ></ion-toggle>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interface Settings Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5">
+      <div class="flex items-center gap-2 mb-1.5">
+        <ion-icon name="add" style="font-size: 18px; color: #0066CC;"></ion-icon>
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white" style="font-size: 13px;">Interface Settings</h3>
+      </div>
+      <div class="space-y-1">
+        <div class="settings-item" style="cursor: default;" (click)="$event.stopPropagation()">
+          <div class="flex items-center gap-2">
+            <ion-icon name="add" style="font-size: 16px; color: #0066CC;"></ion-icon>
+            <div class="flex flex-col">
+              <span class="text-xs font-medium text-gray-900 dark:text-white" style="font-size: 11px;">Speed Dial Button</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 9px;">Show floating action buttons</span>
+            </div>
+          </div>
+          <ion-toggle
+            [checked]="showSpeedDial"
+            (ionChange)="toggleSpeedDial()"
+            (click)="$event.stopPropagation()"
+            style="--handle-background-checked: #0066CC; --track-background-checked: rgba(0, 102, 204, 0.3);"
+          ></ion-toggle>
+        </div>
+      </div>
+    </div>
+
+    <!-- App Information Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5">
+      <div class="flex items-center gap-2 mb-1.5">
+        <ion-icon name="business" style="font-size: 18px; color: #0066CC;"></ion-icon>
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white" style="font-size: 13px;">App Information</h3>
+      </div>
+      <div class="space-y-1">
+        <div class="flex justify-between items-center py-0.5">
+          <span class="text-xs text-gray-600 dark:text-gray-400" style="font-size: 11px;">App Name</span>
+          <span class="text-xs font-semibold text-gray-900 dark:text-white" style="font-size: 11px;">{{ appName }}</span>
+        </div>
+        <div class="flex justify-between items-center py-0.5">
+          <span class="text-xs text-gray-600 dark:text-gray-400" style="font-size: 11px;">Version</span>
+          <span class="text-xs font-semibold text-gray-900 dark:text-white" style="font-size: 11px;">{{ appVersion }}</span>
         </div>
       </div>
     </div>

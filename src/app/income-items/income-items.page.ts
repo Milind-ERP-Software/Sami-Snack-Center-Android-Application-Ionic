@@ -56,8 +56,8 @@ export class IncomeItemsPage implements OnInit {
     }
   }
 
-  loadItems() {
-    this.items = this.incomeItemsService.getAllItems();
+  async loadItems() {
+    this.items = await this.incomeItemsService.getAllItems();
     this.filteredItems = [...this.items];
   }
 
@@ -67,7 +67,7 @@ export class IncomeItemsPage implements OnInit {
       this.router.navigateByUrl(this.returnUrl);
       return;
     }
-    
+
     // Otherwise, use Location.back() to go back to previous page in history
     const canGoBack = window.history.length > 1;
     if (canGoBack) {
@@ -112,9 +112,9 @@ export class IncomeItemsPage implements OnInit {
       return;
     }
 
-    this.incomeItemsService.addItem(this.newItemName);
+    await this.incomeItemsService.addItem(this.newItemName);
     this.showToast('Item added successfully', 'success');
-    this.loadItems();
+    await this.loadItems();
     this.cancelAdding();
   }
 
@@ -135,9 +135,9 @@ export class IncomeItemsPage implements OnInit {
 
     const originalName = this.items.find(item => item.id === this.editingItem?.id)?.name;
     if (originalName) {
-      this.incomeItemsService.updateItem(originalName, this.editingItem.name);
+      await this.incomeItemsService.updateItem(originalName, this.editingItem.name);
       this.showToast('Item updated successfully', 'success');
-      this.loadItems();
+      await this.loadItems();
       this.cancelEditing();
     }
   }
@@ -154,10 +154,10 @@ export class IncomeItemsPage implements OnInit {
         {
           text: 'Delete',
           role: 'destructive',
-          handler: () => {
-            this.incomeItemsService.deleteItem(item.name);
+          handler: async () => {
+            await this.incomeItemsService.deleteItem(item.name);
             this.showToast('Item deleted successfully', 'success');
-            this.loadItems();
+            await this.loadItems();
           }
         }
       ]

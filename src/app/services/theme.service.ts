@@ -1,4 +1,5 @@
 import { Injectable, EventEmitter, OnDestroy } from '@angular/core';
+import { Storage } from '@ionic/storage-angular';
 
 @Injectable({
   providedIn: 'root'
@@ -10,14 +11,33 @@ export class ThemeService implements OnDestroy {
   private themeMode: 'light' | 'dark' | 'system' = 'system';
   private systemPreferenceQuery?: MediaQueryList;
   private systemPreferenceListener?: (e: MediaQueryListEvent) => void;
+  private _storage: Storage | null = null;
   themeChanged = new EventEmitter<boolean>();
 
-  constructor() {
-    this.loadTheme();
+  constructor(private storage: Storage) {
+    this.init();
   }
 
-  loadTheme(): void {
-    const savedMode = localStorage.getItem(this.THEME_MODE_KEY) as 'light' | 'dark' | 'system' | null;
+  async init() {
+    if (this._storage) {
+      return;
+    }
+    const storage = await this.storage.create();
+    this._storage = storage;
+    
+    await this.loadTheme();
+  }
+
+  private async ensureInitialized() {
+    if (!this._storage) {
+      await this.init();
+    }
+  }
+
+  async loadTheme(): Promise<void> {
+    if (!this._storage) return;
+
+    const savedMode = await this._storage.get(this.THEME_MODE_KEY) as 'light' | 'dark' | 'system' | null;
     
     if (savedMode === 'light' || savedMode === 'dark') {
       // Manual mode - use saved preference
@@ -66,9 +86,12 @@ export class ThemeService implements OnDestroy {
     }
   }
 
-  setThemeMode(mode: 'light' | 'dark' | 'system'): void {
+  async setThemeMode(mode: 'light' | 'dark' | 'system'): Promise<void> {
+    await this.ensureInitialized();
     this.themeMode = mode;
-    localStorage.setItem(this.THEME_MODE_KEY, mode);
+    if (this._storage) {
+      await this._storage.set(this.THEME_MODE_KEY, mode);
+    }
 
     if (mode === 'system') {
       // Enable automatic detection
@@ -104,7 +127,10 @@ export class ThemeService implements OnDestroy {
     
     // Only save theme if in manual mode
     if (this.themeMode !== 'system') {
-      localStorage.setItem(this.THEME_KEY, theme);
+      // We don't await here to avoid UI blocking, just fire and forget
+      if (this._storage) {
+        this._storage.set(this.THEME_KEY, theme);
+      }
     }
     
     this.themeChanged.emit(theme === 'dark');
@@ -135,4 +161,3 @@ export class ThemeService implements OnDestroy {
     }
   }
 }
-

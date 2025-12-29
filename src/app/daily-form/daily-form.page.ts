@@ -8,9 +8,9 @@ import { add, trash, save, calendar, arrowBack, documentText, calculator, trendi
 import { StorageService, DailyRecord, ProductionItem, ExpenseItem, IncomeItem } from '../services/storage.service';
 import { ExpenseDetailsPopoverComponent } from './expense-details-popover.component';
 import { StatDetailsPopoverComponent } from './stat-details-popover.component';
-import { ProductionItemsService } from '../services/production-items.service';
-import { ExpenseItemsService } from '../services/expense-items.service';
-import { PurchaseItemsService } from '../services/purchase-items.service';
+import { ProductionItemsService, ProductionItemOption } from '../services/production-items.service';
+import { ExpenseItemsService, ExpenseItemOption } from '../services/expense-items.service';
+import { PurchaseItemsService, PurchaseItemOption } from '../services/purchase-items.service';
 import { ActivatedRoute, Router, NavigationExtras } from '@angular/router';
 import { ThemeService } from '../services/theme.service';
 
@@ -69,6 +69,11 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   isIncomePopoverOpen = false;
   incomePopoverEvent?: Event;
 
+  // Options for dropdowns
+  productionItemOptions: ProductionItemOption[] = [];
+  expenseItemOptions: ExpenseItemOption[] = [];
+  purchaseItemOptions: PurchaseItemOption[] = [];
+
   private backButtonSubscription?: any;
   private browserBackHandler?: (event: PopStateEvent) => void;
 
@@ -122,32 +127,35 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     window.addEventListener('popstate', this.browserBackHandler);
   }
 
-  private ensureDefaultItems(): void {
+  private async ensureDefaultItems(): Promise<void> {
     // Ensure all services have default items initialized
     // This is a safety check to ensure dropdowns always have options
     try {
-      const productionItems = this.productionItemsService.getAllItems();
-      if (productionItems.length === 0) {
+      this.productionItemOptions = await this.productionItemsService.getAllItems();
+      if (this.productionItemOptions.length === 0) {
         // Force initialization if empty
-        this.productionItemsService.addItem('Idali');
-        this.productionItemsService.addItem('Dosa');
-        this.productionItemsService.addItem('Vada');
+        await this.productionItemsService.addItem('Idali');
+        await this.productionItemsService.addItem('Dosa');
+        await this.productionItemsService.addItem('Vada');
+        this.productionItemOptions = await this.productionItemsService.getAllItems();
       }
 
-      const expenseItems = this.expenseItemsService.getAllItems();
-      if (expenseItems.length === 0) {
+      this.expenseItemOptions = await this.expenseItemsService.getAllItems();
+      if (this.expenseItemOptions.length === 0) {
         // Force initialization if empty
-        this.expenseItemsService.addItem('Vegetables');
-        this.expenseItemsService.addItem('Oil');
-        this.expenseItemsService.addItem('Gas');
+        await this.expenseItemsService.addItem('Vegetables');
+        await this.expenseItemsService.addItem('Oil');
+        await this.expenseItemsService.addItem('Gas');
+        this.expenseItemOptions = await this.expenseItemsService.getAllItems();
       }
 
-      const purchaseItems = this.purchaseItemsService.getAllItems();
-      if (purchaseItems.length === 0) {
+      this.purchaseItemOptions = await this.purchaseItemsService.getAllItems();
+      if (this.purchaseItemOptions.length === 0) {
         // Force initialization if empty
-        this.purchaseItemsService.addItem('Groceries');
-        this.purchaseItemsService.addItem('Vegetables');
-        this.purchaseItemsService.addItem('Fruits');
+        await this.purchaseItemsService.addItem('Groceries');
+        await this.purchaseItemsService.addItem('Vegetables');
+        await this.purchaseItemsService.addItem('Fruits');
+        this.purchaseItemOptions = await this.purchaseItemsService.getAllItems();
       }
     } catch (error) {
       console.error('Error ensuring default items:', error);
@@ -336,22 +344,22 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
       rate: [0, [Validators.required, Validators.min(0)]],
       amount: [{value: 0, disabled: true}, [Validators.required, Validators.min(0)]]
     });
-    
+
     // Subscribe to qty and rate changes to calculate amount
     const qtyControl = item.get('qty');
     const rateControl = item.get('rate');
     const amountControl = item.get('amount');
-    
+
     if (qtyControl && rateControl && amountControl) {
       qtyControl.valueChanges.subscribe(() => this.calculateAmount(item));
       rateControl.valueChanges.subscribe(() => this.calculateAmount(item));
       // Calculate initial amount
       this.calculateAmount(item);
     }
-    
+
     this.productionItems.push(item);
   }
-  
+
   private calculateAmount(itemGroup: any) {
     const qty = itemGroup.get('qty')?.value || 0;
     const rate = itemGroup.get('rate')?.value || 0;
@@ -397,19 +405,19 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
       rate: [0, [Validators.required, Validators.min(0)]],
       amount: [{value: 0, disabled: true}, [Validators.required, Validators.min(0)]]
     });
-    
+
     // Subscribe to qty and rate changes to calculate amount
     const qtyControl = item.get('qty');
     const rateControl = item.get('rate');
     const amountControl = item.get('amount');
-    
+
     if (qtyControl && rateControl && amountControl) {
       qtyControl.valueChanges.subscribe(() => this.calculateAmount(item));
       rateControl.valueChanges.subscribe(() => this.calculateAmount(item));
       // Calculate initial amount
       this.calculateAmount(item);
     }
-    
+
     this.expenseItems.push(item);
   }
 
@@ -451,19 +459,19 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
       rate: [0, [Validators.required, Validators.min(0)]],
       amount: [{value: 0, disabled: true}, [Validators.required, Validators.min(0)]]
     });
-    
+
     // Subscribe to qty and rate changes to calculate amount
     const qtyControl = item.get('qty');
     const rateControl = item.get('rate');
     const amountControl = item.get('amount');
-    
+
     if (qtyControl && rateControl && amountControl) {
       qtyControl.valueChanges.subscribe(() => this.calculateAmount(item));
       rateControl.valueChanges.subscribe(() => this.calculateAmount(item));
       // Calculate initial amount
       this.calculateAmount(item);
     }
-    
+
     this.todayPurchases.push(item);
   }
 
@@ -583,15 +591,30 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getProductionCost(): number {
-    const formValue = this.form.value;
-    return formValue.production?.reduce((sum: number, item: ProductionItem) =>
-      sum + (item.amount || 0), 0) || 0;
+    let total = 0;
+    this.productionItems.controls.forEach((control) => {
+      const amount = control.get('amount')?.value || 0;
+      total += amount;
+    });
+    return total;
   }
 
   getDailyExpenses(): number {
-    const formValue = this.form.value;
-    return formValue.dailyExpenseList?.reduce((sum: number, item: ExpenseItem) =>
-      sum + (item.amount || 0), 0) || 0;
+    let total = 0;
+    this.expenseItems.controls.forEach((control) => {
+      const amount = control.get('amount')?.value || 0;
+      total += amount;
+    });
+    return total;
+  }
+
+  getPurchaseTotal(): number {
+    let total = 0;
+    this.todayPurchases.controls.forEach((control) => {
+      const amount = control.get('amount')?.value || 0;
+      total += amount;
+    });
+    return total;
   }
 
   showExpenseDetailsPopover(event: Event) {
@@ -681,30 +704,36 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     if (this.form.valid) {
       this.isSaving = true;
       const profitData = this.calculateDailyProfit();
-      
+
       // Get form value including disabled fields
       const formValue = this.form.getRawValue();
-      
+
       const record: DailyRecord = {
         ...formValue,
         dailyProfit: profitData,
         id: this.recordId || undefined
       };
 
-      setTimeout(() => {
-        this.storageService.saveRecord(record);
+      try {
+        if (this.recordId) {
+          await this.storageService.updateRecord(record);
+        } else {
+          await this.storageService.saveRecord(record);
+        }
 
         // Reload the record to get updated createdAt/updatedAt
         if (this.recordId) {
-          const updatedRecord = this.storageService.getRecordById(this.recordId);
+          const updatedRecord = await this.storageService.getRecordById(this.recordId);
           if (updatedRecord) {
             this.createdAt = updatedRecord.createdAt || null;
             this.updatedAt = updatedRecord.updatedAt || null;
           }
         } else {
           // For new records, get the saved record ID and load dates
-          const allRecords = this.storageService.getAllRecords();
-          const savedRecord = allRecords.find(r => r.date === record.date && r.id);
+          const allRecords = await this.storageService.getAllRecords();
+          // Find the record we just saved (most recent one matching date)
+          // Since saveRecord unshifts (adds to top), it should be the first one with matching date
+          const savedRecord = allRecords.find(r => r.date === record.date);
           if (savedRecord) {
             this.createdAt = savedRecord.createdAt || null;
             this.updatedAt = savedRecord.updatedAt || null;
@@ -712,7 +741,6 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
           }
         }
 
-        this.isSaving = false;
         this.showToast(
           this.isEditMode ? 'Record updated successfully!' : 'Record saved successfully!',
           'success'
@@ -720,15 +748,20 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
         setTimeout(() => {
           this.navigateToHome();
         }, 500);
-      }, 500);
+      } catch (error) {
+        console.error('Error saving record:', error);
+        this.showToast('Error saving record', 'danger');
+      } finally {
+        this.isSaving = false;
+      }
     } else {
       this.form.markAllAsTouched();
       this.showToast('Please fill all required fields', 'warning');
     }
   }
 
-  loadRecord(id: string) {
-    const record = this.storageService.getRecordById(id);
+  async loadRecord(id: string) {
+    const record = await this.storageService.getRecordById(id);
     if (record) {
       // Store the original profit/loss values
       this.storedProfit = record.dailyProfit?.profit || 0;
@@ -770,7 +803,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
           rate: [rate, [Validators.required, Validators.min(0)]],
           amount: [{value: item.amount, disabled: true}, [Validators.required, Validators.min(0)]]
         });
-        
+
         // Subscribe to qty and rate changes to calculate amount
         const qtyControl = itemGroup.get('qty');
         const rateControl = itemGroup.get('rate');
@@ -780,7 +813,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
           // Calculate initial amount
           this.calculateAmount(itemGroup);
         }
-        
+
         this.productionItems.push(itemGroup);
       });
 
@@ -795,7 +828,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
             rate: [rate, [Validators.required, Validators.min(0)]],
             amount: [{value: item.amount || 0, disabled: true}, [Validators.required, Validators.min(0)]]
         });
-          
+
           // Subscribe to qty and rate changes to calculate amount
           const qtyControl = itemGroup.get('qty');
           const rateControl = itemGroup.get('rate');
@@ -805,7 +838,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
             // Calculate initial amount
             this.calculateAmount(itemGroup);
           }
-          
+
         this.expenseItems.push(itemGroup);
       });
       } else {
@@ -825,7 +858,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
               rate: [rate, [Validators.required, Validators.min(0)]],
               amount: [{value: item.amount || 0, disabled: true}, [Validators.required, Validators.min(0)]]
         });
-            
+
             // Subscribe to qty and rate changes to calculate amount
             const qtyControl = itemGroup.get('qty');
             const rateControl = itemGroup.get('rate');
@@ -835,7 +868,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
               // Calculate initial amount
               this.calculateAmount(itemGroup);
             }
-            
+
             this.todayPurchases.push(itemGroup);
           });
         } else {
@@ -894,12 +927,12 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     // If we're in edit mode, ensure values are set after view is initialized
     if (this.isEditMode && this.recordId) {
       const recordId = this.recordId; // Store in local variable to avoid null check issue
-      setTimeout(() => {
-        const record = this.storageService.getRecordById(recordId);
+      setTimeout(async () => {
+        const record = await this.storageService.getRecordById(recordId);
         if (record) {
           // Explicitly set production item values
           if (record.production && record.production.length > 0) {
-            record.production.forEach((item, index) => {
+            record.production.forEach((item: ProductionItem, index: number) => {
               if (item.listOfItem && this.productionItems.at(index)) {
                 const control = this.productionItems.at(index).get('listOfItem');
                 if (control) {
@@ -911,7 +944,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
 
           // Explicitly set expense item values
           if (record.dailyExpenseList && record.dailyExpenseList.length > 0) {
-            record.dailyExpenseList.forEach((item, index) => {
+            record.dailyExpenseList.forEach((item: ExpenseItem, index: number) => {
               if (item.listOfItem && this.expenseItems.at(index)) {
                 const control = this.expenseItems.at(index).get('listOfItem');
                 if (control) {
@@ -923,7 +956,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
 
           // Purchase items
           if (record.todayPurchases && record.todayPurchases.length > 0) {
-            record.todayPurchases.forEach((item, index) => {
+            record.todayPurchases.forEach((item: any, index: number) => {
               if (item.listOfItem && this.todayPurchases.at(index)) {
                 const control = this.todayPurchases.at(index).get('listOfItem');
                 if (control) {
@@ -944,30 +977,15 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getProductionItems() {
-    try {
-      return this.productionItemsService?.getAllItems() || [];
-    } catch (error) {
-      console.error('Error getting production items:', error);
-      return [];
-    }
+    return this.productionItemOptions;
   }
 
   getExpenseItems() {
-    try {
-      return this.expenseItemsService?.getAllItems() || [];
-    } catch (error) {
-      console.error('Error getting expense items:', error);
-      return [];
-    }
+    return this.expenseItemOptions;
   }
 
   getPurchaseItems() {
-    try {
-      return this.purchaseItemsService?.getAllItems() || [];
-    } catch (error) {
-      console.error('Error getting purchase items:', error);
-      return [];
-    }
+    return this.purchaseItemOptions;
   }
 
   async onPurchaseItemSelect(event: any, index: number) {

@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Storage } from '@ionic/storage-angular';
 
 export interface ExpenseItemOption {
   name: string;
@@ -10,82 +11,92 @@ export interface ExpenseItemOption {
 })
 export class ExpenseItemsService {
   private readonly STORAGE_KEY = 'expense_items_list';
+  private _storage: Storage | null = null;
+  private _items: ExpenseItemOption[] = [];
 
-  constructor() {
-    try {
-      this.initializeDefaultItems();
-    } catch (error) {
-      console.error('Error initializing expense items:', error);
+  constructor(private storage: Storage) {
+    this.init();
+  }
+
+  async init() {
+    if (this._storage) {
+      return;
+    }
+    const storage = await this.storage.create();
+    this._storage = storage;
+
+    const stored = await this._storage.get(this.STORAGE_KEY);
+    if (stored) {
+      this._items = JSON.parse(stored);
+    } else {
+      this._items = [];
+    }
+
+    await this.initializeDefaultItems();
+  }
+
+  private async ensureInitialized() {
+    if (!this._storage) {
+      await this.init();
     }
   }
 
-  private initializeDefaultItems(): void {
-    try {
-      const items = this.getAllItems();
-      if (items.length === 0) {
-        const defaultItems: ExpenseItemOption[] = [
-          { name: 'Vegetables' },
-          { name: 'Oil' },
-          { name: 'Spices' },
-          { name: 'Gas' },
-          { name: 'Electricity' },
-          { name: 'Water' },
-          { name: 'Rent' },
-          { name: 'Salary' }
-        ];
-        this.saveItems(defaultItems);
-      }
-    } catch (error) {
-      console.error('Error in initializeDefaultItems:', error);
+  private async initializeDefaultItems(): Promise<void> {
+    if (this._items.length === 0) {
+      const defaultItems: ExpenseItemOption[] = [
+        { name: 'Vegetables' },
+        { name: 'Oil' },
+        { name: 'Spices' },
+        { name: 'Gas' },
+        { name: 'Electricity' },
+        { name: 'Water' },
+        { name: 'Rent' },
+        { name: 'Salary' }
+      ];
+      await this.saveItems(defaultItems);
     }
   }
 
-  getAllItems(): ExpenseItemOption[] {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch (error) {
-      console.error('Error getting expense items:', error);
+  async getAllItems(): Promise<ExpenseItemOption[]> {
+    await this.ensureInitialized();
+    return [...this._items];
+  }
+
+  async saveItems(items: ExpenseItemOption[]): Promise<void> {
+    this._items = items;
+    if (this._storage) {
+      await this._storage.set(this.STORAGE_KEY, JSON.stringify(items));
     }
-    return [];
   }
 
-  saveItems(items: ExpenseItemOption[]): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(items));
-  }
-
-  addItem(name: string): void {
-    const items = this.getAllItems();
-    // Check if item already exists
-    if (!items.some(item => item.name.toLowerCase() === name.toLowerCase())) {
+  async addItem(name: string): Promise<void> {
+    await this.ensureInitialized();
+    if (!this._items.some(item => item.name.toLowerCase() === name.toLowerCase())) {
       const newItem: ExpenseItemOption = {
         name: name.trim(),
         id: this.generateId()
       };
-      items.push(newItem);
-      this.saveItems(items);
+      this._items.push(newItem);
+      await this.saveItems(this._items);
     }
   }
 
-  updateItem(oldName: string, newName: string): void {
-    const items = this.getAllItems();
-    const index = items.findIndex(item => item.name === oldName);
+  async updateItem(oldName: string, newName: string): Promise<void> {
+    await this.ensureInitialized();
+    const index = this._items.findIndex(item => item.name === oldName);
     if (index !== -1) {
-      items[index].name = newName.trim();
-      this.saveItems(items);
+      this._items[index].name = newName.trim();
+      await this.saveItems(this._items);
     }
   }
 
-  deleteItem(name: string): void {
-    const items = this.getAllItems();
-    const filtered = items.filter(item => item.name !== name);
-    this.saveItems(filtered);
+  async deleteItem(name: string): Promise<void> {
+    await this.ensureInitialized();
+    const filtered = this._items.filter(item => item.name !== name);
+    await this.saveItems(filtered);
   }
 
   private generateId(): string {
     return Math.random().toString(36).substring(2, 15);
   }
 }
-

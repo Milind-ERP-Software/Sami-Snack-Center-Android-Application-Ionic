@@ -58,14 +58,17 @@ export class ProductionItemsPage implements OnInit {
     }
   }
 
-  loadItems() {
+  async loadItems() {
     this.isLoading = true;
-    // Simulate loading delay for better UX
-    setTimeout(() => {
-      this.items = this.productionItemsService.getAllItems();
+    try {
+      this.items = await this.productionItemsService.getAllItems();
       this.filteredItems = [...this.items];
+    } catch (error) {
+      console.error('Error loading items:', error);
+      this.showToast('Error loading items', 'danger');
+    } finally {
       this.isLoading = false;
-    }, 300);
+    }
   }
 
   goToHome() {
@@ -74,7 +77,7 @@ export class ProductionItemsPage implements OnInit {
       this.router.navigateByUrl(this.returnUrl);
       return;
     }
-    
+
     // Otherwise, use Location.back() to go back to previous page in history
     // This will automatically go back to wherever the user came from
     // (daily-form, home, or any other page)
@@ -121,9 +124,9 @@ export class ProductionItemsPage implements OnInit {
       return;
     }
 
-    this.productionItemsService.addItem(this.newItemName);
+    await this.productionItemsService.addItem(this.newItemName);
     this.showToast('Item added successfully', 'success');
-    this.loadItems();
+    await this.loadItems();
     this.cancelAdding();
   }
 
@@ -144,9 +147,9 @@ export class ProductionItemsPage implements OnInit {
 
     const originalName = this.items.find(item => item.id === this.editingItem?.id)?.name;
     if (originalName) {
-      this.productionItemsService.updateItem(originalName, this.editingItem.name);
+      await this.productionItemsService.updateItem(originalName, this.editingItem.name);
       this.showToast('Item updated successfully', 'success');
-      this.loadItems();
+      await this.loadItems();
       this.cancelEditing();
     }
   }
@@ -163,10 +166,10 @@ export class ProductionItemsPage implements OnInit {
         {
           text: 'Delete',
           role: 'destructive',
-          handler: () => {
-            this.productionItemsService.deleteItem(item.name);
+          handler: async () => {
+            await this.productionItemsService.deleteItem(item.name);
             this.showToast('Item deleted successfully', 'success');
-            this.loadItems();
+            await this.loadItems();
           }
         }
       ]

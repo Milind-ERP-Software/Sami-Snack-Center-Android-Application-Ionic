@@ -5,6 +5,31 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+// Fast toggle transitions for all toggles
+ion-toggle {
+  --transition: 0.1s ease !important;
+  
+  &::part(track) {
+    transition: background-color 0.1s ease !important;
+  }
+  
+  &::part(handle) {
+    transition: transform 0.1s ease !important;
+  }
+}
+
+// Global fast toggle animation
+::ng-deep {
+  ion-toggle {
+    --transition: 0.1s ease !important;
+    
+    .toggle-icon-wrapper,
+    .toggle-icon {
+      transition: transform 0.1s ease !important;
+    }
+  }
+}
+
 ion-content {
   --background: #f5f7fa;
   background: #f5f7fa;
@@ -120,6 +145,7 @@ ion-content {
   margin-bottom: 0.5rem;
   border-bottom: 1px solid rgba(0, 102, 204, 0.2);
   box-shadow: 0 4px 20px rgba(0, 102, 204, 0.15);
+  flex-shrink: 0; // Don't shrink in flexbox
   
   // Blue tint effect
   &::before {
@@ -135,8 +161,189 @@ ion-content {
   }
 }
 
+// Make the max-w-2xl container use flexbox
+.max-w-2xl.mx-auto {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 70px); // Subtract header height
+  max-height: calc(100vh - 70px);
+  min-height: 0;
+}
+
 .records-container {
   padding-top: 0.5rem;
+  padding-bottom: 3rem; // Add more bottom padding for better spacing
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.scrollable-records {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  min-height: 0;
+  padding-bottom: 8rem; // Add more bottom padding to ensure last record is fully visible on mobile
+  
+  // Custom scrollbar styling - Very compact and hidden by default
+  &::-webkit-scrollbar {
+    width: 3px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(136, 136, 136, 0.2);
+    border-radius: 10px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    transform: scaleY(0.8);
+    
+    &:hover {
+      background: rgba(136, 136, 136, 0.7);
+      opacity: 1;
+      transform: scaleY(1);
+    }
+  }
+  
+  // Show scrollbar on hover with smooth animation
+  &:hover {
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: rgba(241, 241, 241, 0.2);
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: rgba(136, 136, 136, 0.4);
+      opacity: 1;
+      transform: scaleY(1);
+      
+      &:hover {
+        background: rgba(136, 136, 136, 0.8);
+        width: 5px;
+      }
+    }
+  }
+  
+  // Show scrollbar when scrolling with smooth fade-in animation
+  &.scrolling {
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: rgba(241, 241, 241, 0.4);
+      animation: fadeInScrollbar 0.3s ease-out;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: rgba(136, 136, 136, 0.6);
+      opacity: 1;
+      transform: scaleY(1);
+      animation: fadeInScrollbar 0.3s ease-out;
+    }
+  }
+  
+  // Dark mode scrollbar
+  body.dark &,
+  .dark & {
+    &::-webkit-scrollbar-track {
+      background: transparent;
+      transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: rgba(85, 85, 85, 0.2);
+      opacity: 0;
+      transform: scaleY(0.8);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      &:hover {
+        background: rgba(85, 85, 85, 0.7);
+        opacity: 1;
+        transform: scaleY(1);
+      }
+    }
+    
+    &:hover {
+      &::-webkit-scrollbar-track {
+        background: rgba(42, 42, 42, 0.3);
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: rgba(85, 85, 85, 0.4);
+        opacity: 1;
+        transform: scaleY(1);
+        
+        &:hover {
+          background: rgba(85, 85, 85, 0.8);
+        }
+      }
+    }
+    
+    &.scrolling {
+      &::-webkit-scrollbar-track {
+        background: rgba(42, 42, 42, 0.6);
+        animation: fadeInScrollbar 0.3s ease-out;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: rgba(85, 85, 85, 0.6);
+        opacity: 1;
+        transform: scaleY(1);
+        animation: fadeInScrollbar 0.3s ease-out;
+      }
+    }
+  }
+  
+  // Firefox scrollbar styling
+  scrollbar-width: thin;
+  scrollbar-color: rgba(136, 136, 136, 0.2) transparent;
+  
+  &:hover {
+    scrollbar-color: rgba(136, 136, 136, 0.4) rgba(241, 241, 241, 0.2);
+  }
+  
+  &.scrolling {
+    scrollbar-color: rgba(136, 136, 136, 0.6) rgba(241, 241, 241, 0.4);
+  }
+  
+  body.dark &,
+  .dark & {
+    scrollbar-color: rgba(85, 85, 85, 0.2) transparent;
+    
+    &:hover {
+      scrollbar-color: rgba(85, 85, 85, 0.4) rgba(42, 42, 42, 0.3);
+    }
+    
+    &.scrolling {
+      scrollbar-color: rgba(85, 85, 85, 0.6) rgba(42, 42, 42, 0.6);
+    }
+  }
+}
+
+// Fade in animation for scrollbar
+@keyframes fadeInScrollbar {
+  from {
+    opacity: 0;
+    transform: scaleY(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
 }
 
 // Modern Trending Navbar Styles
@@ -153,6 +360,35 @@ ion-content {
   padding: 0.5rem 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+  transition: background 0.3s ease, --background 0.3s ease;
+  
+  // Developer mode styling - green background
+  &.developer-mode {
+    --background: #10b981 !important;
+    background: #10b981 !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    
+    // Add a subtle pattern to make it more noticeable
+    position: relative;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 255, 255, 0.05) 10px,
+        rgba(255, 255, 255, 0.05) 20px
+      );
+      pointer-events: none;
+      opacity: 0.3;
+    }
+  }
 }
 
 .navbar-container {
@@ -222,6 +458,31 @@ ion-content {
 
 .brand-text {
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.brand-logo-wrapper {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.brand-text-content {
+  display: flex;
   flex-direction: column;
   gap: 0.125rem;
   min-width: 0;
@@ -277,6 +538,94 @@ ion-content {
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+  
+  // Developer mode styling - green background
+  &.developer-mode {
+    background: #10b981 !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    
+    &:hover {
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    }
+  }
+  
+  // Skeleton styling
+  &.skeleton-profit-badge {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: none !important;
+    cursor: default !important;
+    pointer-events: none !important;
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      animation: skeleton-shimmer 1.5s infinite;
+    }
+    
+    &:hover {
+      transform: none !important;
+      box-shadow: none !important;
+    }
+  }
+}
+
+// Skeleton badge elements
+.skeleton-badge-icon {
+  width: 18px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-badge-label {
+  height: 10px;
+  width: 60px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  margin-bottom: 4px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-badge-value {
+  height: 16px;
+  width: 50px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
   }
 }
 
@@ -1170,6 +1519,19 @@ p {
   }
 }
 
+.menu-badge {
+  background: #fca5a5;
+  color: #991b1b;
+  border-radius: 50%;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  min-width: 1.125rem;
+  text-align: center;
+  margin-left: auto;
+  border: 1px solid #f87171;
+}
+
 .drawer-divider {
   height: 1px;
   background: #e5e7eb;
@@ -1262,6 +1624,12 @@ p {
 
 .drawer.dark .drawer-item span {
   color: #ffffff !important;
+}
+
+.drawer.dark .menu-badge {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border-color: #ef4444 !important;
 }
 
 .drawer.dark .drawer-divider {
@@ -1994,13 +2362,6 @@ body.dark,
   width: auto;
   min-width: 140px;
   max-width: 180px;
-  
-  @media (max-width: 640px) {
-    width: 100%;
-    min-width: 100%;
-    max-width: 100%;
-    margin-top: 0.5rem;
-  }
 }
 
 .view-segment {
@@ -2341,9 +2702,15 @@ body.dark,
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   max-height: calc(100vh - 400px);
+  height: calc(100vh - 400px); // Fixed height for proper sticky positioning
   min-height: 300px;
   border-radius: 0.5rem;
   position: relative;
+  // Ensure header and footer stay fixed when scrolling
+  overflow-y: auto;
+  overflow-x: auto;
+  // Important: Container must have a defined height for sticky to work properly
+  display: block;
 }
 
 .list-view-table {
@@ -2351,18 +2718,122 @@ body.dark,
   border-radius: 0.5rem;
   overflow: visible;
   position: relative;
+  // Ensure table has proper structure for sticky positioning
+  display: block;
 }
 
 .list-view-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
   border-bottom: 2px solid #e5e7eb;
-  background: #ffffff;
+  background: #ffffff !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin: 0;
+  padding: 0;
+  // Ensure header doesn't take up space that would push footer down
+  flex-shrink: 0;
 }
 
 .list-view-body {
   position: relative;
+  // Add padding-bottom to ensure footer is always visible when scrolling
+  // Footer height is approximately 40-45px, so we add extra padding
+  // This ensures footer doesn't overlap with content when scrolling
+  padding-bottom: 50px !important; // Space for footer height
+  min-height: 0;
+  // Ensure body content can scroll
+  overflow: visible;
+  // Ensure body takes available space
+  display: block;
+  // Ensure minimum height so header and footer can both be visible
+  min-height: calc(100% - 100px); // Subtract header and footer heights
+}
+
+.list-view-footer {
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 100 !important;
+  background: #f9fafb !important;
+  border-top: 2px solid #e5e7eb;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+  margin: 0;
+  padding: 0;
+  // Ensure footer doesn't take up space that would push header up
+  flex-shrink: 0;
+  
+  .totals-row {
+    background: #f9fafb !important;
+    font-weight: 700;
+    border-top: 2px solid #e5e7eb;
+    position: relative !important;
+    z-index: 101 !important;
+    
+    .list-col {
+      color: #1f2937 !important;
+      font-weight: 700;
+      
+      &.date-col {
+        color: #1f2937 !important;
+        font-weight: 700;
+      }
+    }
+    
+    .list-cell-value {
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+    
+    // Dark mode
+    :host-context(body.dark) &,
+    :host-context(.dark) & {
+      background: #111827 !important;
+      background-color: #111827 !important;
+      border-top-color: #374151 !important;
+      
+      // Force all text to be light colored
+      &,
+      * {
+        color: #d1d5db !important;
+      }
+      
+      .list-col {
+        color: #d1d5db !important;
+        font-weight: 700 !important;
+        background: transparent !important;
+        
+        &.date-col {
+          color: #d1d5db !important;
+          font-weight: 700 !important;
+        }
+      }
+      
+      .list-cell-content {
+        color: #d1d5db !important;
+      }
+      
+      .list-cell-primary {
+        color: #d1d5db !important;
+        font-weight: 700 !important;
+      }
+      
+      .list-cell-value {
+        color: #d1d5db !important;
+        font-weight: 700 !important;
+      }
+      
+      // Ensure green/red colors for net column are visible
+      .text-green-600,
+      [ngClass*="text-green"] {
+        color: #10b981 !important; // green-500 for dark mode
+      }
+      
+      .text-red-600,
+      [ngClass*="text-red"] {
+        color: #ef4444 !important; // red-500 for dark mode
+      }
+    }
+  }
 }
 
 .list-view-row {
@@ -2385,9 +2856,9 @@ body.dark,
     color: #1f2937 !important;
     border-bottom: 1.5px solid #e5e7eb;
     padding: 0.5rem 0.625rem;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    position: relative !important;
+    z-index: 101 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     
     .list-col {
       color: #1f2937 !important;
@@ -2795,6 +3266,9 @@ body.dark,
   }
   
   .list-view-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
     background-color: transparent !important;
     border-color: #374151 !important;
     
@@ -2805,6 +3279,8 @@ body.dark,
       border-bottom: 2px solid #374151 !important;
       border-bottom-color: #374151 !important;
       border-radius: 0.5rem 0.5rem 0 0 !important;
+      position: relative !important;
+      z-index: 101 !important;
       
       // Force dark background
       &,
@@ -2825,6 +3301,65 @@ body.dark,
         background-color: #1f2937 !important;
         box-shadow: 2px 0 4px rgba(0, 0, 0, 0.3) !important;
         color: #d1d5db !important;
+      }
+    }
+  }
+  
+  .list-view-footer {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 100 !important;
+    background: #111827 !important;
+    background-color: #111827 !important;
+    border-top-color: #374151 !important;
+    
+    .totals-row {
+      background: #111827 !important;
+      background-color: #111827 !important;
+      border-top: 2px solid #374151 !important;
+      position: relative !important;
+      z-index: 101 !important;
+      
+      // Force all text to be light colored
+      &,
+      * {
+        color: #d1d5db !important;
+      }
+      
+      .list-col {
+        color: #d1d5db !important;
+        font-weight: 700 !important;
+        background: transparent !important;
+        
+        &.date-col {
+          color: #d1d5db !important;
+          font-weight: 700 !important;
+        }
+      }
+      
+      .list-cell-content {
+        color: #d1d5db !important;
+      }
+      
+      .list-cell-primary {
+        color: #d1d5db !important;
+        font-weight: 700 !important;
+      }
+      
+      .list-cell-value {
+        color: #d1d5db !important;
+        font-weight: 700 !important;
+      }
+      
+      // Ensure green/red colors for net column are visible
+      .text-green-600,
+      [ngClass*="text-green"] {
+        color: #10b981 !important; // green-500 for dark mode
+      }
+      
+      .text-red-600,
+      [ngClass*="text-red"] {
+        color: #ef4444 !important; // red-500 for dark mode
       }
     }
   }
@@ -3177,5 +3712,165 @@ body.dark,
         }
       }
     }
+  }
+}
+
+// Floating Action Button (FAB) with Speed Dial - Enhanced UI Design
+ion-fab {
+  z-index: 1000;
+  
+  
+  ion-fab-button {
+    --background: linear-gradient(135deg, #0066CC 0%, #0052a3 100%) !important;
+    --background-activated: #0052a3 !important;
+    --background-hover: linear-gradient(135deg, #0073e6 0%, #0066CC 100%) !important;
+    --color: white !important;
+    --box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4), 0 2px 8px rgba(0, 102, 204, 0.3);
+    background: linear-gradient(135deg, #0066CC 0%, #0052a3 100%) !important;
+    background-color: #0066CC !important;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 20px;
+    margin-right: 20px;
+    border-radius: 50%;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: scale(1);
+    will-change: transform, box-shadow, background-color;
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4), 0 2px 8px rgba(0, 102, 204, 0.3) !important;
+    position: relative;
+    overflow: hidden;
+    
+    // Subtle shine effect
+    &::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    &:hover::before {
+      opacity: 1;
+    }
+    
+    ion-icon {
+      font-size: 26px;
+      color: white !important;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+    }
+    
+    &.fab-button-close-active {
+      ion-icon {
+        transform: rotate(45deg) scale(1.1);
+      }
+    }
+    
+    &:active {
+      background: #0052a3 !important;
+      background-color: #0052a3 !important;
+      transform: scale(0.88);
+      box-shadow: 0 2px 8px rgba(0, 102, 204, 0.4) !important;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      &::before {
+        opacity: 0;
+      }
+    }
+    
+    &:hover {
+      background: linear-gradient(135deg, #0073e6 0%, #0066CC 100%) !important;
+      transform: scale(1.08);
+      box-shadow: 0 8px 28px rgba(0, 102, 204, 0.5), 0 4px 12px rgba(0, 102, 204, 0.4) !important;
+    }
+  }
+  
+  ion-fab-list {
+    margin-bottom: 90px;
+    margin-right: 20px;
+    
+    ion-fab-button {
+      --background: linear-gradient(135deg, #0066CC 0%, #0052a3 100%) !important;
+      --background-activated: #0052a3 !important;
+      --background-hover: linear-gradient(135deg, #0073e6 0%, #0066CC 100%) !important;
+      --color: white !important;
+      --box-shadow: 0 4px 12px rgba(0, 102, 204, 0.35), 0 2px 6px rgba(0, 102, 204, 0.25);
+      background: linear-gradient(135deg, #0066CC 0%, #0052a3 100%) !important;
+      background-color: #0066CC !important;
+      width: 52px;
+      height: 52px;
+      margin-bottom: 16px;
+      border-radius: 50%;
+      will-change: transform, box-shadow, background-color;
+      box-shadow: 0 4px 12px rgba(0, 102, 204, 0.35), 0 2px 6px rgba(0, 102, 204, 0.25) !important;
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+      
+      // Subtle shine effect for list buttons
+      &::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      &:hover::before {
+        opacity: 1;
+      }
+      
+      ion-icon {
+        font-size: 22px;
+        color: white !important;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        z-index: 1;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+      }
+      
+      &:active {
+        background: #0052a3 !important;
+        background-color: #0052a3 !important;
+        transform: scale(0.85);
+        box-shadow: 0 2px 6px rgba(0, 102, 204, 0.4) !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        
+        &::before {
+          opacity: 0;
+        }
+        
+        ion-icon {
+          transform: scale(0.9);
+        }
+      }
+      
+      &:hover {
+        background: linear-gradient(135deg, #0073e6 0%, #0066CC 100%) !important;
+        transform: scale(1.12);
+        box-shadow: 0 6px 20px rgba(0, 102, 204, 0.5), 0 3px 10px rgba(0, 102, 204, 0.4) !important;
+        
+        ion-icon {
+          transform: scale(1.08);
+        }
+      }
+    }
+  }
+}
+
+// Speed dial labels (optional - if you want to add labels)
+ion-fab-list {
+  &::before {
+    background: transparent;
   }
 }

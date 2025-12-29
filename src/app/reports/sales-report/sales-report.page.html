@@ -1,0 +1,166 @@
+<ion-header class="ion-no-border modern-header">
+  <ion-toolbar class="modern-toolbar" style="--background: #0066CC; background: #0066CC;">
+    <div class="navbar-container">
+      <div class="navbar-left">
+        <ion-button
+          (click)="goBack()"
+          fill="clear"
+          size="small"
+          class="menu-btn"
+        >
+          <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+        </ion-button>
+        <div class="navbar-brand">
+          <div class="brand-text">
+            <h1 class="brand-title">Sales Report</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" [fullscreen]="true" style="--background: #f5f5f5;">
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <div *ngIf="!isLoading" class="report-container">
+    <!-- Date Filter -->
+    <div class="filter-card">
+      <div class="date-filters">
+        <ion-item class="date-item">
+          <ion-label position="stacked">From</ion-label>
+          <ion-input
+            type="date"
+            [(ngModel)]="fromDate"
+            (ionChange)="onDateFilterChange()"
+          ></ion-input>
+        </ion-item>
+        <ion-item class="date-item">
+          <ion-label position="stacked">To</ion-label>
+          <ion-input
+            type="date"
+            [(ngModel)]="toDate"
+            (ionChange)="onDateFilterChange()"
+          ></ion-input>
+        </ion-item>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+      <div class="summary-card primary">
+        <ion-icon name="cash"></ion-icon>
+        <div>
+          <p class="card-label">Total Sales</p>
+          <p class="card-value">{{ salesSummary.totalSales | number:'1.0-0' }} ₹</p>
+        </div>
+      </div>
+      <div class="summary-card secondary">
+        <ion-icon name="trending-up"></ion-icon>
+        <div>
+          <p class="card-label">Average</p>
+          <p class="card-value">{{ salesSummary.averageDailySales | number:'1.0-0' }} ₹</p>
+        </div>
+      </div>
+      <div class="summary-card info">
+        <ion-icon name="document-text"></ion-icon>
+        <div>
+          <p class="card-label">Records</p>
+          <p class="card-value">{{ salesSummary.totalRecords }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="payment-grid">
+      <div class="payment-item">
+        <span class="payment-label">GPay</span>
+        <span class="payment-value">{{ salesSummary.totalGPay | number:'1.0-0' }} ₹</span>
+      </div>
+      <div class="payment-item">
+        <span class="payment-label">Paytm</span>
+        <span class="payment-value">{{ salesSummary.totalPaytm | number:'1.0-0' }} ₹</span>
+      </div>
+      <div class="payment-item">
+        <span class="payment-label">Cash</span>
+        <span class="payment-value">{{ salesSummary.totalCash | number:'1.0-0' }} ₹</span>
+      </div>
+      <div class="payment-item">
+        <span class="payment-label">Drawer</span>
+        <span class="payment-value">{{ salesSummary.totalDrawer | number:'1.0-0' }} ₹</span>
+      </div>
+      <div class="payment-item">
+        <span class="payment-label">Outside</span>
+        <span class="payment-value">{{ salesSummary.totalOutsideOrder | number:'1.0-0' }} ₹</span>
+      </div>
+    </div>
+
+    <!-- Highlights -->
+    <div class="highlights-grid">
+      <div class="highlight-item success">
+        <ion-icon name="trending-up"></ion-icon>
+        <div>
+          <p class="highlight-label">Highest</p>
+          <p class="highlight-value">{{ salesSummary.highestSalesDay.amount | number:'1.0-0' }} ₹</p>
+          <p class="highlight-date">{{ formatDate(salesSummary.highestSalesDay.date) }}</p>
+        </div>
+      </div>
+      <div class="highlight-item warning">
+        <ion-icon name="trending-down"></ion-icon>
+        <div>
+          <p class="highlight-label">Lowest</p>
+          <p class="highlight-value">{{ salesSummary.lowestSalesDay.amount | number:'1.0-0' }} ₹</p>
+          <p class="highlight-date">{{ formatDate(salesSummary.lowestSalesDay.date) }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Sales -->
+    <div *ngIf="filteredRecords.length === 0" class="empty-state">
+      <ion-icon name="document-text"></ion-icon>
+      <p>No records found</p>
+    </div>
+
+    <div *ngIf="filteredRecords.length > 0" class="sales-list">
+      <div *ngFor="let record of filteredRecords" class="sales-item">
+        <div class="sales-header">
+          <h3>{{ formatDate(record.date) }}</h3>
+          <p class="sales-total">{{ getTotalSalesForRecord(record) | number:'1.0-0' }} ₹</p>
+        </div>
+        <div class="sales-details">
+          <div class="detail-item">
+            <span>Income Items</span>
+            <span>{{ getIncomeItemsTotal(record) | number:'1.0-0' }} ₹</span>
+          </div>
+          <div class="detail-item">
+            <span>GPay</span>
+            <span>{{ (record.dailyIncomeAmount?.gpay || 0) | number:'1.0-0' }} ₹</span>
+          </div>
+          <div class="detail-item">
+            <span>Paytm</span>
+            <span>{{ (record.dailyIncomeAmount?.paytm || 0) | number:'1.0-0' }} ₹</span>
+          </div>
+          <div class="detail-item">
+            <span>Cash</span>
+            <span>{{ (record.dailyIncomeAmount?.cash || 0) | number:'1.0-0' }} ₹</span>
+          </div>
+          <div class="detail-item">
+            <span>Drawer</span>
+            <span>{{ (record.dailyIncomeAmount?.onDrawer || 0) | number:'1.0-0' }} ₹</span>
+          </div>
+          <div class="detail-item">
+            <span>Outside</span>
+            <span>{{ (record.dailyIncomeAmount?.onOutsideOrder || 0) | number:'1.0-0' }} ₹</span>
+          </div>
+        </div>
+        <div *ngIf="record.incomeItems && record.incomeItems.length > 0" class="income-tags">
+          <span *ngFor="let item of record.incomeItems" class="tag">
+            {{ item.listOfItem }}: {{ item.amount | number:'1.0-0' }} ₹
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

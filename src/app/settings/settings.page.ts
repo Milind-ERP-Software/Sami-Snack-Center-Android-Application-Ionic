@@ -1,12 +1,14 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonToggle, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonToggle } from '@ionic/angular/standalone';
 import { AlertController, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { arrowBack, informationCircle, download, cloudUpload, trash, statsChart, documentText, business, moon, sunny, phonePortrait } from 'ionicons/icons';
+import { arrowBack, informationCircle, download, cloudUpload, trash, statsChart, documentText, business, moon, sunny, phonePortrait, code, image, text, add } from 'ionicons/icons';
 import { StorageService } from '../services/storage.service';
 import { ThemeService } from '../services/theme.service';
+import { NotificationService } from '../services/notification.service';
 
 @Component({
   selector: 'app-settings',
@@ -15,15 +17,14 @@ import { ThemeService } from '../services/theme.service';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     IonHeader,
     IonToolbar,
     IonTitle,
     IonContent,
     IonIcon,
     IonButton,
-    IonToggle,
-    IonSelect,
-    IonSelectOption
+    IonToggle
   ]
 })
 export class SettingsPage implements OnInit, OnDestroy {
@@ -32,21 +33,29 @@ export class SettingsPage implements OnInit, OnDestroy {
   appName: string = 'Sami Snack Center';
   isDarkMode: boolean = false;
   themeMode: 'light' | 'dark' | 'system' = 'system';
+  isDeveloperMode: boolean = false;
+  companyName: string = 'Sami Snack Center';
+  companyLogo: string | null = null;
+  showSpeedDial: boolean = true;
 
   constructor(
     private router: Router,
     private storageService: StorageService,
     private themeService: ThemeService,
     private alertController: AlertController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private notificationService: NotificationService
   ) {
-    addIcons({ arrowBack, informationCircle, download, cloudUpload, trash, statsChart, documentText, business, moon, sunny, phonePortrait });
+    addIcons({ arrowBack, informationCircle, download, cloudUpload, trash, statsChart, documentText, business, moon, sunny, phonePortrait, code, image, text, add });
   }
 
   ngOnInit() {
     this.loadStatistics();
     this.updateThemeState();
-    
+    this.loadDeveloperMode();
+    this.loadCompanySettings();
+    this.loadSpeedDialSetting();
+
     // Listen to theme changes
     this.themeService.themeChanged.subscribe(() => {
       this.updateThemeState();
@@ -57,8 +66,8 @@ export class SettingsPage implements OnInit, OnDestroy {
     // Cleanup handled by service
   }
 
-  loadStatistics() {
-    const records = this.storageService.getAllRecords();
+  async loadStatistics() {
+    const records = await this.storageService.getAllRecords();
     this.totalRecords = records.length;
   }
 
@@ -88,7 +97,7 @@ export class SettingsPage implements OnInit, OnDestroy {
 
   async exportData() {
     try {
-      const records = this.storageService.getAllRecords();
+      const records = await this.storageService.getAllRecords();
       const data = {
         records: records,
         exportDate: new Date().toISOString(),
@@ -142,14 +151,14 @@ export class SettingsPage implements OnInit, OnDestroy {
       const file = event.target.files[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = (e: any) => {
+        reader.onload = async (e: any) => {
           try {
             const data = JSON.parse(e.target.result);
             if (data.records && Array.isArray(data.records)) {
               // Save imported records
-              localStorage.setItem('daily_records', JSON.stringify(data.records));
+              await this.storageService.importRecords(data.records);
               this.showToast('Data imported successfully', 'success');
-              this.loadStatistics();
+              await this.loadStatistics();
               setTimeout(() => {
                 this.router.navigate(['/home']);
               }, 1000);
@@ -180,11 +189,13 @@ export class SettingsPage implements OnInit, OnDestroy {
           text: 'Clear All Data',
           role: 'destructive',
           cssClass: 'danger',
-          handler: () => {
+          handler: async () => {
             try {
-              localStorage.clear();
+              await this.storageService.clearAll();
+              // Clear notifications as well
+              await this.notificationService.clearAllNotifications();
               this.showToast('All data cleared successfully', 'success');
-              this.loadStatistics();
+              await this.loadStatistics();
               setTimeout(() => {
                 this.router.navigate(['/home']);
               }, 1000);
@@ -197,6 +208,87 @@ export class SettingsPage implements OnInit, OnDestroy {
       ]
     });
     await alert.present();
+  }
+
+  async loadDeveloperMode() {
+    const developerMode = await this.storageService.get('developer_mode');
+    this.isDeveloperMode = developerMode === 'true';
+  }
+
+  async toggleDeveloperMode() {
+    this.isDeveloperMode = !this.isDeveloperMode;
+    await this.storageService.set('developer_mode', this.isDeveloperMode.toString());
+    this.showToast(
+      this.isDeveloperMode ? 'Developer mode enabled' : 'Developer mode disabled',
+      'success'
+    );
+  }
+
+  async loadCompanySettings() {
+    const name = await this.storageService.get('company_name');
+    if (name) {
+      this.companyName = name;
+    }
+    
+    const logo = await this.storageService.get('company_logo');
+    if (logo) {
+      this.companyLogo = logo;
+    }
+  }
+
+  async saveCompanyName() {
+    if (this.companyName.trim()) {
+      await this.storageService.set('company_name', this.companyName.trim());
+      this.storageService.companyNameChanged.emit(this.companyName.trim());
+      this.showToast('Company name saved', 'success');
+    }
+  }
+
+  selectCompanyLogo() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (event: any) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = async (e: any) => {
+          try {
+            const base64 = e.target.result as string;
+            this.companyLogo = base64;
+            await this.storageService.set('company_logo', base64);
+            this.storageService.companyLogoChanged.emit(base64);
+            this.showToast('Company logo saved', 'success');
+          } catch (error) {
+            this.showToast('Error saving logo', 'danger');
+            console.error('Logo save error:', error);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    input.click();
+  }
+
+  async removeCompanyLogo() {
+    this.companyLogo = null;
+    await this.storageService.set('company_logo', '');
+    this.storageService.companyLogoChanged.emit('');
+    this.showToast('Company logo removed', 'success');
+  }
+
+  async loadSpeedDialSetting() {
+    const speedDialVisible = await this.storageService.get('show_speed_dial');
+    this.showSpeedDial = speedDialVisible !== 'false'; // Default to true if not set
+  }
+
+  async toggleSpeedDial() {
+    this.showSpeedDial = !this.showSpeedDial;
+    await this.storageService.set('show_speed_dial', this.showSpeedDial.toString());
+    this.showToast(
+      this.showSpeedDial ? 'Speed dial enabled' : 'Speed dial disabled',
+      'success'
+    );
   }
 
   async showToast(message: string, color: 'success' | 'warning' | 'danger' = 'success') {

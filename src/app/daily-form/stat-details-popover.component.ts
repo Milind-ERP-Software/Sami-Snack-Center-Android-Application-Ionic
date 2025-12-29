@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonPopover, IonList, IonItem, IonLabel, IonIcon } from '@ionic/angular/standalone';
+import { IonPopover, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { trendingDown, trendingUp, wallet, cash, business, receipt, card, phonePortrait, storefront } from 'ionicons/icons';
 import { ProductionItem, ExpenseItem } from '../services/storage.service';
@@ -10,7 +10,7 @@ export type StatType = 'loss' | 'profit' | 'expected' | 'income' | 'expense';
 @Component({
   selector: 'app-stat-details-popover',
   standalone: true,
-  imports: [CommonModule, IonPopover, IonList, IonItem, IonLabel, IonIcon],
+  imports: [CommonModule, IonPopover, IonIcon],
   template: `
     <div class="stat-popover-content">
       <div class="stat-popover-header">

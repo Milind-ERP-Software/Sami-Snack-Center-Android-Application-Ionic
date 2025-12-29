@@ -1,13 +1,14 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonInput, IonToggle, IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonInput, IonToggle, IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton, IonFab, IonFabButton, IonFabList } from '@ionic/angular/standalone';
 import { AlertController, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator } from 'ionicons/icons';
+import { add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications } from 'ionicons/icons';
 import { StorageService, DailyRecord } from '../services/storage.service';
 import { ThemeService } from '../services/theme.service';
+import { NotificationService } from '../services/notification.service';
 
 @Component({
   selector: 'app-home',
@@ -27,10 +28,15 @@ import { ThemeService } from '../services/theme.service';
     IonRefresher,
     IonRefresherContent,
     IonSegment,
-    IonSegmentButton
+    IonSegmentButton,
+    IonFab,
+    IonFabButton,
+    IonFabList
   ]
 })
-export class HomePage implements OnInit, OnDestroy {
+export class HomePage implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild('scrollableRecords', { read: ElementRef }) scrollableRecords?: ElementRef;
+  
   records: DailyRecord[] = [];
   filteredRecords: DailyRecord[] = [];
   searchQuery: string = '';
@@ -45,30 +51,116 @@ export class HomePage implements OnInit, OnDestroy {
 
   isDrawerOpen = false;
   isDarkMode = false;
+  isDeveloperMode = false;
   viewMode: 'card' | 'list' = 'card'; // Track current view mode
+  companyName: string = 'Sami Snack Center';
+  companyLogo: string | null = null;
+  notificationCount = 0;
+  isSpeedDialOpen = false;
+  showSpeedDial = true;
   private touchStartX = 0;
   private touchEndX = 0;
   private profitAnimationId?: number;
   private lossAnimationId?: number;
+  private scrollTimeout?: any;
+  private scrollListener?: () => void;
+  private notificationCheckInterval?: any;
 
   constructor(
     private storageService: StorageService,
     private router: Router,
     private alertController: AlertController,
     private toastController: ToastController,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
   ) {
-    addIcons({ add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator });
+    addIcons({ add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications });
   }
 
   ngOnInit() {
     this.setDefaultDateRange();
     this.loadRecords();
+    this.loadDeveloperMode();
     this.setupSwipeGesture();
     this.isDarkMode = this.themeService.isDarkMode();
     this.themeService.themeChanged.subscribe((isDark: boolean) => {
       this.isDarkMode = isDark;
     });
+    
+    // Listen to developer mode changes
+    this.storageService.developerModeChanged.subscribe((isEnabled: boolean) => {
+      this.isDeveloperMode = isEnabled;
+    });
+    
+    // Listen to company settings changes
+    this.storageService.companyNameChanged.subscribe((name: string) => {
+      this.companyName = name;
+    });
+    
+    this.storageService.companyLogoChanged.subscribe((logo: string) => {
+      this.companyLogo = logo;
+    });
+    
+    // Load company settings
+    this.loadCompanySettings();
+    
+    // Load speed dial setting
+    this.loadSpeedDialSetting();
+    
+    // Check notifications
+    this.checkNotifications();
+    // Check notifications every 5 minutes
+    this.notificationCheckInterval = setInterval(() => {
+      this.checkNotifications();
+    }, 5 * 60 * 1000);
+  }
+  
+  ngAfterViewInit() {
+    // Setup scroll detection after view is initialized
+    setTimeout(() => {
+      this.setupScrollDetection();
+    }, 100);
+  }
+  
+  setupScrollDetection() {
+    if (!this.scrollableRecords?.nativeElement) return;
+    
+    const element = this.scrollableRecords.nativeElement;
+    
+    this.scrollListener = () => {
+      // Add scrolling class when user scrolls
+      element.classList.add('scrolling');
+      
+      // Clear existing timeout
+      if (this.scrollTimeout) {
+        clearTimeout(this.scrollTimeout);
+      }
+      
+      // Remove scrolling class after scrolling stops
+      this.scrollTimeout = setTimeout(() => {
+        element.classList.remove('scrolling');
+      }, 500);
+    };
+    
+    element.addEventListener('scroll', this.scrollListener, { passive: true });
+  }
+  
+  async loadSpeedDialSetting() {
+    const speedDialVisible = await this.storageService.get('show_speed_dial');
+    this.showSpeedDial = speedDialVisible !== 'false'; // Default to true if not set
+  }
+
+  async loadCompanySettings() {
+    const name = await this.storageService.get('company_name');
+    if (name) {
+      this.companyName = name;
+    }
+    
+    const logo = await this.storageService.get('company_logo');
+    if (logo) {
+      this.companyLogo = logo;
+    }
   }
 
   setDefaultDateRange() {
@@ -87,19 +179,34 @@ export class HomePage implements OnInit, OnDestroy {
 
   ionViewWillEnter() {
     this.loadRecords();
+    this.loadSpeedDialSetting();
   }
 
-  loadRecords() {
+  async loadRecords() {
     this.isLoading = true;
     // Reset displayed values to 0 for smooth animation on load
     this.displayedProfit = 0;
     this.displayedLoss = 0;
-    setTimeout(() => {
-      this.records = this.storageService.getAllRecords();
+
+    // Ensure minimum loading time for better UX
+    const startTime = Date.now();
+
+    try {
+      this.records = await this.storageService.getAllRecords();
       this.filterRecords();
       this.calculateTotals();
-      this.isLoading = false;
-    }, 800); // Increased delay to show skeleton animation
+      // Refresh notifications when records are loaded
+      await this.checkNotifications();
+    } catch (error) {
+      console.error('Error loading records:', error);
+    } finally {
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 800 - elapsedTime);
+
+      setTimeout(() => {
+        this.isLoading = false;
+      }, remainingTime);
+    }
   }
 
   handleRefresh(event: any) {
@@ -245,7 +352,7 @@ export class HomePage implements OnInit, OnDestroy {
 
     const duration = 600; // milliseconds - shorter animation duration
     const startTime = performance.now();
-    
+
     // Easing function for smooth animation (ease-out cubic for natural feel)
     const easeOutCubic = (t: number): number => {
       return 1 - Math.pow(1 - t, 3);
@@ -254,13 +361,13 @@ export class HomePage implements OnInit, OnDestroy {
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1); // 0 to 1
-      
+
       // Apply easing for smooth deceleration
       const easedProgress = easeOutCubic(progress);
-      
+
       // Calculate current value with smooth interpolation
       const currentValue = start + (end - start) * easedProgress;
-      
+
       // Update displayed value (round to 2 decimal places for display)
       if (type === 'profit') {
         this.displayedProfit = Math.round(currentValue * 100) / 100;
@@ -376,6 +483,34 @@ export class HomePage implements OnInit, OnDestroy {
     return totalProductionCost + totalExpenses;
   }
 
+  // Totals for list view footer
+  getTotalChains(): number {
+    return this.filteredRecords.reduce((sum, record) => sum + (record.chains || 0), 0);
+  }
+
+  getTotalExpenses(): number {
+    return this.filteredRecords.reduce((sum, record) => sum + this.getTotalExpense(record), 0);
+  }
+
+  getTotalIncomes(): number {
+    return this.filteredRecords.reduce((sum, record) => sum + this.getTotalIncome(record), 0);
+  }
+
+  getTotalExpected(): number {
+    return this.filteredRecords.reduce((sum, record) => sum + (record.expectedIncome || 0), 0);
+  }
+
+  getTotalBack(): number {
+    return this.filteredRecords.reduce((sum, record) => sum + (record.backMoneyInBag || 0), 0);
+  }
+
+  getTotalNet(): number {
+    return this.filteredRecords.reduce((sum, record) => {
+      const profit = (record.dailyProfit?.profit || 0) - (record.dailyProfit?.loss || 0);
+      return sum + profit;
+    }, 0);
+  }
+
   // Show toast notification
   async showToast(message: string, color: 'success' | 'warning' | 'danger' = 'success') {
     const toast = await this.toastController.create({
@@ -395,12 +530,18 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   // Drawer methods
-  toggleDrawer() {
+  async toggleDrawer() {
     this.isDrawerOpen = !this.isDrawerOpen;
+    // Refresh developer mode when drawer opens
+    if (this.isDrawerOpen) {
+      await this.loadDeveloperMode();
+    }
   }
 
-  openDrawer() {
+  async openDrawer() {
     this.isDrawerOpen = true;
+    // Refresh developer mode when drawer opens
+    await this.loadDeveloperMode();
   }
 
   closeDrawer() {
@@ -500,7 +641,7 @@ export class HomePage implements OnInit, OnDestroy {
           text: 'Clear All Data',
           role: 'destructive',
           cssClass: 'danger',
-          handler: () => {
+          handler: async () => {
             try {
               // Cancel any running animations
               if (this.profitAnimationId) {
@@ -511,8 +652,10 @@ export class HomePage implements OnInit, OnDestroy {
                 cancelAnimationFrame(this.lossAnimationId);
                 this.lossAnimationId = undefined;
               }
-              
-              localStorage.clear();
+
+              await this.storageService.clearAll();
+              // Clear notifications as well
+              await this.notificationService.clearAllNotifications();
               this.records = [];
               this.filteredRecords = [];
               this.totalProfit = 0;
@@ -523,15 +666,16 @@ export class HomePage implements OnInit, OnDestroy {
               this.fromDate = '';
               this.toDate = '';
               this.setDefaultDateRange();
-              this.showToast('LocalStorage cleared successfully', 'success');
+              this.notificationCount = 0;
+              this.showToast('All data cleared successfully', 'success');
               this.closeDrawer();
               // Reload records to show empty state
               setTimeout(() => {
                 this.loadRecords();
               }, 500);
             } catch (error) {
-              this.showToast('Error clearing LocalStorage', 'danger');
-              console.error('Error clearing LocalStorage:', error);
+              this.showToast('Error clearing data', 'danger');
+              console.error('Error clearing data:', error);
             }
           }
         }
@@ -561,9 +705,66 @@ export class HomePage implements OnInit, OnDestroy {
     this.router.navigate(['/calculations']);
   }
 
+  goToReports() {
+    this.router.navigate(['/reports']);
+  }
+
+  async checkNotifications() {
+    try {
+      await this.notificationService.generateNotifications();
+      this.notificationCount = await this.notificationService.getUnreadCount();
+    } catch (error) {
+      console.error('Error checking notifications:', error);
+    }
+  }
+
+  goToNotifications() {
+    this.router.navigate(['/notifications']);
+  }
+
   toggleTheme() {
     this.themeService.toggleTheme();
     this.isDarkMode = this.themeService.isDarkMode();
+  }
+
+  toggleSpeedDial() {
+    this.isSpeedDialOpen = !this.isSpeedDialOpen;
+    // Force change detection to ensure Ionic properly detects the state change on first click
+    this.cdr.detectChanges();
+  }
+
+  handleContentClick(event: Event) {
+    // Close speed dial if clicking outside the FAB
+    const target = event.target as HTMLElement;
+    const fab = target.closest('ion-fab');
+    const fabButton = target.closest('ion-fab-button');
+    // Don't close if clicking on FAB or FAB button (let the toggle handle it)
+    if (!fab && !fabButton && this.isSpeedDialOpen) {
+      this.isSpeedDialOpen = false;
+    }
+  }
+
+  speedDialAction(action: string) {
+    this.isSpeedDialOpen = false;
+    switch(action) {
+      case 'add':
+        this.addNewRecord();
+        break;
+      case 'calculator':
+        this.goToCalculations();
+        break;
+      case 'document-text':
+        this.goToReports();
+        break;
+      case 'settings':
+        this.goToSettings();
+        break;
+    }
+  }
+
+  async loadDeveloperMode() {
+    const developerMode = await this.storageService.get('developer_mode');
+    this.isDeveloperMode = developerMode === 'true';
   }
 
   ngOnDestroy() {
@@ -573,6 +774,21 @@ export class HomePage implements OnInit, OnDestroy {
     }
     if (this.lossAnimationId) {
       cancelAnimationFrame(this.lossAnimationId);
+    }
+    
+    // Clear notification check interval
+    if (this.notificationCheckInterval) {
+      clearInterval(this.notificationCheckInterval);
+    }
+    
+    // Clean up scroll listener
+    if (this.scrollableRecords?.nativeElement && this.scrollListener) {
+      this.scrollableRecords.nativeElement.removeEventListener('scroll', this.scrollListener);
+    }
+    
+    // Clear scroll timeout
+    if (this.scrollTimeout) {
+      clearTimeout(this.scrollTimeout);
     }
   }
 }

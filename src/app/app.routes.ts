@@ -38,6 +38,34 @@ export const routes: Routes = [
     loadComponent: () => import('./calculations/calculations.page').then((m) => m.CalculationsPage),
   },
   {
+    path: 'reports',
+    loadComponent: () => import('./reports/reports.page').then((m) => m.ReportsPage),
+  },
+  {
+    path: 'reports/sales-report',
+    loadComponent: () => import('./reports/sales-report/sales-report.page').then((m) => m.SalesReportPage),
+  },
+  {
+    path: 'reports/purchase-report',
+    loadComponent: () => import('./reports/purchase-report/purchase-report.page').then((m) => m.PurchaseReportPage),
+  },
+  {
+    path: 'reports/profit-loss-report',
+    loadComponent: () => import('./reports/profit-loss-report/profit-loss-report.page').then((m) => m.ProfitLossReportPage),
+  },
+  {
+    path: 'reports/expense-report',
+    loadComponent: () => import('./reports/expense-report/expense-report.page').then((m) => m.ExpenseReportPage),
+  },
+  {
+    path: 'reports/grocery-buy-report',
+    loadComponent: () => import('./reports/grocery-buy-report/grocery-buy-report.page').then((m) => m.GroceryBuyReportPage),
+  },
+  {
+    path: 'notifications',
+    loadComponent: () => import('./notifications/notifications.page').then((m) => m.NotificationsPage),
+  },
+  {
     path: 'calculations/menduwada-idali',
     loadComponent: () => import('./calculations/menduwada-idali/menduwada-idali.page').then((m) => m.MenduwadaIdaliPage),
   },

@@ -276,6 +276,15 @@ body.dark .dark\:text-gray-500 {
     --handle-height: 20px;
     --track-width: 40px;
     --track-height: 22px;
+    --transition: 0.1s ease !important;
+    
+    &::part(track) {
+      transition: background-color 0.1s ease !important;
+    }
+    
+    &::part(handle) {
+      transition: transform 0.1s ease !important;
+    }
   }
 }
 
@@ -305,5 +314,39 @@ body.dark .theme-option {
 body.dark .theme-status {
   background-color: rgba(59, 130, 246, 0.1);
   border-left-color: #3b82f6;
+}
+
+// Fast toggle transitions for all toggles
+ion-toggle {
+  --transition: 0.1s ease !important;
+  
+  &::part(track) {
+    transition: background-color 0.1s ease !important;
+  }
+  
+  &::part(handle) {
+    transition: transform 0.1s ease !important;
+  }
+  
+  // Override Ionic's default transition
+  &::part(native) {
+    transition: none !important;
+  }
+}
+
+// Global fast toggle animation
+::ng-deep {
+  ion-toggle {
+    --transition: 0.1s ease !important;
+    
+    .toggle-icon-wrapper,
+    .toggle-icon {
+      transition: transform 0.1s ease !important;
+    }
+    
+    .toggle-icon-wrapper {
+      transition: transform 0.1s ease !important;
+    }
+  }
 }
 
