@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonInput, IonLabel, IonItem, IonBreadcrumb, IonBreadcrumbs } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonContent, IonIcon, IonButton, IonInput, IonLabel, IonItem, IonBreadcrumb, IonBreadcrumbs } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { arrowBack, calculator } from 'ionicons/icons';
 
@@ -16,7 +16,6 @@ import { arrowBack, calculator } from 'ionicons/icons';
     FormsModule,
     IonHeader,
     IonToolbar,
-    IonTitle,
     IonContent,
     IonIcon,
     IonButton,

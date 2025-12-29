@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonBreadcrumb, IonBreadcrumbs, IonInput, IonItem, IonLabel } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonContent, IonIcon, IonButton, IonInput, IonItem, IonLabel } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { arrowBack, documentText, calendar, cash, trendingUp, trendingDown, statsChart, card, wallet, bag } from 'ionicons/icons';
 import { StorageService, DailyRecord } from '../../services/storage.service';
@@ -32,12 +32,9 @@ interface SalesSummary {
     FormsModule,
     IonHeader,
     IonToolbar,
-    IonTitle,
     IonContent,
     IonIcon,
     IonButton,
-    IonBreadcrumb,
-    IonBreadcrumbs,
     IonInput,
     IonItem,
     IonLabel

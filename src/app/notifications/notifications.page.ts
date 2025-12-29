@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonRefresher, IonRefresherContent } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { arrowBack, notifications, notificationsOutline, checkmarkDone, trash, refresh, alertCircle, statsChart, time, checkmarkCircle, closeCircle, arrowForward, calendarOutline, trophyOutline, cashOutline, warningOutline, addCircleOutline, createOutline, documentTextOutline } from 'ionicons/icons';
 import { NotificationService, Notification, NotificationCategory } from '../services/notification.service';
@@ -22,8 +22,6 @@ import { ThemeService } from '../services/theme.service';
     IonContent,
     IonIcon,
     IonButton,
-    IonSegment,
-    IonSegmentButton,
     IonRefresher,
     IonRefresherContent
   ]

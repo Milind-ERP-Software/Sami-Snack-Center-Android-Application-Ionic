@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonPopover, IonList, IonItem, IonLabel, IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { business, receipt } from 'ionicons/icons';
 import { ProductionItem, ExpenseItem } from '../services/storage.service';
@@ -8,7 +8,7 @@ import { ProductionItem, ExpenseItem } from '../services/storage.service';
 @Component({
   selector: 'app-expense-details-popover',
   standalone: true,
-  imports: [CommonModule, IonPopover, IonList, IonItem, IonLabel, IonIcon],
+  imports: [CommonModule, IonIcon],
   template: `
     <div class="expense-popover-content">
       <div class="expense-popover-header">

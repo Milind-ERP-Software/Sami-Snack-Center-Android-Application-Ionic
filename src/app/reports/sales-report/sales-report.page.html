@@ -136,23 +136,23 @@
           </div>
           <div class="detail-item">
             <span>GPay</span>
-            <span>{{ (record.dailyIncomeAmount?.gpay || 0) | number:'1.0-0' }} ₹</span>
+            <span>{{ (record.dailyIncomeAmount.gpay || 0) | number:'1.0-0' }} ₹</span>
           </div>
           <div class="detail-item">
             <span>Paytm</span>
-            <span>{{ (record.dailyIncomeAmount?.paytm || 0) | number:'1.0-0' }} ₹</span>
+            <span>{{ (record.dailyIncomeAmount.paytm || 0) | number:'1.0-0' }} ₹</span>
           </div>
           <div class="detail-item">
             <span>Cash</span>
-            <span>{{ (record.dailyIncomeAmount?.cash || 0) | number:'1.0-0' }} ₹</span>
+            <span>{{ (record.dailyIncomeAmount.cash || 0) | number:'1.0-0' }} ₹</span>
           </div>
           <div class="detail-item">
             <span>Drawer</span>
-            <span>{{ (record.dailyIncomeAmount?.onDrawer || 0) | number:'1.0-0' }} ₹</span>
+            <span>{{ (record.dailyIncomeAmount.onDrawer || 0) | number:'1.0-0' }} ₹</span>
           </div>
           <div class="detail-item">
             <span>Outside</span>
-            <span>{{ (record.dailyIncomeAmount?.onOutsideOrder || 0) | number:'1.0-0' }} ₹</span>
+            <span>{{ (record.dailyIncomeAmount.onOutsideOrder || 0) | number:'1.0-0' }} ₹</span>
           </div>
         </div>
         <div *ngIf="record.incomeItems && record.incomeItems.length > 0" class="income-tags">
