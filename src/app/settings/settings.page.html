@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border">
   <ion-toolbar style="--background: #0066CC; background: #0066CC; --border-width: 0;">
-    <div class="navbar-container">
+    <div class="navbar-container" (dblclick)="onSettingsTitleDoubleClick()" style="cursor: pointer;">
       <div class="navbar-left">
         <ion-button
           (click)="goToHome()"
@@ -11,7 +11,7 @@
         >
           <ion-icon name="arrow-back" slot="icon-only" style="font-size: 16px;"></ion-icon>
         </ion-button>
-        <ion-title class="navbar-title">
+        <ion-title class="navbar-title" (dblclick)="onSettingsTitleDoubleClick()" style="cursor: pointer;">
           Settings
         </ion-title>
       </div>
@@ -184,7 +184,7 @@
     </div>
 
     <!-- Developer Mode Section -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5" *ngIf="showDeveloperSection">
       <div class="flex items-center gap-2 mb-1.5">
         <ion-icon name="code" style="font-size: 18px; color: #f59e0b;"></ion-icon>
         <h3 class="text-sm font-bold text-gray-900 dark:text-white" style="font-size: 13px;">Developer Testing Mode</h3>

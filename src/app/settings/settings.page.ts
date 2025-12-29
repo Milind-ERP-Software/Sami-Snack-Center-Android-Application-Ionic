@@ -37,6 +37,8 @@ export class SettingsPage implements OnInit, OnDestroy {
   companyName: string = 'Sami Snack Center';
   companyLogo: string | null = null;
   showSpeedDial: boolean = true;
+  showDeveloperSection: boolean = false;
+  private developerModeTimer?: any;
 
   constructor(
     private router: Router,
@@ -50,6 +52,9 @@ export class SettingsPage implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Reset developer section visibility when entering settings page
+    this.showDeveloperSection = false;
+    
     this.loadStatistics();
     this.updateThemeState();
     this.loadDeveloperMode();
@@ -63,7 +68,18 @@ export class SettingsPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    // Cleanup handled by service
+    // Reset developer section visibility when leaving settings page
+    this.showDeveloperSection = false;
+    
+    // Clear developer mode timer if it exists
+    if (this.developerModeTimer) {
+      clearTimeout(this.developerModeTimer);
+      this.developerModeTimer = undefined;
+    }
+  }
+
+  onSettingsTitleDoubleClick() {
+    this.showDeveloperSection = true;
   }
 
   async loadStatistics() {
@@ -218,10 +234,28 @@ export class SettingsPage implements OnInit, OnDestroy {
   async toggleDeveloperMode() {
     this.isDeveloperMode = !this.isDeveloperMode;
     await this.storageService.set('developer_mode', this.isDeveloperMode.toString());
-    this.showToast(
-      this.isDeveloperMode ? 'Developer mode enabled' : 'Developer mode disabled',
-      'success'
-    );
+    
+    if (this.isDeveloperMode) {
+      // Developer mode turned ON - set timer to auto-disable after 1 minute
+      this.developerModeTimer = setTimeout(async () => {
+        this.isDeveloperMode = false;
+        await this.storageService.set('developer_mode', 'false');
+        this.showToast('Developer mode automatically disabled after 1 minute', 'warning');
+        // Clear the timer reference
+        this.developerModeTimer = undefined;
+      }, 60000); // 1 minute = 60000 milliseconds
+    } else {
+      // Developer mode turned OFF manually - clear the timer if it exists
+      if (this.developerModeTimer) {
+        clearTimeout(this.developerModeTimer);
+        this.developerModeTimer = undefined;
+      }
+      this.showToast('Developer mode disabled', 'success');
+    }
+    
+    if (this.isDeveloperMode) {
+      this.showToast('Developer mode enabled (will auto-disable in 1 minute)', 'success');
+    }
   }
 
   async loadCompanySettings() {

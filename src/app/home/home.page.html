@@ -712,21 +712,35 @@
     </div>
   </div>
 
-  <!-- Floating Action Button with Speed Dial -->
+  <!-- Floating Action Button with Speed Dial - Modern Grid Layout -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" [activated]="isSpeedDialOpen" *ngIf="showSpeedDial">
-    <ion-fab-button (click)="toggleSpeedDial()" style="--background: #0066CC !important; --background-activated: #0052a3 !important; --background-hover: #0073e6 !important; --color: white !important; background: #0066CC !important;">
-      <ion-icon [name]="isSpeedDialOpen ? 'close' : 'add'" style="color: white;"></ion-icon>
+    <ion-fab-button (click)="toggleSpeedDial()" class="main-fab-button">
+      <ion-icon [name]="isSpeedDialOpen ? 'close' : 'add'"></ion-icon>
     </ion-fab-button>
-    <ion-fab-list side="top">
-      <ion-fab-button (click)="speedDialAction('calculator')" style="--background: #0066CC !important; --background-activated: #0052a3 !important; --background-hover: #0073e6 !important; --color: white !important; background: #0066CC !important;" title="Calculations">
-        <ion-icon name="calculator" style="color: white;"></ion-icon>
-      </ion-fab-button>
-      <ion-fab-button (click)="speedDialAction('document-text')" style="--background: #0066CC !important; --background-activated: #0052a3 !important; --background-hover: #0073e6 !important; --color: white !important; background: #0066CC !important;" title="Reports">
-        <ion-icon name="document-text" style="color: white;"></ion-icon>
-      </ion-fab-button>
-      <ion-fab-button (click)="speedDialAction('settings')" style="--background: #0066CC !important; --background-activated: #0052a3 !important; --background-hover: #0073e6 !important; --color: white !important; background: #0066CC !important;" title="Settings">
-        <ion-icon name="settings" style="color: white;"></ion-icon>
-      </ion-fab-button>
+    <ion-fab-list side="top" class="speed-dial-grid">
+      <!-- Calculations Button -->
+      <div class="speed-dial-row" *ngIf="isSpeedDialOpen">
+        <button class="speed-dial-rect-button" (click)="speedDialAction('calculator')">
+          <ion-icon name="calculator"></ion-icon>
+          <span>Calculations</span>
+        </button>
+      </div>
+
+      <!-- Reports Button -->
+      <div class="speed-dial-row" *ngIf="isSpeedDialOpen">
+        <button class="speed-dial-rect-button" (click)="speedDialAction('document-text')">
+          <ion-icon name="document-text"></ion-icon>
+          <span>Reports</span>
+        </button>
+      </div>
+
+      <!-- Settings Button -->
+      <div class="speed-dial-row" *ngIf="isSpeedDialOpen">
+        <button class="speed-dial-rect-button" (click)="speedDialAction('settings')">
+          <ion-icon name="settings"></ion-icon>
+          <span>Settings</span>
+        </button>
+      </div>
     </ion-fab-list>
   </ion-fab>
 </ion-content>
