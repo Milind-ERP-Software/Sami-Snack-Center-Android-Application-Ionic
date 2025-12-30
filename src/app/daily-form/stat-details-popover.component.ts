@@ -30,12 +30,12 @@ export type StatType = 'loss' | 'profit' | 'expected' | 'income' | 'expense';
                 <div class="calculation-row">
                   <span class="calculation-label">Daily Expense</span>
                   <span class="calculation-value cost">- {{ totalCosts | number:'1.2-2' }} ₹</span>
-                </div>
+              </div>
                 <div class="calculation-separator"></div>
                 <div class="calculation-row total-row loss-row">
                   <span class="calculation-label">Total Loss</span>
                   <span class="calculation-value loss-value">{{ loss | number:'1.2-2' }} ₹</span>
-                </div>
+              </div>
               </div>
             </div>
             <div class="breakdown-section">
@@ -91,12 +91,12 @@ export type StatType = 'loss' | 'profit' | 'expected' | 'income' | 'expense';
                 <div class="calculation-row">
                   <span class="calculation-label">Daily Expense</span>
                   <span class="calculation-value cost">- {{ totalCosts | number:'1.2-2' }} ₹</span>
-                </div>
+              </div>
                 <div class="calculation-separator"></div>
                 <div class="calculation-row total-row profit-row">
                   <span class="calculation-label">Total Profit</span>
                   <span class="calculation-value profit-value">{{ profit | number:'1.2-2' }} ₹</span>
-                </div>
+              </div>
               </div>
             </div>
             <div class="breakdown-section">

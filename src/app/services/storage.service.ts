@@ -50,6 +50,8 @@ export interface DailyRecord {
   };
   createdAt?: string;
   updatedAt?: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
 }
 
 @Injectable({
@@ -330,10 +332,13 @@ export class StorageService {
 
   // Public API - Now Async
 
-  async getAllRecords(): Promise<DailyRecord[]> {
+  async getAllRecords(includeDeleted: boolean = false): Promise<DailyRecord[]> {
     await this.ensureInitialized();
     // Return a copy to prevent direct mutation
-    return [...this._records];
+    if (includeDeleted) {
+      return [...this._records];
+    }
+    return [...this._records].filter(record => !record.isDeleted);
   }
 
   async getRecordById(id: string): Promise<DailyRecord | undefined> {
@@ -376,6 +381,33 @@ export class StorageService {
     
     const index = this._records.findIndex(r => r.id === id);
     if (index !== -1) {
+      // Soft delete: mark as deleted instead of removing
+      this._records[index].isDeleted = true;
+      this._records[index].deletedAt = new Date().toISOString();
+      this._records[index].updatedAt = new Date().toISOString();
+      await this.saveRecordsToStorage();
+    }
+  }
+
+  async restoreRecord(id: string): Promise<void> {
+    await this.ensureInitialized();
+    
+    const index = this._records.findIndex(r => r.id === id);
+    if (index !== -1) {
+      // Restore: unmark as deleted
+      this._records[index].isDeleted = false;
+      this._records[index].deletedAt = undefined;
+      this._records[index].updatedAt = new Date().toISOString();
+      await this.saveRecordsToStorage();
+    }
+  }
+
+  async permanentDeleteRecord(id: string): Promise<void> {
+    await this.ensureInitialized();
+    
+    const index = this._records.findIndex(r => r.id === id);
+    if (index !== -1) {
+      // Permanent delete: actually remove from array
       this._records.splice(index, 1);
       await this.saveRecordsToStorage();
     }

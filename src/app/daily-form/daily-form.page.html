@@ -580,15 +580,15 @@
           >
             Retail
           </ion-button>
-          <ion-button
-            (click)="addProductionItem(); $event.stopPropagation()"
-            size="small"
-            fill="clear"
+        <ion-button
+          (click)="addProductionItem(); $event.stopPropagation()"
+          size="small"
+          fill="clear"
             style="--color: #0066CC; --background: rgba(0, 102, 204, 0.1); border-radius: 6px;"
-            class="h-7 w-7 p-0"
-          >
+          class="h-7 w-7 p-0"
+        >
             <ion-icon name="add" slot="icon-only" style="font-size: 16px;"></ion-icon>
-          </ion-button>
+        </ion-button>
         </div>
       </div>
       <div class="p-1 accordion-content" *ngIf="isProductionExpanded">

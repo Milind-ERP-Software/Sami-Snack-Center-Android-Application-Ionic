@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonInput, IonToggle, IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton, IonFab, IonFabButton, IonFabList } from '@ionic/angular/standalone';
 import { AlertController, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications, share } from 'ionicons/icons';
+import { add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications, share, refreshCircleOutline } from 'ionicons/icons';
 import { StorageService, DailyRecord } from '../services/storage.service';
 import { ThemeService } from '../services/theme.service';
 import { NotificationService } from '../services/notification.service';
@@ -42,6 +42,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   searchQuery: string = '';
   fromDate: string = '';
   toDate: string = '';
+  showDeleted: boolean = false;
   totalProfit = 0;
   totalLoss = 0;
   displayedProfit = 0;
@@ -75,7 +76,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
     private notificationService: NotificationService,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications, share });
+    addIcons({ add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications, share, refreshCircleOutline });
   }
 
   ngOnInit() {
@@ -192,7 +193,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
     const startTime = Date.now();
 
     try {
-      this.records = await this.storageService.getAllRecords();
+      this.records = await this.storageService.getAllRecords(this.showDeleted);
       this.filterRecords();
       this.calculateTotals();
       // Refresh notifications when records are loaded
@@ -218,6 +219,15 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
 
   filterRecords() {
     let filtered = [...this.records];
+
+    // Filter based on showDeleted toggle
+    if (this.showDeleted) {
+      // Show only deleted records
+      filtered = filtered.filter(record => record.isDeleted);
+    } else {
+      // Show only non-deleted records
+      filtered = filtered.filter(record => !record.isDeleted);
+    }
 
     // Date filter
     if (this.fromDate || this.toDate) {
@@ -290,6 +300,10 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
 
   onDateFilterChange() {
     this.filterRecords();
+  }
+
+  onShowDeletedChange() {
+    this.loadRecords();
   }
 
   clearSearch() {
@@ -413,9 +427,94 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   async deleteRecord(id: string | undefined) {
     if (!id) return;
 
+    let countdown = 10;
+    let countdownInterval: any;
+    let deleteButton: any;
+
     const alert = await this.alertController.create({
       header: 'Delete Record',
-      message: 'Are you sure you want to delete this record? This action cannot be undone.',
+      message: 'Are you sure you want to delete this record? This action cannot be undone. Please wait 10 seconds before confirming.',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: () => {
+            if (countdownInterval) {
+              clearInterval(countdownInterval);
+            }
+          }
+        },
+        {
+          text: `Delete (${countdown})`,
+          role: 'destructive',
+          cssClass: 'danger',
+          handler: () => {
+            if (countdown > 0) {
+              return false; // Prevent deletion if countdown not finished
+            }
+            if (countdownInterval) {
+              clearInterval(countdownInterval);
+            }
+            this.storageService.deleteRecord(id);
+            this.loadRecords();
+            this.showToast('Record deleted successfully', 'danger');
+            return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+
+    // Get the delete button element
+    const alertElement = document.querySelector('ion-alert');
+    if (alertElement) {
+      const buttons = alertElement.querySelectorAll('.alert-button');
+      if (buttons.length > 1) {
+        deleteButton = buttons[1] as HTMLElement;
+        const buttonInner = deleteButton.querySelector('.alert-button-inner') as HTMLElement;
+        
+        // Initially disable the button
+        deleteButton.setAttribute('disabled', 'true');
+        deleteButton.style.opacity = '0.5';
+        deleteButton.style.pointerEvents = 'none';
+
+        // Start countdown
+        countdownInterval = setInterval(() => {
+          countdown--;
+          
+          if (buttonInner) {
+            buttonInner.textContent = `Delete (${countdown})`;
+          }
+
+          if (countdown <= 0) {
+            clearInterval(countdownInterval);
+            if (buttonInner) {
+              buttonInner.textContent = 'Delete';
+            }
+            deleteButton.removeAttribute('disabled');
+            deleteButton.style.opacity = '1';
+            deleteButton.style.pointerEvents = 'auto';
+          }
+        }, 1000);
+      }
+    }
+
+    // Clean up interval when alert is dismissed
+    alert.onDidDismiss().then(() => {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+      }
+    });
+  }
+
+  async restoreRecord(id: string | undefined) {
+    if (!id) return;
+
+    const alert = await this.alertController.create({
+      header: 'Restore Record',
+      message: 'Are you sure you want to restore this record?',
       buttons: [
         {
           text: 'Cancel',
@@ -423,19 +522,102 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
           cssClass: 'secondary'
         },
         {
-          text: 'Delete',
-          role: 'destructive',
-          cssClass: 'danger',
-          handler: () => {
-            this.storageService.deleteRecord(id);
+          text: 'Restore',
+          handler: async () => {
+            await this.storageService.restoreRecord(id);
             this.loadRecords();
-            this.showToast('Record deleted successfully', 'danger');
+            this.showToast('Record restored successfully', 'success');
           }
         }
       ]
     });
 
     await alert.present();
+  }
+
+  async permanentDeleteRecord(id: string | undefined) {
+    if (!id) return;
+
+    let countdown = 10;
+    let countdownInterval: any;
+    let deleteButton: any;
+
+    const alert = await this.alertController.create({
+      header: 'Permanent Delete',
+      message: 'Are you sure you want to permanently delete this record? This action cannot be undone. Please wait 10 seconds before confirming.',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: () => {
+            if (countdownInterval) {
+              clearInterval(countdownInterval);
+            }
+          }
+        },
+        {
+          text: `Permanent Delete (${countdown})`,
+          role: 'destructive',
+          cssClass: 'danger',
+          handler: () => {
+            if (countdown > 0) {
+              return false; // Prevent deletion if countdown not finished
+            }
+            if (countdownInterval) {
+              clearInterval(countdownInterval);
+            }
+            this.storageService.permanentDeleteRecord(id);
+            this.loadRecords();
+            this.showToast('Record permanently deleted', 'danger');
+            return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+
+    // Get the delete button element
+    const alertElement = document.querySelector('ion-alert');
+    if (alertElement) {
+      const buttons = alertElement.querySelectorAll('.alert-button');
+      if (buttons.length > 1) {
+        deleteButton = buttons[1] as HTMLElement;
+        const buttonInner = deleteButton.querySelector('.alert-button-inner') as HTMLElement;
+        
+        // Initially disable the button
+        deleteButton.setAttribute('disabled', 'true');
+        deleteButton.style.opacity = '0.5';
+        deleteButton.style.pointerEvents = 'none';
+
+        // Start countdown
+        countdownInterval = setInterval(() => {
+          countdown--;
+          
+          if (buttonInner) {
+            buttonInner.textContent = `Permanent Delete (${countdown})`;
+          }
+
+          if (countdown <= 0) {
+            clearInterval(countdownInterval);
+            if (buttonInner) {
+              buttonInner.textContent = 'Permanent Delete';
+            }
+            deleteButton.removeAttribute('disabled');
+            deleteButton.style.opacity = '1';
+            deleteButton.style.pointerEvents = 'auto';
+          }
+        }, 1000);
+      }
+    }
+
+    // Clean up interval when alert is dismissed
+    alert.onDidDismiss().then(() => {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+      }
+    });
   }
 
   async shareRecord(record: DailyRecord) {

@@ -4,6 +4,8 @@ import { Storage } from '@ionic/storage-angular';
 export interface PurchaseItemOption {
   name: string;
   id?: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
 }
 
 @Injectable({
@@ -57,9 +59,12 @@ export class PurchaseItemsService {
     }
   }
 
-  async getAllItems(): Promise<PurchaseItemOption[]> {
+  async getAllItems(includeDeleted: boolean = false): Promise<PurchaseItemOption[]> {
     await this.ensureInitialized();
-    return [...this._items];
+    if (includeDeleted) {
+      return [...this._items];
+    }
+    return [...this._items].filter(item => !item.isDeleted);
   }
 
   async saveItems(items: PurchaseItemOption[]): Promise<void> {
@@ -92,6 +97,29 @@ export class PurchaseItemsService {
 
   async deleteItem(name: string): Promise<void> {
     await this.ensureInitialized();
+    const item = this._items.find(item => item.name === name);
+    if (item) {
+      // Soft delete: mark as deleted instead of removing
+      item.isDeleted = true;
+      item.deletedAt = new Date().toISOString();
+      await this.saveItems(this._items);
+    }
+  }
+
+  async restoreItem(name: string): Promise<void> {
+    await this.ensureInitialized();
+    const item = this._items.find(item => item.name === name);
+    if (item) {
+      // Restore: unmark as deleted
+      item.isDeleted = false;
+      item.deletedAt = undefined;
+      await this.saveItems(this._items);
+    }
+  }
+
+  async permanentDeleteItem(name: string): Promise<void> {
+    await this.ensureInitialized();
+    // Permanent delete: actually remove from array
     const filtered = this._items.filter(item => item.name !== name);
     await this.saveItems(filtered);
   }

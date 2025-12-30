@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationExtras, ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonInput, IonItem, IonLabel, IonList } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonInput, IonItem, IonLabel, IonList, IonToggle } from '@ionic/angular/standalone';
 import { AlertController, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { arrowBack, add, create, trash, checkmark, close } from 'ionicons/icons';
+import { arrowBack, add, create, trash, checkmark, close, refreshCircleOutline } from 'ionicons/icons';
 import { ExpenseItemsService, ExpenseItemOption } from '../services/expense-items.service';
+import { StorageService } from '../services/storage.service';
 
 @Component({
   selector: 'app-expense-items',
@@ -25,13 +26,16 @@ import { ExpenseItemsService, ExpenseItemOption } from '../services/expense-item
     IonButton,
     IonInput,
     IonItem,
-    IonList
+    IonList,
+    IonToggle
   ]
 })
 export class ExpenseItemsPage implements OnInit {
   items: ExpenseItemOption[] = [];
   filteredItems: ExpenseItemOption[] = [];
   searchQuery: string = '';
+  showDeleted: boolean = false;
+  isDeveloperMode: boolean = false;
   editingItem: ExpenseItemOption | null = null;
   newItemName: string = '';
   isAdding: boolean = false;
@@ -40,28 +44,39 @@ export class ExpenseItemsPage implements OnInit {
 
   constructor(
     private expenseItemsService: ExpenseItemsService,
+    private storageService: StorageService,
     private router: Router,
     private route: ActivatedRoute,
     private location: Location,
     private alertController: AlertController,
     private toastController: ToastController
   ) {
-    addIcons({ arrowBack, add, create, trash, checkmark, close });
+    addIcons({ arrowBack, add, create, trash, checkmark, close, refreshCircleOutline });
   }
 
   ngOnInit() {
     this.loadItems();
+    this.loadDeveloperMode();
+    // Listen to developer mode changes
+    this.storageService.developerModeChanged.subscribe((isEnabled: boolean) => {
+      this.isDeveloperMode = isEnabled;
+    });
     // Get return URL from navigation state (if available)
     if (history.state && history.state.returnUrl) {
       this.returnUrl = history.state.returnUrl;
     }
   }
 
+  async loadDeveloperMode() {
+    const developerMode = await this.storageService.get('developer_mode');
+    this.isDeveloperMode = developerMode === 'true';
+  }
+
   async loadItems() {
     this.isLoading = true;
     try {
-      this.items = await this.expenseItemsService.getAllItems();
-      this.filteredItems = [...this.items];
+      this.items = await this.expenseItemsService.getAllItems(this.showDeleted);
+      this.filterItems();
     } catch (error) {
       console.error('Error loading items:', error);
       this.showToast('Error loading items', 'danger');
@@ -93,15 +108,30 @@ export class ExpenseItemsPage implements OnInit {
   }
 
   filterItems() {
-    if (!this.searchQuery.trim()) {
-      this.filteredItems = [...this.items];
-      return;
+    let filtered = [...this.items];
+    
+    // Filter based on showDeleted toggle
+    if (this.showDeleted) {
+      // Show only deleted items
+      filtered = filtered.filter(item => item.isDeleted);
+    } else {
+      // Show only non-deleted items
+      filtered = filtered.filter(item => !item.isDeleted);
     }
+    
+    // Apply search filter
+    if (this.searchQuery.trim()) {
+      const query = this.searchQuery.toLowerCase();
+      filtered = filtered.filter(item =>
+        item.name.toLowerCase().includes(query)
+      );
+    }
+    
+    this.filteredItems = filtered;
+  }
 
-    const query = this.searchQuery.toLowerCase();
-    this.filteredItems = this.items.filter(item =>
-      item.name.toLowerCase().includes(query)
-    );
+  onShowDeletedChange() {
+    this.loadItems();
   }
 
   startAdding() {
@@ -152,20 +182,103 @@ export class ExpenseItemsPage implements OnInit {
   }
 
   async deleteItem(item: ExpenseItemOption) {
+    let countdown = 10;
+    let countdownInterval: any;
+    let deleteButton: any;
+
     const alert = await this.alertController.create({
       header: 'Delete Item',
-      message: `Are you sure you want to delete "${item.name}"?`,
+      message: `Are you sure you want to delete "${item.name}"? This action cannot be undone. Please wait 10 seconds before confirming.`,
       buttons: [
         {
           text: 'Cancel',
-          role: 'cancel'
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: () => {
+            if (countdownInterval) {
+              clearInterval(countdownInterval);
+            }
+          }
         },
         {
-          text: 'Delete',
+          text: `Delete (${countdown})`,
           role: 'destructive',
+          cssClass: 'danger',
           handler: async () => {
+            if (countdown > 0) {
+              return false; // Prevent deletion if countdown not finished
+            }
+            if (countdownInterval) {
+              clearInterval(countdownInterval);
+            }
             await this.expenseItemsService.deleteItem(item.name);
             this.showToast('Item deleted successfully', 'success');
+            await this.loadItems();
+            return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+
+    // Get the delete button element
+    const alertElement = document.querySelector('ion-alert');
+    if (alertElement) {
+      const buttons = alertElement.querySelectorAll('.alert-button');
+      if (buttons.length > 1) {
+        deleteButton = buttons[1] as HTMLElement;
+        const buttonInner = deleteButton.querySelector('.alert-button-inner') as HTMLElement;
+        
+        // Initially disable the button
+        deleteButton.setAttribute('disabled', 'true');
+        deleteButton.style.opacity = '0.5';
+        deleteButton.style.pointerEvents = 'none';
+
+        // Start countdown
+        countdownInterval = setInterval(() => {
+          countdown--;
+          
+          if (buttonInner) {
+            buttonInner.textContent = `Delete (${countdown})`;
+          }
+
+          if (countdown <= 0) {
+            clearInterval(countdownInterval);
+            if (buttonInner) {
+              buttonInner.textContent = 'Delete';
+            }
+            deleteButton.removeAttribute('disabled');
+            deleteButton.style.opacity = '1';
+            deleteButton.style.pointerEvents = 'auto';
+          }
+        }, 1000);
+      }
+    }
+
+    // Clean up interval when alert is dismissed
+    alert.onDidDismiss().then(() => {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+      }
+    });
+  }
+
+  async restoreItem(item: ExpenseItemOption) {
+    const alert = await this.alertController.create({
+      header: 'Restore Item',
+      message: `Are you sure you want to restore "${item.name}"?`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary'
+        },
+        {
+          text: 'Restore',
+          handler: async () => {
+            await this.expenseItemsService.restoreItem(item.name);
+            this.showToast('Item restored successfully', 'success');
             await this.loadItems();
           }
         }
@@ -173,6 +286,85 @@ export class ExpenseItemsPage implements OnInit {
     });
 
     await alert.present();
+  }
+
+  async permanentDeleteItem(item: ExpenseItemOption) {
+    let countdown = 10;
+    let countdownInterval: any;
+    let deleteButton: any;
+
+    const alert = await this.alertController.create({
+      header: 'Permanent Delete',
+      message: `Are you sure you want to permanently delete "${item.name}"? This action cannot be undone. Please wait 10 seconds before confirming.`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: () => {
+            if (countdownInterval) {
+              clearInterval(countdownInterval);
+            }
+          }
+        },
+        {
+          text: `Permanent Delete (${countdown})`,
+          role: 'destructive',
+          cssClass: 'danger',
+          handler: async () => {
+            if (countdown > 0) {
+              return false;
+            }
+            if (countdownInterval) {
+              clearInterval(countdownInterval);
+            }
+            await this.expenseItemsService.permanentDeleteItem(item.name);
+            this.showToast('Item permanently deleted', 'danger');
+            await this.loadItems();
+            return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+
+    const alertElement = document.querySelector('ion-alert');
+    if (alertElement) {
+      const buttons = alertElement.querySelectorAll('.alert-button');
+      if (buttons.length > 1) {
+        deleteButton = buttons[1] as HTMLElement;
+        const buttonInner = deleteButton.querySelector('.alert-button-inner') as HTMLElement;
+        
+        deleteButton.setAttribute('disabled', 'true');
+        deleteButton.style.opacity = '0.5';
+        deleteButton.style.pointerEvents = 'none';
+
+        countdownInterval = setInterval(() => {
+          countdown--;
+          
+          if (buttonInner) {
+            buttonInner.textContent = `Permanent Delete (${countdown})`;
+          }
+
+          if (countdown <= 0) {
+            clearInterval(countdownInterval);
+            if (buttonInner) {
+              buttonInner.textContent = 'Permanent Delete';
+            }
+            deleteButton.removeAttribute('disabled');
+            deleteButton.style.opacity = '1';
+            deleteButton.style.pointerEvents = 'auto';
+          }
+        }, 1000);
+      }
+    }
+
+    alert.onDidDismiss().then(() => {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+      }
+    });
   }
 
   async showToast(message: string, color: 'success' | 'warning' | 'danger' = 'success') {
