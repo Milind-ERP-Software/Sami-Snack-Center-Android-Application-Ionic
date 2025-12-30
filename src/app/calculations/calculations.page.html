@@ -40,7 +40,17 @@
             <ion-icon name="calculator"></ion-icon>
           </div>
         </div>
-        <div class="calculation-title">{{ option.title }}</div>
+        <div class="calculation-title">
+          <ng-container *ngIf="option.id === 'menduwada-idali'">
+            Menduwada/Idali <span class="wholesale-highlight">Wholesale</span> Calculation
+          </ng-container>
+          <ng-container *ngIf="option.id === 'menduwada-idali-retail'">
+            Menduwada/Idali <span class="retail-highlight">Retail</span> Calculation
+          </ng-container>
+          <ng-container *ngIf="option.id !== 'menduwada-idali' && option.id !== 'menduwada-idali-retail'">
+            {{ option.title }}
+          </ng-container>
+        </div>
       </div>
     </div>
   </div>

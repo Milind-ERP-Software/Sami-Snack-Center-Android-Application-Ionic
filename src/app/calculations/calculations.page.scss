@@ -123,6 +123,16 @@
   color: #1f2937;
   text-align: center;
   line-height: 1.4;
+  
+  .wholesale-highlight {
+    color: #0066CC;
+    font-weight: 700;
+  }
+  
+  .retail-highlight {
+    color: #10b981;
+    font-weight: 700;
+  }
 }
 
 // Responsive design - Keep 2 columns on all screen sizes
@@ -159,6 +169,16 @@
 
   .calculation-title {
     color: #f9fafb;
+    
+    .wholesale-highlight {
+      color: #60a5fa;
+      font-weight: 700;
+    }
+    
+    .retail-highlight {
+      color: #34d399;
+      font-weight: 700;
+    }
   }
 }
 
