@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonToggle } from '@ionic/angular/standalone';
 import { AlertController, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { arrowBack, informationCircle, download, cloudUpload, trash, statsChart, documentText, business, moon, sunny, phonePortrait, code, image, text, add } from 'ionicons/icons';
+import { arrowBack, informationCircle, download, cloudUpload, trash, statsChart, documentText, business, moon, sunny, phonePortrait, code, image, text, add, calculator } from 'ionicons/icons';
 import { StorageService } from '../services/storage.service';
 import { ThemeService } from '../services/theme.service';
 import { NotificationService } from '../services/notification.service';
@@ -38,6 +38,8 @@ export class SettingsPage implements OnInit, OnDestroy {
   companyLogo: string | null = null;
   showSpeedDial: boolean = true;
   showDeveloperSection: boolean = false;
+  showWholesaleButton: boolean = false;
+  showRetailButton: boolean = true;
   private developerModeTimer?: any;
 
   constructor(
@@ -48,7 +50,7 @@ export class SettingsPage implements OnInit, OnDestroy {
     private toastController: ToastController,
     private notificationService: NotificationService
   ) {
-    addIcons({ arrowBack, informationCircle, download, cloudUpload, trash, statsChart, documentText, business, moon, sunny, phonePortrait, code, image, text, add });
+    addIcons({ arrowBack, informationCircle, download, cloudUpload, trash, statsChart, documentText, business, moon, sunny, phonePortrait, code, image, text, add, calculator });
   }
 
   ngOnInit() {
@@ -60,6 +62,7 @@ export class SettingsPage implements OnInit, OnDestroy {
     this.loadDeveloperMode();
     this.loadCompanySettings();
     this.loadSpeedDialSetting();
+    this.loadCalculationButtonsSettings();
 
     // Listen to theme changes
     this.themeService.themeChanged.subscribe(() => {
@@ -321,6 +324,32 @@ export class SettingsPage implements OnInit, OnDestroy {
     await this.storageService.set('show_speed_dial', this.showSpeedDial.toString());
     this.showToast(
       this.showSpeedDial ? 'Speed dial enabled' : 'Speed dial disabled',
+      'success'
+    );
+  }
+
+  async loadCalculationButtonsSettings() {
+    const showWholesale = await this.storageService.get('show_wholesale_button');
+    this.showWholesaleButton = showWholesale === 'true'; // Default to false
+    
+    const showRetail = await this.storageService.get('show_retail_button');
+    this.showRetailButton = showRetail !== 'false'; // Default to true
+  }
+
+  async toggleWholesaleButton() {
+    this.showWholesaleButton = !this.showWholesaleButton;
+    await this.storageService.set('show_wholesale_button', this.showWholesaleButton.toString());
+    this.showToast(
+      this.showWholesaleButton ? 'Wholesale button enabled' : 'Wholesale button disabled',
+      'success'
+    );
+  }
+
+  async toggleRetailButton() {
+    this.showRetailButton = !this.showRetailButton;
+    await this.storageService.set('show_retail_button', this.showRetailButton.toString());
+    this.showToast(
+      this.showRetailButton ? 'Retail button enabled' : 'Retail button disabled',
       'success'
     );
   }

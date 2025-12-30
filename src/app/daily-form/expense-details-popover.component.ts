@@ -2,8 +2,15 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { business, receipt } from 'ionicons/icons';
-import { ProductionItem, ExpenseItem } from '../services/storage.service';
+import { receipt, cart } from 'ionicons/icons';
+import { ExpenseItem } from '../services/storage.service';
+
+export interface PurchaseItem {
+  listOfItem: string;
+  qty?: number;
+  rate?: number;
+  amount: number;
+}
 
 @Component({
   selector: 'app-expense-details-popover',
@@ -15,24 +22,6 @@ import { ProductionItem, ExpenseItem } from '../services/storage.service';
         <h3>Expense Details</h3>
       </div>
       <div class="expense-popover-body">
-        <!-- Production Costs -->
-        <div class="expense-section">
-          <div class="expense-section-header">
-            <ion-icon name="business" style="font-size: 14px; color: #0066CC;"></ion-icon>
-            <span class="section-title">Production Costs</span>
-            <span class="section-total">{{ productionCost | number:'1.2-2' }} ₹</span>
-          </div>
-          <div class="expense-items-list" *ngIf="productionItems.length > 0">
-            <div class="expense-item-row" *ngFor="let item of productionItems">
-              <span class="item-name">{{ item.listOfItem || 'N/A' }}</span>
-              <span class="item-amount">{{ item.amount | number:'1.2-2' }} ₹</span>
-            </div>
-          </div>
-          <div class="no-items" *ngIf="productionItems.length === 0">
-            <span>No production items</span>
-          </div>
-        </div>
-
         <!-- Daily Expenses -->
         <div class="expense-section">
           <div class="expense-section-header">
@@ -48,6 +37,24 @@ import { ProductionItem, ExpenseItem } from '../services/storage.service';
           </div>
           <div class="no-items" *ngIf="expenseItems.length === 0">
             <span>No expense items</span>
+          </div>
+        </div>
+
+        <!-- What buy from today Income -->
+        <div class="expense-section">
+          <div class="expense-section-header">
+            <ion-icon name="cart" style="font-size: 14px; color: #DC2626;"></ion-icon>
+            <span class="section-title">What buy from today Income..?</span>
+            <span class="section-total">{{ purchaseTotal | number:'1.2-2' }} ₹</span>
+          </div>
+          <div class="expense-items-list" *ngIf="purchaseItems.length > 0">
+            <div class="expense-item-row" *ngFor="let item of purchaseItems">
+              <span class="item-name">{{ item.listOfItem || 'N/A' }}</span>
+              <span class="item-amount">{{ item.amount | number:'1.2-2' }} ₹</span>
+            </div>
+          </div>
+          <div class="no-items" *ngIf="purchaseItems.length === 0">
+            <span>No purchase items</span>
           </div>
         </div>
 
@@ -263,14 +270,14 @@ import { ProductionItem, ExpenseItem } from '../services/storage.service';
   `]
 })
 export class ExpenseDetailsPopoverComponent {
-  @Input() productionCost: number = 0;
   @Input() dailyExpenses: number = 0;
+  @Input() purchaseTotal: number = 0;
   @Input() totalExpense: number = 0;
-  @Input() productionItems: ProductionItem[] = [];
   @Input() expenseItems: ExpenseItem[] = [];
+  @Input() purchaseItems: PurchaseItem[] = [];
 
   constructor() {
-    addIcons({ business, receipt });
+    addIcons({ receipt, cart });
   }
 }
 

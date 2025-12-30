@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonInput, IonToggle, IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton, IonFab, IonFabButton, IonFabList } from '@ionic/angular/standalone';
 import { AlertController, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications } from 'ionicons/icons';
+import { add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications, share } from 'ionicons/icons';
 import { StorageService, DailyRecord } from '../services/storage.service';
 import { ThemeService } from '../services/theme.service';
 import { NotificationService } from '../services/notification.service';
@@ -75,7 +75,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
     private notificationService: NotificationService,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications });
+    addIcons({ add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications, share });
   }
 
   ngOnInit() {
@@ -438,6 +438,47 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
     await alert.present();
   }
 
+  async shareRecord(record: DailyRecord) {
+    const expense = this.getTotalExpense(record);
+    const income = this.getTotalIncome(record);
+    const expected = this.getProductionCost(record);
+    const back = record.backMoneyInBag || 0;
+
+    const shareText = `📊 Daily Record - ${this.formatDate(record.date)}
+
+💰 Summary:
+• Expense: ${expense} ₹
+• Income: ${income} ₹
+• Expected: ${expected} ₹
+• Back: ${back} ₹
+• Chains: ${record.chains} ₹
+
+${record.notes ? `📝 Notes: ${record.notes}` : ''}`;
+
+    // Try Web Share API first
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Daily Record - ${this.formatDate(record.date)}`,
+          text: shareText
+        });
+      } catch (error: any) {
+        // User cancelled or error occurred
+        if (error.name !== 'AbortError') {
+          this.showToast('Failed to share record', 'warning');
+        }
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareText);
+        this.showToast('Record details copied to clipboard', 'success');
+      } catch (error) {
+        this.showToast('Failed to copy to clipboard', 'warning');
+      }
+    }
+  }
+
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-IN', {
@@ -462,25 +503,32 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getTotalIncome(record: DailyRecord): number {
-    const incomeItems = record.incomeItems?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
-    const dailyIncome = (record.dailyIncomeAmount?.gpay || 0) +
-                       (record.dailyIncomeAmount?.paytm || 0) +
-                       (record.dailyIncomeAmount?.cash || 0) +
-                       (record.dailyIncomeAmount?.onDrawer || 0) +
-                       (record.dailyIncomeAmount?.onOutsideOrder || 0);
-    return incomeItems + dailyIncome;
+    // Match getOverallIncomeTotal() from daily-form: gpay + paytm + onDrawer + onOutsideOrder
+    // This excludes cash and incomeItems to match the "Income Detailed" section's "Overall Total"
+    const gpay = record.dailyIncomeAmount?.gpay || 0;
+    const paytm = record.dailyIncomeAmount?.paytm || 0;
+    const onDrawer = record.dailyIncomeAmount?.onDrawer || 0;
+    const onOutsideOrder = record.dailyIncomeAmount?.onOutsideOrder || 0;
+    return gpay + paytm + onDrawer + onOutsideOrder;
+  }
+
+  getProductionCost(record: DailyRecord): number {
+    // Calculate total production cost
+    return record.production?.reduce((sum, item) =>
+      sum + (item.amount || 0), 0) || 0;
   }
 
   getTotalExpense(record: DailyRecord): number {
-    // Calculate total production cost
-    const totalProductionCost = record.production?.reduce((sum, item) =>
-      sum + (item.amount || 0), 0) || 0;
-
-    // Calculate total expenses
+    // Calculate total expenses (Daily Expenses section)
     const totalExpenses = record.dailyExpenseList?.reduce((sum, item) =>
       sum + (item.amount || 0), 0) || 0;
 
-    return totalProductionCost + totalExpenses;
+    // Calculate total purchases (What buy from today Income section)
+    const totalPurchases = record.todayPurchases?.reduce((sum, item) =>
+      sum + (item.amount || 0), 0) || 0;
+
+    // Return sum of expenses and purchases (excluding production cost)
+    return totalExpenses + totalPurchases;
   }
 
   // Totals for list view footer
@@ -497,7 +545,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getTotalExpected(): number {
-    return this.filteredRecords.reduce((sum, record) => sum + (record.expectedIncome || 0), 0);
+    return this.filteredRecords.reduce((sum, record) => sum + this.getProductionCost(record), 0);
   }
 
   getTotalBack(): number {
@@ -792,3 +840,4 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 }
+

@@ -1,13 +1,15 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonInput, IonTextarea, IonButton, IonSelect, IonSelectOption, IonPopover } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonInput, IonTextarea, IonButton, IonSelect, IonSelectOption, IonPopover, IonModal, IonButtons } from '@ionic/angular/standalone';
 import { AlertController, ToastController, Platform } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { add, trash, save, calendar, arrowBack, documentText, calculator, trendingDown, trendingUp, close, addCircle, wallet, cash, chevronDown, chevronUp, chevronDownOutline, chevronUpOutline, caretDown, caretUp, receipt, business } from 'ionicons/icons';
 import { StorageService, DailyRecord, ProductionItem, ExpenseItem, IncomeItem } from '../services/storage.service';
 import { ExpenseDetailsPopoverComponent } from './expense-details-popover.component';
 import { StatDetailsPopoverComponent } from './stat-details-popover.component';
+import { MenduwadaIdaliPage } from '../calculations/menduwada-idali/menduwada-idali.page';
+import { MenduwadaIdaliRetailPage } from '../calculations/menduwada-idali-retail/menduwada-idali-retail.page';
 import { ProductionItemsService, ProductionItemOption } from '../services/production-items.service';
 import { ExpenseItemsService, ExpenseItemOption } from '../services/expense-items.service';
 import { PurchaseItemsService, PurchaseItemOption } from '../services/purchase-items.service';
@@ -35,8 +37,12 @@ import { ThemeService } from '../services/theme.service';
     IonSelect,
     IonSelectOption,
     IonPopover,
+    IonModal,
+    IonButtons,
     ExpenseDetailsPopoverComponent,
-    StatDetailsPopoverComponent
+    StatDetailsPopoverComponent,
+    MenduwadaIdaliPage,
+    MenduwadaIdaliRetailPage
   ],
 })
 export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
@@ -68,6 +74,10 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   expectedPopoverEvent?: Event;
   isIncomePopoverOpen = false;
   incomePopoverEvent?: Event;
+  isCalculationsModalOpen = false;
+  calculationType: 'wholesale' | 'retail' = 'wholesale';
+  showWholesaleButton: boolean = false;
+  showRetailButton: boolean = true;
 
   // Options for dropdowns
   productionItemOptions: ProductionItemOption[] = [];
@@ -121,6 +131,9 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
 
     // Register back button handler to close action sheets
     this.setupBackButtonHandler();
+    
+    // Load calculation buttons settings
+    this.loadCalculationButtonsSettings();
 
     // Also handle browser back button for web
     this.browserBackHandler = this.handleBrowserBack.bind(this);
@@ -303,7 +316,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   initializeForm() {
     this.form = this.fb.group({
       date: [new Date().toISOString().split('T')[0], Validators.required],
-      chains: [0, [Validators.required, Validators.min(0)]],
+      chains: [300, [Validators.required, Validators.min(0)]],
       production: this.fb.array([]),
       dailyExpenseList: this.fb.array([]),
       expectedIncome: [0, [Validators.required, Validators.min(0)]],
@@ -502,25 +515,10 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   calculateDailyProfit(): { loss: number; profit: number } {
-    const formValue = this.form.value;
-
-    // Calculate total production cost
-    const totalProductionCost = formValue.production.reduce((sum: number, item: ProductionItem) =>
-      sum + (item.amount || 0), 0);
-
-    // Calculate total expenses
-    const totalExpenses = formValue.dailyExpenseList.reduce((sum: number, item: ExpenseItem) =>
-      sum + (item.amount || 0), 0);
-
-    const dailyIncome = formValue.dailyIncomeAmount.gpay +
-                       formValue.dailyIncomeAmount.paytm +
-                       formValue.dailyIncomeAmount.cash +
-                       formValue.dailyIncomeAmount.onDrawer +
-                       formValue.dailyIncomeAmount.onOutsideOrder;
-
-    const totalRevenue = dailyIncome;
-    const totalCost = totalProductionCost + totalExpenses;
-    const profit = totalRevenue - totalCost;
+    // Calculate profit as: daily income - daily expense
+    const dailyIncome = this.getTotalTodayIncome();
+    const dailyExpense = this.getTotalExpense();
+    const profit = dailyIncome - dailyExpense;
 
     return {
       loss: profit < 0 ? Math.abs(profit) : 0,
@@ -570,24 +568,19 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     const formValue = this.form.value;
     const dailyIncome = (formValue.dailyIncomeAmount?.gpay || 0) +
                        (formValue.dailyIncomeAmount?.paytm || 0) +
-                       (formValue.dailyIncomeAmount?.cash || 0) +
                        (formValue.dailyIncomeAmount?.onDrawer || 0) +
                        (formValue.dailyIncomeAmount?.onOutsideOrder || 0);
     return dailyIncome;
   }
 
   getTotalExpense(): number {
-    const formValue = this.form.value;
-
-    // Calculate total production cost
-    const totalProductionCost = formValue.production?.reduce((sum: number, item: ProductionItem) =>
-      sum + (item.amount || 0), 0) || 0;
-
     // Calculate total expenses
-    const totalExpenses = formValue.dailyExpenseList?.reduce((sum: number, item: ExpenseItem) =>
-      sum + (item.amount || 0), 0) || 0;
+    const totalExpenses = this.getDailyExpenses();
 
-    return totalProductionCost + totalExpenses;
+    // Calculate total purchases
+    const totalPurchases = this.getPurchaseTotal();
+
+    return totalExpenses + totalPurchases;
   }
 
   getProductionCost(): number {
@@ -617,6 +610,51 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     return total;
   }
 
+  getProductionItemsForPopover(): ProductionItem[] {
+    return this.productionItems.controls.map((control) => {
+      const formGroup = control as FormGroup;
+      // Use getRawValue() to get disabled field values
+      const rawValue = formGroup.getRawValue();
+      
+      return {
+        listOfItem: rawValue.listOfItem || '',
+        qty: rawValue.qty || 0,
+        rate: rawValue.rate || 0,
+        amount: Number(rawValue.amount) || 0
+      };
+    }).filter(item => item.listOfItem); // Only return items with a name
+  }
+
+  getExpenseItemsForPopover(): ExpenseItem[] {
+    return this.expenseItems.controls.map((control) => {
+      const formGroup = control as FormGroup;
+      // Use getRawValue() to get disabled field values
+      const rawValue = formGroup.getRawValue();
+      
+      return {
+        listOfItem: rawValue.listOfItem || '',
+        qty: rawValue.qty || 0,
+        rate: rawValue.rate || 0,
+        amount: Number(rawValue.amount) || 0
+      };
+    }).filter(item => item.listOfItem); // Only return items with a name
+  }
+
+  getPurchaseItemsForPopover(): any[] {
+    return this.todayPurchases.controls.map((control) => {
+      const formGroup = control as FormGroup;
+      // Use getRawValue() to get disabled field values
+      const rawValue = formGroup.getRawValue();
+      
+      return {
+        listOfItem: rawValue.listOfItem || '',
+        qty: rawValue.qty || 0,
+        rate: rawValue.rate || 0,
+        amount: Number(rawValue.amount) || 0
+      };
+    }).filter(item => item.listOfItem); // Only return items with a name
+  }
+
   showExpenseDetailsPopover(event: Event) {
     event.stopPropagation();
     this.expensePopoverEvent = event;
@@ -626,6 +664,23 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   closeExpensePopover() {
     this.isExpensePopoverOpen = false;
     this.expensePopoverEvent = undefined;
+  }
+
+  async loadCalculationButtonsSettings() {
+    const showWholesale = await this.storageService.get('show_wholesale_button');
+    this.showWholesaleButton = showWholesale === 'true'; // Default to false
+    
+    const showRetail = await this.storageService.get('show_retail_button');
+    this.showRetailButton = showRetail !== 'false'; // Default to true
+  }
+
+  openCalculationsModal(type: 'wholesale' | 'retail' = 'wholesale') {
+    this.calculationType = type;
+    this.isCalculationsModalOpen = true;
+  }
+
+  closeCalculationsModal() {
+    this.isCalculationsModalOpen = false;
   }
 
   showLossDetailsPopover(event: Event) {

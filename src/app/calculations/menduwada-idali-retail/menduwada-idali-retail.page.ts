@@ -7,9 +7,9 @@ import { addIcons } from 'ionicons';
 import { arrowBack, calculator, refresh } from 'ionicons/icons';
 
 @Component({
-  selector: 'app-menduwada-idali',
-  templateUrl: 'menduwada-idali.page.html',
-  styleUrls: ['menduwada-idali.page.scss'],
+  selector: 'app-menduwada-idali-retail',
+  templateUrl: 'menduwada-idali-retail.page.html',
+  styleUrls: ['menduwada-idali-retail.page.scss'],
   standalone: true,
   imports: [
     CommonModule,
@@ -25,7 +25,7 @@ import { arrowBack, calculator, refresh } from 'ionicons/icons';
     IonBreadcrumbs
   ]
 })
-export class MenduwadaIdaliPage implements OnInit {
+export class MenduwadaIdaliRetailPage implements OnInit {
   @Input() hideHeader: boolean = false; // Hide header when used in modal
   
   // Checkbox states for enabling/disabling Rate
@@ -34,21 +34,21 @@ export class MenduwadaIdaliPage implements OnInit {
 
   // Input fields - Menduwada
   menduwadaPlate: number = 1;
-  menduwadaPiecesPerPlate: number = 3;
-  menduwadaRate: number = 10;
+  menduwadaPiecesPerPlate: number = 4;
+  menduwadaRate: number = 20;
   
-  // Input fields - Idali (1 plate = 6 idali, rate = 10 Rs)
+  // Input fields - Idali (1 plate = 4 idali, rate = 20 Rs)
   idaliPlate: number = 1; // Default: 1 plate
-  idaliPiecesPerPlate: number = 6; // Default: 6 pieces per plate
-  idaliRate: number = 10; // Default: 10 Rs per plate
+  idaliPiecesPerPlate: number = 4; // Default: 4 pieces per plate
+  idaliRate: number = 20; // Default: 20 Rs per plate
 
   // Calculated results - Menduwada
-  menduwadaTotalPieces: number = 3; // Initial: 1 plate × 3 pieces = 3
+  menduwadaTotalPieces: number = 4; // Initial: 1 plate × 4 pieces = 4
   menduwadaAmount: number = 0;
   
   // Calculated results - Idali
-  idaliTotalPieces: number = 6; // Initial: 1 plate × 6 pieces = 6
-  idaliAmount: number = 10; // Initial: 1 plate × 10 rate = 10
+  idaliTotalPieces: number = 4; // Initial: 1 plate × 4 pieces = 4
+  idaliAmount: number = 0; // Initial: 1 plate × 20 rate = 20 (will be calculated)
   
   // Total
   totalAmount: number = 0;
@@ -161,15 +161,15 @@ export class MenduwadaIdaliPage implements OnInit {
 
   resetMenduwada() {
     this.menduwadaPlate = 1;
-    this.menduwadaPiecesPerPlate = 3;
-    this.menduwadaRate = 10;
+    this.menduwadaPiecesPerPlate = 4;
+    this.menduwadaRate = 20;
     this.calculate();
   }
 
   resetIdali() {
     this.idaliPlate = 1;
-    this.idaliPiecesPerPlate = 6;
-    this.idaliRate = 10;
+    this.idaliPiecesPerPlate = 4;
+    this.idaliRate = 20;
     this.idaliRateEnabled = true;
     this.calculate();
   }

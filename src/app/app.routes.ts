@@ -70,6 +70,10 @@ export const routes: Routes = [
     loadComponent: () => import('./calculations/menduwada-idali/menduwada-idali.page').then((m) => m.MenduwadaIdaliPage),
   },
   {
+    path: 'calculations/menduwada-idali-retail',
+    loadComponent: () => import('./calculations/menduwada-idali-retail/menduwada-idali-retail.page').then((m) => m.MenduwadaIdaliRetailPage),
+  },
+  {
     path: 'calculations/production-menduwada',
     loadComponent: () => import('./calculations/production-menduwada/production-menduwada.page').then((m) => m.ProductionMenduwadaPage),
   },
@@ -96,6 +100,30 @@ export const routes: Routes = [
   {
     path: 'calculations/production-samosa',
     loadComponent: () => import('./calculations/production-samosa/production-samosa.page').then((m) => m.ProductionSamosaPage),
+  },
+  {
+    path: 'calculations/production-dokla',
+    loadComponent: () => import('./calculations/production-dokla/production-dokla.page').then((m) => m.ProductionDoklaPage),
+  },
+  {
+    path: 'calculations/production-wada-pav',
+    loadComponent: () => import('./calculations/production-wada-pav/production-wada-pav.page').then((m) => m.ProductionWadaPavPage),
+  },
+  {
+    path: 'calculations/production-sambhar',
+    loadComponent: () => import('./calculations/production-sambhar/production-sambhar.page').then((m) => m.ProductionSambharPage),
+  },
+  {
+    path: 'calculations/production-white-chatni',
+    loadComponent: () => import('./calculations/production-white-chatni/production-white-chatni.page').then((m) => m.ProductionWhiteChatniPage),
+  },
+  {
+    path: 'calculations/production-sabudana-khichadi',
+    loadComponent: () => import('./calculations/production-sabudana-khichadi/production-sabudana-khichadi.page').then((m) => m.ProductionSabudanaKhichadiPage),
+  },
+  {
+    path: 'calculations/production-sabudana-wada',
+    loadComponent: () => import('./calculations/production-sabudana-wada/production-sabudana-wada.page').then((m) => m.ProductionSabudanaWadaPage),
   },
   {
     path: '',

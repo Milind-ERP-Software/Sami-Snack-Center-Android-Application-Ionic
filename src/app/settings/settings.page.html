@@ -233,6 +233,46 @@
       </div>
     </div>
 
+    <!-- Calculation Buttons Settings Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5">
+      <div class="flex items-center gap-2 mb-1.5">
+        <ion-icon name="calculator" style="font-size: 18px; color: #0066CC;"></ion-icon>
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white" style="font-size: 13px;">Calculation Buttons</h3>
+      </div>
+      <div class="space-y-1">
+        <div class="settings-item" style="cursor: default;" (click)="$event.stopPropagation()">
+          <div class="flex items-center gap-2">
+            <ion-icon name="calculator" style="font-size: 16px; color: #0066CC;"></ion-icon>
+            <div class="flex flex-col">
+              <span class="text-xs font-medium text-gray-900 dark:text-white" style="font-size: 11px;">Wholesale Button</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 9px;">Show wholesale calculation button</span>
+            </div>
+          </div>
+          <ion-toggle
+            [checked]="showWholesaleButton"
+            (ionChange)="toggleWholesaleButton()"
+            (click)="$event.stopPropagation()"
+            style="--handle-background-checked: #0066CC; --track-background-checked: rgba(0, 102, 204, 0.3);"
+          ></ion-toggle>
+        </div>
+        <div class="settings-item" style="cursor: default;" (click)="$event.stopPropagation()">
+          <div class="flex items-center gap-2">
+            <ion-icon name="calculator" style="font-size: 16px; color: #0066CC;"></ion-icon>
+            <div class="flex flex-col">
+              <span class="text-xs font-medium text-gray-900 dark:text-white" style="font-size: 11px;">Retail Button</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400" style="font-size: 9px;">Show retail calculation button</span>
+            </div>
+          </div>
+          <ion-toggle
+            [checked]="showRetailButton"
+            (ionChange)="toggleRetailButton()"
+            (click)="$event.stopPropagation()"
+            style="--handle-background-checked: #0066CC; --track-background-checked: rgba(0, 102, 204, 0.3);"
+          ></ion-toggle>
+        </div>
+      </div>
+    </div>
+
     <!-- App Information Section -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1.5">
       <div class="flex items-center gap-2 mb-1.5">

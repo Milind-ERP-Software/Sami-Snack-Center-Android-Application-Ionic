@@ -29,8 +29,16 @@
         class="calculation-card"
         (click)="goToCalculation(option.route)"
       >
-        <div class="calculation-icon">
-          <ion-icon name="calculator"></ion-icon>
+        <div class="calculation-image-wrapper">
+          <img 
+            *ngIf="option.image" 
+            [src]="option.image" 
+            [alt]="option.title"
+            class="calculation-image"
+          />
+          <div *ngIf="!option.image" class="calculation-icon">
+            <ion-icon name="calculator"></ion-icon>
+          </div>
         </div>
         <div class="calculation-title">{{ option.title }}</div>
       </div>

@@ -1,0 +1,73 @@
+<ion-header class="ion-no-border modern-header">
+  <ion-toolbar class="modern-toolbar" style="--background: #0066CC; background: #0066CC;">
+    <div class="navbar-container">
+      <div class="navbar-left">
+        <ion-button
+          (click)="goBack()"
+          fill="clear"
+          size="small"
+          class="menu-btn"
+        >
+          <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+        </ion-button>
+        <div class="navbar-brand">
+          <div class="brand-text">
+            <h1 class="brand-title">Production of Sambhar</h1>
+            <p class="brand-subtitle">Calculator</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ion-breadcrumbs>
+      <ion-breadcrumb (click)="goToHome()">
+        <span>Home</span>
+      </ion-breadcrumb>
+      <ion-breadcrumb (click)="goToCalculations()">
+        <span>Calculations</span>
+      </ion-breadcrumb>
+      <ion-breadcrumb>
+        <span>Production of Sambhar</span>
+      </ion-breadcrumb>
+    </ion-breadcrumbs>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" [fullscreen]="true" style="--background: #f5f5f5;">
+  <div class="calculation-container">
+    <div class="calculation-card">
+      <h2 class="section-title">Production Calculation</h2>
+      
+      <div class="input-group">
+        <ion-item class="input-item">
+          <ion-label position="stacked">Quantity</ion-label>
+          <ion-input
+            type="number"
+            [(ngModel)]="qty"
+            placeholder="Enter quantity"
+            (ionInput)="calculate()"
+            (ionFocus)="selectAllText($event)"
+            min="0"
+          ></ion-input>
+        </ion-item>
+
+        <ion-item class="input-item">
+          <ion-label position="stacked">Rate (₹)</ion-label>
+          <ion-input
+            type="number"
+            [(ngModel)]="rate"
+            placeholder="Enter rate"
+            (ionInput)="calculate()"
+            (ionFocus)="selectAllText($event)"
+            min="0"
+          ></ion-input>
+        </ion-item>
+
+        <div class="result-box">
+          <span class="result-label">Total Amount:</span>
+          <span class="result-value">₹ {{ amount | number:'1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
