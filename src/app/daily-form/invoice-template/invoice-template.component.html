@@ -1,0 +1,68 @@
+<div class="invoice-container" id="invoice-template">
+  <!-- Header with gradient -->
+  <div class="invoice-header">
+    <div class="company-name">Sami Snack Center</div>
+    <div class="invoice-title">Daily Business Invoice</div>
+  </div>
+
+  <!-- Success Message -->
+  <div class="success-section">
+    <div class="success-icon">✓ Record Saved Successfully</div>
+    <div class="total-amount">₹{{ totalIncome | number:'1.2-2' }}</div>
+  </div>
+
+  <!-- Details Section -->
+  <div class="details-section">
+    <div class="detail-row">
+      <div class="detail-label">Date & Time</div>
+      <div class="detail-value">{{ dateStr }}, {{ timeStr }}</div>
+    </div>
+
+    <div class="detail-row">
+      <div class="detail-label">Total Income</div>
+      <div class="detail-value income-value">₹{{ totalIncome | number:'1.2-2' }}</div>
+    </div>
+
+    <div class="detail-row">
+      <div class="detail-label">Total Expense</div>
+      <div class="detail-value expense-value">₹{{ totalExpense | number:'1.2-2' }}</div>
+    </div>
+
+    <div class="detail-row">
+      <div class="detail-label">Production Cost</div>
+      <div class="detail-value production-value">₹{{ productionCost | number:'1.2-2' }}</div>
+    </div>
+
+    <div class="detail-row" *ngIf="recordData?.chains">
+      <div class="detail-label">Chains</div>
+      <div class="detail-value">₹{{ recordData.chains | number:'1.2-2' }}</div>
+    </div>
+
+    <div class="detail-row" *ngIf="recordData?.backMoneyInBag">
+      <div class="detail-label">Back Money</div>
+      <div class="detail-value">₹{{ recordData.backMoneyInBag | number:'1.2-2' }}</div>
+    </div>
+  </div>
+
+  <!-- Profit/Loss Section -->
+  <div class="profit-loss-section" [class.profit]="profitData.profit > 0" [class.loss]="profitData.profit <= 0">
+    <div class="profit-loss-label">{{ profitData.profit > 0 ? 'Total Profit' : 'Total Loss' }}</div>
+    <div class="profit-loss-amount" [class.profit-amount]="profitData.profit > 0" [class.loss-amount]="profitData.profit <= 0">
+      ₹{{ (profitData.profit > 0 ? profitData.profit : profitData.loss) | number:'1.2-2' }}
+    </div>
+  </div>
+
+  <!-- Notes Section -->
+  <div class="notes-section" *ngIf="recordData?.notes">
+    <div class="notes-label">Notes</div>
+    <div class="notes-content">{{ recordData.notes }}</div>
+  </div>
+
+  <!-- Footer -->
+  <div class="invoice-footer">
+    <div class="footer-text">Powered by Sami Snack Center</div>
+    <div class="footer-subtext">Business Tracker Application</div>
+  </div>
+</div>
+
+

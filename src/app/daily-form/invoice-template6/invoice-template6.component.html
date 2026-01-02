@@ -1,0 +1,90 @@
+<div class="invoice-container">
+  <div class="header">
+    <div class="header-content">
+      <div class="emoji">🌯</div>
+      <h1>SAMI SNACK CENTER</h1>
+    </div>
+    <p class="subtitle">Business Tracker Summary</p>
+    <p class="date-time">Date: {{ dateStr }} | Time: {{ timeStr }}</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Revenue Details -->
+  <div class="section">
+    <div class="section-header-bar">
+      <div>
+        <div>
+          <span class="emoji">💰</span>
+          <h2>Revenue Details</h2>
+        </div>
+      </div>
+    </div>
+    <div class="data-row">
+      <span class="label">Total Income</span>
+      <span class="value">₹{{ totalIncome | number:'1.2-2' }}</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Expenditure Breakdown -->
+  <div class="section">
+    <div class="section-header-bar">
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="emoji">💵</span>
+            <h2>Expenditure Breakdown</h2>
+          </div>
+          <span class="emoji-right">💲</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="data-list">
+      <div class="data-row">
+        <span class="label">Total Expense</span>
+        <span class="value">₹{{ totalExpense | number:'1.2-2' }}</span>
+      </div>
+      
+      <div class="data-row">
+        <span class="label">Production Cost</span>
+        <span class="value">₹{{ productionCost | number:'1.2-2' }}</span>
+      </div>
+      
+      <div class="data-row" *ngIf="recordData?.chains">
+        <span class="label">Chains</span>
+        <span class="value">₹{{ recordData.chains | number:'1.2-2' }}</span>
+      </div>
+      
+      <div class="data-row" *ngIf="recordData?.backMoneyInBag">
+        <span class="label">Back Money</span>
+        <span class="value">₹{{ recordData.backMoneyInBag | number:'1.2-2' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Daily Summary -->
+  <div class="summary-section">
+    <div class="summary-header-bar">
+      <div>
+        <div style="display: inline-flex; align-items: center; gap: 10px;">
+          <span class="emoji">📈</span>
+          <h2>Daily Summary</h2>
+        </div>
+      </div>
+    </div>
+    <p class="summary-label">TOTAL {{ profitData.profit > 0 ? 'PROFIT' : 'LOSS' }}:</p>
+    <p class="summary-amount" [class.loss]="profitData.loss > 0">₹{{ (profitData.profit > 0 ? profitData.profit : profitData.loss) | number:'1.2-2' }}</p>
+    <p class="notes" *ngIf="recordData?.notes">
+      Notes: <span class="notes-text">{{ recordData.notes }}</span>
+    </p>
+    <p class="footer-text">Powered by Sami Snack Center Business Tracker</p>
+  </div>
+</div>
+
+<div class="sparkle">✨</div>
+

@@ -1,0 +1,50 @@
+<div class="invoice-container">
+  <div class="header">
+    <h1>Sami Snack Center</h1>
+    <p>Business Tracker</p>
+  </div>
+
+  <div class="content">
+    <div class="date-row">
+      <span>{{ dateStr }}</span>
+      <span>{{ timeStr }}</span>
+    </div>
+
+    <div class="section-title">Revenue & Expenses</div>
+    
+    <div class="data-row">
+      <span class="label">Total Income</span>
+      <span class="val income">₹{{ totalIncome | number:'1.2-2' }}</span>
+    </div>
+
+    <div class="data-row">
+      <span class="label">Production Cost</span>
+      <span class="val">₹{{ productionCost | number:'1.2-2' }}</span>
+    </div>
+
+    <div class="data-row" *ngIf="recordData?.chains">
+      <span class="label">Chains / Misc</span>
+      <span class="val">₹{{ recordData.chains | number:'1.2-2' }}</span>
+    </div>
+
+    <div class="data-row" *ngIf="recordData?.backMoneyInBag">
+      <span class="label">Back Money</span>
+      <span class="val">₹{{ recordData.backMoneyInBag | number:'1.2-2' }}</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="profit-card" [class.loss]="profitData.loss > 0">
+      <span>{{ profitData.profit > 0 ? 'TOTAL DAILY PROFIT' : 'TOTAL DAILY LOSS' }}</span>
+      <h2>₹{{ (profitData.profit > 0 ? profitData.profit : profitData.loss) | number:'1.2-2' }}</h2>
+    </div>
+
+    <div class="notes" *ngIf="recordData?.notes">
+      <strong>Note:</strong> {{ recordData.notes }}
+    </div>
+  </div>
+
+  <div class="footer-tag">
+    POWERED BY SAMI SNACK CENTER APP
+  </div>
+</div>

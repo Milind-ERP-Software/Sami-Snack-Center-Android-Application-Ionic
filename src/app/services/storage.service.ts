@@ -336,7 +336,7 @@ export class StorageService {
     await this.ensureInitialized();
     // Return a copy to prevent direct mutation
     if (includeDeleted) {
-      return [...this._records];
+    return [...this._records];
     }
     return [...this._records].filter(record => !record.isDeleted);
   }

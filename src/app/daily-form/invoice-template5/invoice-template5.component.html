@@ -1,0 +1,40 @@
+<div class="receipt">
+  <div class="header">
+    <h1>Sami Snack Center</h1>
+    <p>{{ dateStr }} · {{ timeStr }}</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="row">
+    <span>Total Income</span>
+    <span>₹{{ totalIncome | number:'1.2-2' }}</span>
+  </div>
+  <div class="row">
+    <span>Total Expense</span>
+    <span>₹{{ totalExpense | number:'1.2-2' }}</span>
+  </div>
+  <div class="row">
+    <span>Production Cost</span>
+    <span>₹{{ productionCost | number:'1.2-2' }}</span>
+  </div>
+  <div class="row" *ngIf="recordData?.chains">
+    <span>Chains</span>
+    <span>₹{{ recordData.chains | number:'1.2-2' }}</span>
+  </div>
+  <div class="row" *ngIf="recordData?.backMoneyInBag">
+    <span>Back Money</span>
+    <span>₹{{ recordData.backMoneyInBag | number:'1.2-2' }}</span>
+  </div>
+
+  <div class="row total" [class.loss]="profitData.loss > 0">
+    <span>{{ profitData.profit > 0 ? 'Total Profit' : 'Total Loss' }}</span>
+    <span>₹{{ (profitData.profit > 0 ? profitData.profit : profitData.loss) | number:'1.2-2' }}</span>
+  </div>
+
+  <div class="footer">
+    <div *ngIf="recordData?.notes">{{ recordData.notes }}</div>
+    <div>Thank you</div>
+  </div>
+</div>
+

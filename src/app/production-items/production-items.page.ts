@@ -124,10 +124,10 @@ export class ProductionItemsPage implements OnInit {
     
     // Apply search filter
     if (this.searchQuery.trim()) {
-      const query = this.searchQuery.toLowerCase();
+    const query = this.searchQuery.toLowerCase();
       filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(query)
-      );
+      item.name.toLowerCase().includes(query)
+    );
     }
     
     this.filteredItems = filtered;

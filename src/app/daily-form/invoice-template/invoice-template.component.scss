@@ -1,0 +1,166 @@
+.invoice-container {
+  width: 400px;
+  background: white;
+  border: 3px solid #00BAF2;
+  border-radius: 12px;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+}
+
+.invoice-header {
+  background: linear-gradient(135deg, #00BAF2 0%, #0066CC 100%);
+  margin: -20px -20px 20px -20px;
+  padding: 25px 20px;
+  border-radius: 9px 9px 0 0;
+  text-align: center;
+}
+
+.company-name {
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.invoice-title {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.success-section {
+  text-align: center;
+  margin: 20px 0;
+  padding: 15px;
+  background: #f0fdf4;
+  border-radius: 8px;
+  border: 2px solid #10b981;
+}
+
+.success-icon {
+  font-size: 20px;
+  font-weight: bold;
+  color: #10b981;
+  margin-bottom: 5px;
+}
+
+.total-amount {
+  font-size: 32px;
+  font-weight: bold;
+  color: #1f2937;
+  margin-top: 10px;
+}
+
+.details-section {
+  margin: 20px 0;
+}
+
+.detail-row {
+  border-bottom: 2px dotted #e5e7eb;
+  padding: 15px 0;
+  margin-bottom: 15px;
+
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+}
+
+.detail-label {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.detail-value {
+  font-size: 16px;
+  font-weight: bold;
+  color: #1f2937;
+
+  &.income-value {
+    font-size: 20px;
+    color: #10b981;
+  }
+
+  &.expense-value {
+    font-size: 20px;
+    color: #ef4444;
+  }
+
+  &.production-value {
+    font-size: 18px;
+    color: #0066CC;
+  }
+}
+
+.profit-loss-section {
+  background: #f0fdf4;
+  border: 2px solid #10b981;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 20px 0;
+  text-align: center;
+
+  &.loss {
+    background: #fef2f2;
+    border-color: #ef4444;
+  }
+}
+
+.profit-loss-label {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.profit-loss-amount {
+  font-size: 28px;
+  font-weight: bold;
+
+  &.profit-amount {
+    color: #10b981;
+  }
+
+  &.loss-amount {
+    color: #ef4444;
+  }
+}
+
+.notes-section {
+  border-top: 2px dotted #e5e7eb;
+  padding-top: 15px;
+  margin-top: 15px;
+}
+
+.notes-label {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.notes-content {
+  font-size: 14px;
+  color: #1f2937;
+  font-style: italic;
+}
+
+.invoice-footer {
+  margin-top: 25px;
+  padding-top: 15px;
+  border-top: 2px solid #e5e7eb;
+  text-align: center;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.footer-text {
+  margin-bottom: 5px;
+}
+
+.footer-subtext {
+  font-size: 11px;
+}
+
+

@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+.receipt {
+  background: #fff !important;
+  width: 340px;
+  padding: 32px 28px;
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  font-family: 'Inter', sans-serif;
+  color: #000 !important;
+  
+  * {
+    color: inherit;
+  }
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+  
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+    color: #000 !important;
+  }
+  
+  p {
+    font-size: 13px;
+    color: #666 !important;
+    margin: 6px 0 0;
+  }
+}
+
+/* Divider */
+.divider {
+  border-top: 1px solid #eee;
+  margin: 20px 0;
+}
+
+/* Rows */
+.row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  padding: 6px 0;
+  color: #333 !important;
+  
+  span {
+    color: #333 !important;
+  }
+  
+  strong {
+    font-weight: 600;
+    color: #000 !important;
+  }
+}
+
+/* Profit Box */
+.total {
+  background: #eef4ff !important;
+  padding: 12px 14px;
+  margin: 20px 0;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: #1f3a5f !important;
+  
+  &.loss {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    
+    span {
+      color: #991b1b !important;
+    }
+  }
+  
+  span {
+    color: #1f3a5f !important;
+  }
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  font-size: 12px;
+  color: #777 !important;
+  margin-top: 20px;
+  
+  div {
+    color: #777 !important;
+  }
+}
+

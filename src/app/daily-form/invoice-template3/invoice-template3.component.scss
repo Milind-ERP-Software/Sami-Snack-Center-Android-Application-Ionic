@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+.receipt-container {
+  background-color: #ffffff !important;
+  width: 360px;
+  padding: 50px 40px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  position: relative;
+  font-family: 'Inter', sans-serif;
+  color: #000 !important;
+  
+  * {
+    color: inherit;
+  }
+}
+
+/* Header Style */
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+  
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 1.5px;
+    color: #000 !important;
+    text-transform: uppercase;
+  }
+  
+  .subtitle {
+    font-size: 13px;
+    font-weight: 400;
+    color: #555 !important;
+    margin-top: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .date-time {
+    font-size: 13px;
+    color: #333 !important;
+    margin-top: 5px;
+  }
+}
+
+/* Separation Line */
+.divider {
+  border-top: 1px dashed #ccc;
+  margin: 20px 0;
+}
+
+/* Data Rows */
+.data-section {
+  margin-bottom: 30px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 15px;
+  color: #333 !important;
+  
+  span {
+    color: #333 !important;
+  }
+  
+  &.bold-text {
+    font-weight: 600;
+    font-size: 16px;
+    color: #000 !important;
+    
+    span {
+      color: #000 !important;
+    }
+  }
+}
+
+/* The Highlighted Blue Box */
+.total-profit-row {
+  background-color: #dee7ef !important;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 15px;
+  margin: 25px 0;
+  border-top: 1px dashed #9fb1c1;
+  border-bottom: 1px dashed #9fb1c1;
+  
+  &.loss {
+    background-color: #fee2e2 !important;
+    border-top-color: #fecaca;
+    border-bottom-color: #fecaca;
+    
+    span {
+      color: #991b1b !important;
+    }
+  }
+  
+  span {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #213547 !important;
+    text-transform: uppercase;
+  }
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  font-size: 13px;
+  color: #444 !important;
+  line-height: 1.6;
+  
+  div {
+    color: #444 !important;
+  }
+}
+
+.footer .stars {
+  letter-spacing: 8px;
+  color: #999 !important;
+  margin-top: 15px;
+  font-size: 12px;
+}

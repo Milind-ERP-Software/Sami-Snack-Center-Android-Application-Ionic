@@ -2,13 +2,20 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonToggle } from '@ionic/angular/standalone';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonToggle, IonModal, IonButtons } from '@ionic/angular/standalone';
 import { AlertController, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { arrowBack, informationCircle, download, cloudUpload, trash, statsChart, documentText, business, moon, sunny, phonePortrait, code, image, text, add, calculator } from 'ionicons/icons';
+import { arrowBack, informationCircle, download, cloudUpload, trash, statsChart, documentText, business, moon, sunny, phonePortrait, code, image, text, add, calculator, checkmarkCircle, close } from 'ionicons/icons';
 import { StorageService } from '../services/storage.service';
 import { ThemeService } from '../services/theme.service';
 import { NotificationService } from '../services/notification.service';
+import { InvoiceTemplate1Component } from '../daily-form/invoice-template1/invoice-template1.component';
+import { InvoiceTemplate2Component } from '../daily-form/invoice-template2/invoice-template2.component';
+import { InvoiceTemplate3Component } from '../daily-form/invoice-template3/invoice-template3.component';
+import { InvoiceTemplate4Component } from '../daily-form/invoice-template4/invoice-template4.component';
+import { InvoiceTemplate5Component } from '../daily-form/invoice-template5/invoice-template5.component';
+import { InvoiceTemplate6Component } from '../daily-form/invoice-template6/invoice-template6.component';
 
 @Component({
   selector: 'app-settings',
@@ -24,7 +31,15 @@ import { NotificationService } from '../services/notification.service';
     IonContent,
     IonIcon,
     IonButton,
-    IonToggle
+    IonToggle,
+    IonModal,
+    IonButtons,
+    InvoiceTemplate1Component,
+    InvoiceTemplate2Component,
+    InvoiceTemplate3Component,
+    InvoiceTemplate4Component,
+    InvoiceTemplate5Component,
+    InvoiceTemplate6Component
   ]
 })
 export class SettingsPage implements OnInit, OnDestroy {
@@ -40,7 +55,28 @@ export class SettingsPage implements OnInit, OnDestroy {
   showDeveloperSection: boolean = false;
   showWholesaleButton: boolean = false;
   showRetailButton: boolean = true;
+  selectedInvoiceTemplate: string = 'template1';
+  isPreviewModalOpen: boolean = false;
+  previewTemplate: string = 'template1';
   private developerModeTimer?: any;
+
+  // Sample data for preview
+  previewData: any = {
+    recordData: {
+      chains: 250,
+      backMoneyInBag: 50,
+      notes: 'Normal business day'
+    },
+    totalIncome: 720,
+    totalExpense: 450,
+    productionCost: 570,
+    profitData: {
+      profit: 270,
+      loss: 0
+    },
+    dateStr: '21 Dec 2025',
+    timeStr: '05:30 am'
+  };
 
   constructor(
     private router: Router,
@@ -48,9 +84,10 @@ export class SettingsPage implements OnInit, OnDestroy {
     private themeService: ThemeService,
     private alertController: AlertController,
     private toastController: ToastController,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private sanitizer: DomSanitizer
   ) {
-    addIcons({ arrowBack, informationCircle, download, cloudUpload, trash, statsChart, documentText, business, moon, sunny, phonePortrait, code, image, text, add, calculator });
+    addIcons({ arrowBack, informationCircle, download, cloudUpload, trash, statsChart, documentText, business, moon, sunny, phonePortrait, code, image, text, add, calculator, checkmarkCircle, close });
   }
 
   ngOnInit() {
@@ -63,6 +100,7 @@ export class SettingsPage implements OnInit, OnDestroy {
     this.loadCompanySettings();
     this.loadSpeedDialSetting();
     this.loadCalculationButtonsSettings();
+    this.loadInvoiceTemplate();
 
     // Listen to theme changes
     this.themeService.themeChanged.subscribe(() => {
@@ -343,6 +381,229 @@ export class SettingsPage implements OnInit, OnDestroy {
       this.showWholesaleButton ? 'Wholesale button enabled' : 'Wholesale button disabled',
       'success'
     );
+  }
+
+  async loadInvoiceTemplate() {
+    const template = await this.storageService.get('invoice_template');
+    this.selectedInvoiceTemplate = template || 'template1';
+  }
+
+  async selectInvoiceTemplate(template: string) {
+    this.selectedInvoiceTemplate = template;
+    await this.storageService.set('invoice_template', template);
+    this.showToast('Invoice template updated', 'success');
+  }
+
+  openPreviewModal(template: string) {
+    this.previewTemplate = template;
+    this.isPreviewModalOpen = true;
+  }
+
+  closePreviewModal() {
+    this.isPreviewModalOpen = false;
+  }
+
+  async selectTemplateFromPreview(template: string) {
+    await this.selectInvoiceTemplate(template);
+    this.closePreviewModal();
+  }
+
+  getPreviewHTML(template: string): SafeHtml {
+    const sampleData = {
+      dateStr: '21 Dec 2025',
+      timeStr: '05:30 am',
+      totalIncome: 720.00,
+      totalExpense: 450.00,
+      productionCost: 570.00,
+      chains: 250.00,
+      backMoneyInBag: 50.00,
+      profitData: { profit: 270.00, loss: 0 },
+      notes: 'Normal business day'
+    };
+
+    let html = '';
+    switch(template) {
+      case 'template2':
+        html = this.getTemplate2Preview(sampleData);
+        break;
+      case 'template3':
+        html = this.getTemplate3Preview(sampleData);
+        break;
+      default:
+        html = this.getTemplate1Preview(sampleData);
+    }
+    
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  getTemplate1Preview(data: any): string {
+    return `
+      <div style="width: 320px; max-width: 100%; background: white; border: 1px solid #000; padding: 16px; font-family: 'Courier New', monospace; margin: 0 auto; overflow: hidden;">
+        <div style="text-align: center; margin-bottom: 12px;">
+          <div style="font-size: 20px; font-weight: bold; margin-bottom: 8px;">Sami Snack Center</div>
+          <div style="border-top: 2px dashed #000; border-bottom: 2px dashed #000; padding: 8px 0; margin: 8px 0;">
+            <div style="font-size: 18px; font-weight: bold;">INVOICE</div>
+          </div>
+        </div>
+        <div style="border-top: 2px dashed #000; border-bottom: 2px dashed #000; padding: 8px 0; margin: 12px 0;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <div style="font-size: 11px; font-weight: bold;">Date:</div>
+            <div style="font-size: 11px;">${data.dateStr}, ${data.timeStr}</div>
+          </div>
+        </div>
+        <div style="border-top: 2px dashed #000; border-bottom: 2px dashed #000; padding: 8px 0; margin: 12px 0;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <div style="font-size: 11px; font-weight: bold;">Total Income:</div>
+            <div style="font-size: 11px;">₹${data.totalIncome.toFixed(2)}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <div style="font-size: 11px; font-weight: bold;">Total Expense:</div>
+            <div style="font-size: 11px;">₹${data.totalExpense.toFixed(2)}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <div style="font-size: 11px; font-weight: bold;">Production Cost:</div>
+            <div style="font-size: 11px;">₹${data.productionCost.toFixed(2)}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <div style="font-size: 11px; font-weight: bold;">Chains:</div>
+            <div style="font-size: 11px;">₹${data.chains.toFixed(2)}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <div style="font-size: 11px; font-weight: bold;">Back Money:</div>
+            <div style="font-size: 11px;">₹${data.backMoneyInBag.toFixed(2)}</div>
+          </div>
+        </div>
+        <div style="border-top: 2px dashed #000; padding-top: 8px; margin-top: 12px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <div style="font-size: 12px; font-weight: bold;">${data.profitData.profit > 0 ? 'Total Profit' : 'Total Loss'}:</div>
+            <div style="font-size: 14px; font-weight: bold;">₹${(data.profitData.profit > 0 ? data.profitData.profit : data.profitData.loss).toFixed(2)}</div>
+          </div>
+        </div>
+        ${data.notes ? `
+          <div style="border-top: 2px dashed #000; padding-top: 8px; margin-top: 12px;">
+            <div style="font-size: 11px; font-weight: bold; margin-bottom: 4px;">Notes:</div>
+            <div style="font-size: 11px;">${data.notes}</div>
+          </div>
+        ` : ''}
+        <div style="border-top: 2px dashed #000; padding-top: 8px; margin-top: 12px; text-align: center; font-size: 9px;">
+          <div>Powered by Sami Snack Center</div>
+          <div>Business Tracker Application</div>
+        </div>
+      </div>
+    `;
+  }
+
+  getTemplate2Preview(data: any): string {
+    return `
+      <div style="width: 380px; max-width: 100%; background: white; border: 1px solid #ddd; padding: 16px; font-family: 'Courier New', monospace; margin: 0 auto; overflow: hidden;">
+        <div style="text-align: center; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 8px;">
+          <div style="font-size: 22px; font-weight: bold; margin-bottom: 4px;">Sami Snack Center</div>
+          <div style="font-size: 10px; margin-bottom: 4px;">Daily Business Invoice</div>
+          <div style="font-size: 9px;">Date: ${data.dateStr} | Time: ${data.timeStr}</div>
+        </div>
+        <div style="margin: 12px 0;">
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dotted #000;">
+            <div style="font-size: 11px;">Total Income</div>
+            <div style="font-size: 11px; font-weight: bold;">₹${data.totalIncome.toFixed(2)}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dotted #000;">
+            <div style="font-size: 11px;">Total Expense</div>
+            <div style="font-size: 11px; font-weight: bold;">₹${data.totalExpense.toFixed(2)}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dotted #000;">
+            <div style="font-size: 11px;">Production Cost</div>
+            <div style="font-size: 11px; font-weight: bold;">₹${data.productionCost.toFixed(2)}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dotted #000;">
+            <div style="font-size: 11px;">Chains</div>
+            <div style="font-size: 11px; font-weight: bold;">₹${data.chains.toFixed(2)}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dotted #000;">
+            <div style="font-size: 11px;">Back Money</div>
+            <div style="font-size: 11px; font-weight: bold;">₹${data.backMoneyInBag.toFixed(2)}</div>
+          </div>
+        </div>
+        <div style="border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 8px 0; margin: 12px 0;">
+          <div style="display: flex; justify-content: space-between;">
+            <div style="font-size: 12px; font-weight: bold;">${data.profitData.profit > 0 ? 'Total Profit' : 'Total Loss'}</div>
+            <div style="font-size: 14px; font-weight: bold;">₹${(data.profitData.profit > 0 ? data.profitData.profit : data.profitData.loss).toFixed(2)}</div>
+          </div>
+        </div>
+        ${data.notes ? `
+          <div style="margin-top: 12px; padding-top: 8px; border-top: 1px dotted #000;">
+            <div style="font-size: 10px; font-weight: bold; margin-bottom: 4px;">Notes:</div>
+            <div style="font-size: 10px;">${data.notes}</div>
+          </div>
+        ` : ''}
+        <div style="margin-top: 16px; padding-top: 8px; border-top: 2px solid #000; text-align: center; font-size: 9px;">
+          <div>Thank you and see you again!</div>
+          <div style="margin-top: 4px;">Powered by Sami Snack Center</div>
+        </div>
+      </div>
+    `;
+  }
+
+  getTemplate3Preview(data: any): string {
+    return `
+      <div style="width: 340px; max-width: 100%; background: white; border: 2px solid #0066CC; padding: 14px; font-family: 'Arial', sans-serif; margin: 0 auto; overflow: hidden;">
+        <div style="background: #0066CC; color: white; padding: 12px; margin: -14px -14px 12px -14px; text-align: center;">
+          <div style="font-size: 20px; font-weight: bold; margin-bottom: 4px;">Sami Snack Center</div>
+          <div style="font-size: 14px; font-weight: bold; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 6px; margin-top: 6px;">TAX INVOICE</div>
+        </div>
+        <div style="background: #e6f2ff; padding: 10px; margin: 12px 0; border-left: 4px solid #0066CC;">
+          <div style="font-size: 11px; font-weight: bold; margin-bottom: 4px;">Amount Due:</div>
+          <div style="font-size: 18px; font-weight: bold; color: #0066CC;">₹${data.totalIncome.toFixed(2)}</div>
+        </div>
+        <div style="border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; padding: 8px 0; margin: 12px 0;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <div style="font-size: 10px; color: #666;">Issue Date:</div>
+            <div style="font-size: 10px; font-weight: bold;">${data.dateStr}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <div style="font-size: 10px; color: #666;">Time:</div>
+            <div style="font-size: 10px; font-weight: bold;">${data.timeStr}</div>
+          </div>
+        </div>
+        <div style="margin: 12px 0;">
+          <div style="background: #f5f5f5; padding: 8px; border-left: 3px solid #0066CC; margin-bottom: 8px;">
+            <div style="font-size: 10px; color: #666; margin-bottom: 2px;">Total Income</div>
+            <div style="font-size: 14px; font-weight: bold; color: #0066CC;">₹${data.totalIncome.toFixed(2)}</div>
+          </div>
+          <div style="background: #f5f5f5; padding: 8px; border-left: 3px solid #ef4444; margin-bottom: 8px;">
+            <div style="font-size: 10px; color: #666; margin-bottom: 2px;">Total Expense</div>
+            <div style="font-size: 14px; font-weight: bold; color: #ef4444;">₹${data.totalExpense.toFixed(2)}</div>
+          </div>
+          <div style="background: #f5f5f5; padding: 8px; border-left: 3px solid #0066CC; margin-bottom: 8px;">
+            <div style="font-size: 10px; color: #666; margin-bottom: 2px;">Production Cost</div>
+            <div style="font-size: 13px; font-weight: bold; color: #0066CC;">₹${data.productionCost.toFixed(2)}</div>
+          </div>
+          <div style="background: #f5f5f5; padding: 8px; border-left: 3px solid #999; margin-bottom: 8px;">
+            <div style="font-size: 10px; color: #666; margin-bottom: 2px;">Chains</div>
+            <div style="font-size: 12px; font-weight: bold;">₹${data.chains.toFixed(2)}</div>
+          </div>
+          <div style="background: #f5f5f5; padding: 8px; border-left: 3px solid #999;">
+            <div style="font-size: 10px; color: #666; margin-bottom: 2px;">Back Money</div>
+            <div style="font-size: 12px; font-weight: bold;">₹${data.backMoneyInBag.toFixed(2)}</div>
+          </div>
+        </div>
+        <div style="background: ${data.profitData.profit > 0 ? '#e6f7e6' : '#ffe6e6'}; border: 2px solid ${data.profitData.profit > 0 ? '#10b981' : '#ef4444'}; padding: 12px; margin: 12px 0; text-align: center;">
+          <div style="font-size: 11px; color: #666; margin-bottom: 4px;">${data.profitData.profit > 0 ? 'Total Profit' : 'Total Loss'}</div>
+          <div style="font-size: 22px; font-weight: bold; color: ${data.profitData.profit > 0 ? '#10b981' : '#ef4444'};">
+            ₹${(data.profitData.profit > 0 ? data.profitData.profit : data.profitData.loss).toFixed(2)}
+          </div>
+        </div>
+        ${data.notes ? `
+          <div style="border-top: 1px solid #ddd; padding-top: 10px; margin-top: 12px;">
+            <div style="font-size: 10px; font-weight: bold; margin-bottom: 4px;">Notes:</div>
+            <div style="font-size: 10px; color: #666;">${data.notes}</div>
+          </div>
+        ` : ''}
+        <div style="border-top: 2px solid #0066CC; padding-top: 10px; margin-top: 12px; text-align: center; font-size: 9px; color: #666;">
+          <div>Powered by Sami Snack Center</div>
+          <div>Business Tracker Application</div>
+        </div>
+      </div>
+    `;
   }
 
   async toggleRetailButton() {

@@ -508,26 +508,26 @@
               >
                 <ion-icon name="share" slot="icon-only" style="font-size: 14px;"></ion-icon>
               </ion-button>
-              <ion-button
-                (click)="editRecord(record.id)"
-                fill="clear"
-                size="small"
-                style="--color: #0066CC; --border-radius: 50%; border-radius: 50%;"
-                class="h-7 w-7 p-0"
-                [disabled]="!record.id"
-              >
-                <ion-icon name="create" slot="icon-only" style="font-size: 14px;"></ion-icon>
-              </ion-button>
-              <ion-button
-                (click)="deleteRecord(record.id)"
-                fill="clear"
-                size="small"
-                style="--color: #ef4444; --border-radius: 50%; border-radius: 50%;"
-                class="h-7 w-7 p-0"
-                [disabled]="!record.id"
-              >
-                <ion-icon name="trash" slot="icon-only" style="font-size: 14px;"></ion-icon>
-              </ion-button>
+            <ion-button
+              (click)="editRecord(record.id)"
+              fill="clear"
+              size="small"
+              style="--color: #0066CC; --border-radius: 50%; border-radius: 50%;"
+              class="h-7 w-7 p-0"
+              [disabled]="!record.id"
+            >
+              <ion-icon name="create" slot="icon-only" style="font-size: 14px;"></ion-icon>
+            </ion-button>
+            <ion-button
+              (click)="deleteRecord(record.id)"
+              fill="clear"
+              size="small"
+              style="--color: #ef4444; --border-radius: 50%; border-radius: 50%;"
+              class="h-7 w-7 p-0"
+              [disabled]="!record.id"
+            >
+              <ion-icon name="trash" slot="icon-only" style="font-size: 14px;"></ion-icon>
+            </ion-button>
             </ng-container>
             <!-- Deleted Actions (when deleted) -->
             <ng-container *ngIf="record.isDeleted">
@@ -685,26 +685,26 @@
                       >
                         <ion-icon name="share" slot="icon-only" style="font-size: 14px;"></ion-icon>
                       </ion-button>
-                      <ion-button
-                        (click)="editRecord(record.id)"
-                        fill="clear"
-                        size="small"
-                        style="--color: #0066CC;"
-                        class="list-action-btn"
-                        [disabled]="!record.id"
-                      >
-                        <ion-icon name="create" slot="icon-only" style="font-size: 14px;"></ion-icon>
-                      </ion-button>
-                      <ion-button
-                        (click)="deleteRecord(record.id)"
-                        fill="clear"
-                        size="small"
-                        style="--color: #ef4444;"
-                        class="list-action-btn"
-                        [disabled]="!record.id"
-                      >
-                        <ion-icon name="trash" slot="icon-only" style="font-size: 14px;"></ion-icon>
-                      </ion-button>
+                    <ion-button
+                      (click)="editRecord(record.id)"
+                      fill="clear"
+                      size="small"
+                      style="--color: #0066CC;"
+                      class="list-action-btn"
+                      [disabled]="!record.id"
+                    >
+                      <ion-icon name="create" slot="icon-only" style="font-size: 14px;"></ion-icon>
+                    </ion-button>
+                    <ion-button
+                      (click)="deleteRecord(record.id)"
+                      fill="clear"
+                      size="small"
+                      style="--color: #ef4444;"
+                      class="list-action-btn"
+                      [disabled]="!record.id"
+                    >
+                      <ion-icon name="trash" slot="icon-only" style="font-size: 14px;"></ion-icon>
+                    </ion-button>
                     </ng-container>
                     <!-- Deleted Actions (when deleted) -->
                     <ng-container *ngIf="record.isDeleted">

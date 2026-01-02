@@ -62,7 +62,7 @@ export class ProductionItemsService {
   async getAllItems(includeDeleted: boolean = false): Promise<ProductionItemOption[]> {
     await this.ensureInitialized();
     if (includeDeleted) {
-      return [...this._items];
+    return [...this._items];
     }
     return [...this._items].filter(item => !item.isDeleted);
   }

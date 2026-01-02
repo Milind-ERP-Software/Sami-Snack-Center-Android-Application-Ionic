@@ -62,7 +62,7 @@ export class ExpenseItemsService {
   async getAllItems(includeDeleted: boolean = false): Promise<ExpenseItemOption[]> {
     await this.ensureInitialized();
     if (includeDeleted) {
-      return [...this._items];
+    return [...this._items];
     }
     return [...this._items].filter(item => !item.isDeleted);
   }

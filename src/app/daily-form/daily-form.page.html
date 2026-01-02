@@ -153,8 +153,8 @@
                   [dailyExpenses]="getDailyExpenses()"
                   [purchaseTotal]="getPurchaseTotal()"
                   [totalExpense]="getTotalExpense()"
-                  [expenseItems]="form.value.dailyExpenseList || []"
-                  [purchaseItems]="form.value.todayPurchases || []"
+                  [expenseItems]="getExpenseItemsForPopover()"
+                  [purchaseItems]="getPurchaseItemsForPopover()"
                 ></app-expense-details-popover>
               </ng-template>
             </ion-popover>
@@ -173,8 +173,8 @@
                   [dailyExpenses]="getDailyExpenses()"
                   [purchaseTotal]="getPurchaseTotal()"
                   [totalExpense]="getTotalExpense()"
-                  [expenseItems]="form.value.dailyExpenseList || []"
-                  [purchaseItems]="form.value.todayPurchases || []"
+                  [expenseItems]="getExpenseItemsForPopover()"
+                  [purchaseItems]="getPurchaseItemsForPopover()"
                 ></app-expense-details-popover>
               </ng-template>
             </ion-popover>
@@ -1163,8 +1163,35 @@
           {{ isSaving ? 'Saving...' : 'Save' }}
         </ion-button>
       </div>
+      <div class="mt-1.5">
+          <ion-button
+            (click)="shareInvoice()"
+            expand="block"
+            style="--background: #10b981; --color: white;"
+            class="rounded-lg font-semibold h-10 text-sm shadow-sm"
+            [disabled]="isSaving || isSharingInvoice || !form.valid"
+          >
+            <ion-icon *ngIf="!isSharingInvoice" name="share" slot="start" style="font-size: 16px;"></ion-icon>
+            <div *ngIf="isSharingInvoice" class="loader-small mr-2"></div>
+            {{ isSharingInvoice ? 'Sharing...' : 'Share Invoice' }}
+          </ion-button>
+      </div>
     </div>
   </form>
+
+  <!-- Invoice Template (Hidden, for image generation) -->
+  <div style="position: absolute; left: -9999px; top: 0; visibility: hidden;">
+    <app-invoice-template
+      #invoiceTemplate
+      [recordData]="invoiceData"
+      [totalIncome]="invoiceData?.totalIncome || 0"
+      [totalExpense]="invoiceData?.totalExpense || 0"
+      [productionCost]="invoiceData?.productionCost || 0"
+      [profitData]="invoiceData?.profitData || { profit: 0, loss: 0 }"
+      [dateStr]="invoiceData?.dateStr || ''"
+      [timeStr]="invoiceData?.timeStr || ''"
+    ></app-invoice-template>
+  </div>
 
   <!-- Calculations Modal -->
   <ion-modal

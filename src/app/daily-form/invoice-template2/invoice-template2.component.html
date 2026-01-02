@@ -1,0 +1,49 @@
+<div class="receipt">
+  <div class="brand-section">
+    <h1>Sami Snack Center</h1>
+    <p>Daily Business Summary</p>
+    <div class="meta-info">
+      <span>{{ dateStr }}</span>
+      <span>•</span>
+      <span>{{ timeStr }}</span>
+    </div>
+  </div>
+
+  <div class="hr-line"></div>
+
+  <div class="details-grid">
+    <div class="entry">
+      <span class="entry-label">Total Income</span>
+      <span class="entry-value">₹{{ totalIncome | number:'1.2-2' }}</span>
+    </div>
+    <div class="entry">
+      <span class="entry-label">Total Expense</span>
+      <span class="entry-value">₹{{ totalExpense | number:'1.2-2' }}</span>
+    </div>
+    <div class="entry">
+      <span class="entry-label">Production Cost</span>
+      <span class="entry-value">₹{{ productionCost | number:'1.2-2' }}</span>
+    </div>
+    <div class="entry" *ngIf="recordData?.chains">
+      <span class="entry-label">Chains</span>
+      <span class="entry-value">₹{{ recordData.chains | number:'1.2-2' }}</span>
+    </div>
+    <div class="entry" *ngIf="recordData?.backMoneyInBag">
+      <span class="entry-label">Back Money</span>
+      <span class="entry-value">₹{{ recordData.backMoneyInBag | number:'1.2-2' }}</span>
+    </div>
+  </div>
+
+  <div class="profit-container" [class.loss]="profitData.loss > 0">
+    <span class="profit-label">{{ profitData.profit > 0 ? 'Total Profit' : 'Total Loss' }}</span>
+    <span class="profit-amount">₹{{ (profitData.profit > 0 ? profitData.profit : profitData.loss) | number:'1.2-2' }}</span>
+  </div>
+
+  <div class="footer-note">
+    <div class="note-box" *ngIf="recordData?.notes">
+      <strong>Note:</strong> {{ recordData.notes }}
+    </div>
+    <div class="thanks-msg">Thank you for your business!</div>
+  </div>
+</div>
+
