@@ -351,21 +351,36 @@ ion-toggle {
 }
 
 // Invoice Template Selection Styles
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 .template-option {
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  border-radius: 0.375rem;
   cursor: pointer;
   transition: all 0.2s ease;
   border: 2px solid transparent;
   background-color: #f9fafb;
+  text-align: center;
   
   &:hover {
     background-color: #f3f4f6;
     border-color: #e5e7eb;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   }
   
   &.selected {
@@ -375,9 +390,9 @@ ion-toggle {
   }
   
   .template-preview-container {
-    width: 80px;
-    height: 80px;
-    border-radius: 8px;
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
     overflow: hidden;
     border: 2px solid #e5e7eb;
     background: white;
@@ -399,29 +414,198 @@ ion-toggle {
   }
   
   .template-info {
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 2px;
+    width: 100%;
+    align-items: center;
+  }
+  
+  ion-icon {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
   }
 }
 
-body.dark .template-option {
-  background-color: #1f2937;
+// Dark mode styles with higher specificity
+::ng-deep body.dark {
+  .template-option {
+    background-color: #2d3748 !important;
+    
+    &:hover {
+      background-color: #374151 !important;
+      border-color: #4b5563 !important;
+    }
+    
+    &.selected {
+      background-color: rgba(16, 185, 129, 0.15) !important;
+      border-color: #10b981 !important;
+    }
+    
+    .template-preview-container {
+      background: #1a202c !important;
+      border-color: #4a5568 !important;
+      
+      .template-preview > div {
+        background: #2d3748 !important;
+        border-color: #4a5568 !important;
+        
+        i {
+          color: #e2e8f0 !important;
+        }
+        
+        // Keep colored icons visible but adjusted for dark mode
+        i.fa-file-invoice-dollar {
+          color: #60a5fa !important;
+        }
+        
+        i.fa-file-invoice[style*="#10b981"],
+        i.fa-file-invoice[style*="color: #10b981"] {
+          color: #34d399 !important;
+        }
+        
+        i.fa-file-alt {
+          color: #93c5fd !important;
+        }
+        
+        i.fa-receipt {
+          color: #cbd5e0 !important;
+        }
+        
+        i.fa-file {
+          color: #a0aec0 !important;
+        }
+      }
+    }
+    
+    .template-info {
+      span.text-gray-900,
+      span.dark\:text-white {
+        color: #f7fafc !important;
+      }
+      
+      span.text-gray-500,
+      span.dark\:text-gray-400 {
+        color: #a0aec0 !important;
+      }
+    }
+  }
+  
+  // Ensure parent container is also dark
+  .bg-white.dark\:bg-gray-800 {
+    background-color: #1f2937 !important;
+  }
+}
+
+// Direct dark-mode class selector (most reliable)
+.template-option.dark-mode {
+  background-color: #2d3748 !important;
+  background: #2d3748 !important;
   
   &:hover {
-    background-color: #374151;
-    border-color: #4b5563;
+    background-color: #374151 !important;
+    background: #374151 !important;
+    border-color: #4b5563 !important;
   }
   
   &.selected {
-    background-color: rgba(16, 185, 129, 0.1);
-    border-color: #10b981;
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    background: rgba(16, 185, 129, 0.15) !important;
+    border-color: #10b981 !important;
   }
   
   .template-preview-container {
-    background: #111827;
-    border-color: #374151;
+    background: #1a202c !important;
+    background-color: #1a202c !important;
+    border-color: #4a5568 !important;
+  }
+  
+  .template-info {
+    span.text-gray-900,
+    span.dark\:text-white {
+      color: #f7fafc !important;
+    }
+    
+    span.text-gray-500,
+    span.dark\:text-gray-400 {
+      color: #a0aec0 !important;
+    }
+  }
+}
+
+// Alternative selector without ::ng-deep for better compatibility
+body.dark .template-option,
+body.dark app-settings .template-option,
+body.dark ion-content .template-option,
+body.dark .template-grid .template-option,
+body.dark [class*="template-option"] {
+  background-color: #2d3748 !important;
+  background: #2d3748 !important;
+  
+  &:hover {
+    background-color: #374151 !important;
+    background: #374151 !important;
+    border-color: #4b5563 !important;
+  }
+  
+  &.selected {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    background: rgba(16, 185, 129, 0.15) !important;
+    border-color: #10b981 !important;
+  }
+  
+  .template-preview-container {
+    background: #1a202c !important;
+    background-color: #1a202c !important;
+    border-color: #4a5568 !important;
+  }
+  
+  .template-info {
+    span.text-gray-900,
+    span.dark\:text-white {
+      color: #f7fafc !important;
+    }
+    
+    span.text-gray-500,
+    span.dark\:text-gray-400 {
+      color: #a0aec0 !important;
+    }
+  }
+}
+
+// Override inline styles in dark mode
+.template-option.dark-mode .template-preview-container .template-preview > div,
+body.dark .template-option .template-preview-container .template-preview > div,
+body.dark .template-option .template-preview-container .template-preview > div[style*="background: white"],
+body.dark .template-option .template-preview-container .template-preview > div[style*="background:white"] {
+  background: #2d3748 !important;
+  background-color: #2d3748 !important;
+  border-color: #4a5568 !important;
+  
+  i {
+    color: #e2e8f0 !important;
+  }
+  
+  i.fa-file-invoice-dollar {
+    color: #60a5fa !important;
+  }
+  
+  i.fa-file-invoice[style*="#10b981"],
+  i.fa-file-invoice[style*="color: #10b981"] {
+    color: #34d399 !important;
+  }
+  
+  i.fa-file-alt {
+    color: #93c5fd !important;
+  }
+  
+  i.fa-receipt {
+    color: #cbd5e0 !important;
+  }
+  
+  i.fa-file {
+    color: #a0aec0 !important;
   }
 }
 

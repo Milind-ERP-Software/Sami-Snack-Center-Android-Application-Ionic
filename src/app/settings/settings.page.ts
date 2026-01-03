@@ -4,12 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonToggle, IonModal, IonButtons } from '@ionic/angular/standalone';
-import { AlertController, ToastController } from '@ionic/angular';
+import { AlertController, ToastController, Platform } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { arrowBack, informationCircle, download, cloudUpload, trash, statsChart, documentText, business, moon, sunny, phonePortrait, code, image, text, add, calculator, checkmarkCircle, close } from 'ionicons/icons';
 import { StorageService } from '../services/storage.service';
 import { ThemeService } from '../services/theme.service';
 import { NotificationService } from '../services/notification.service';
+import { ProductionItemsService } from '../services/production-items.service';
+import { ExpenseItemsService } from '../services/expense-items.service';
+import { PurchaseItemsService } from '../services/purchase-items.service';
+import JSZip from 'jszip';
 import { InvoiceTemplate1Component } from '../daily-form/invoice-template1/invoice-template1.component';
 import { InvoiceTemplate2Component } from '../daily-form/invoice-template2/invoice-template2.component';
 import { InvoiceTemplate3Component } from '../daily-form/invoice-template3/invoice-template3.component';
@@ -85,7 +89,11 @@ export class SettingsPage implements OnInit, OnDestroy {
     private alertController: AlertController,
     private toastController: ToastController,
     private notificationService: NotificationService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private productionItemsService: ProductionItemsService,
+    private expenseItemsService: ExpenseItemsService,
+    private purchaseItemsService: PurchaseItemsService,
+    private platform: Platform
   ) {
     addIcons({ arrowBack, informationCircle, download, cloudUpload, trash, statsChart, documentText, business, moon, sunny, phonePortrait, code, image, text, add, calculator, checkmarkCircle, close });
   }
@@ -154,30 +162,94 @@ export class SettingsPage implements OnInit, OnDestroy {
 
   async exportData() {
     try {
-      const records = await this.storageService.getAllRecords();
+      this.showToast('Exporting data...', 'success');
+      
+      // Get all data
+      const records = await this.storageService.getAllRecords(true); // Include deleted
+      const productionItems = await this.productionItemsService.getAllItems(true); // Include deleted
+      const expenseItems = await this.expenseItemsService.getAllItems(true); // Include deleted
+      const purchaseItems = await this.purchaseItemsService.getAllItems(true); // Include deleted
+
+      // Create data object
       const data = {
         records: records,
+        productionItems: productionItems,
+        expenseItems: expenseItems,
+        purchaseItems: purchaseItems,
         exportDate: new Date().toISOString(),
         appName: this.appName,
         version: this.appVersion
       };
 
+      // Create ZIP file
+      const zip = new JSZip();
       const dataStr = JSON.stringify(data, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `nayna-snack-center-backup-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      this.showToast('Data exported successfully', 'success');
+      zip.file('backup-data.json', dataStr);
+      
+      // Generate ZIP blob
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      
+      // Try to use Capacitor Share for mobile, fallback to download for web
+      if (this.platform.is('capacitor') && this.platform.is('mobile')) {
+        try {
+          // Convert blob to base64 for Capacitor
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            const base64Data = (reader.result as string).split(',')[1];
+            const dateStr = new Date().toISOString().split('T')[0];
+            const fileName = `sami-snack-center-backup-${dateStr}.zip`;
+            
+            // Save to filesystem
+            const { Filesystem } = await import('@capacitor/filesystem');
+            const { Directory } = await import('@capacitor/filesystem');
+            const { Share } = await import('@capacitor/share');
+            
+            await Filesystem.writeFile({
+              path: fileName,
+              data: base64Data,
+              directory: Directory.External,
+              recursive: false
+            });
+            
+            const fileUri = await Filesystem.getUri({
+              path: fileName,
+              directory: Directory.External
+            });
+            
+            await Share.share({
+              url: fileUri.uri,
+              title: 'Sami Snack Center Backup'
+            });
+            
+            this.showToast('Data exported successfully as ZIP', 'success');
+          };
+          reader.readAsDataURL(zipBlob);
+        } catch (error) {
+          console.error('Capacitor share error:', error);
+          // Fallback to download
+          this.downloadZipFile(zipBlob);
+        }
+      } else {
+        // Web fallback - download file
+        this.downloadZipFile(zipBlob);
+      }
     } catch (error) {
       this.showToast('Error exporting data', 'danger');
       console.error('Export error:', error);
     }
+  }
+
+  private downloadZipFile(zipBlob: Blob) {
+    const url = URL.createObjectURL(zipBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    const dateStr = new Date().toISOString().split('T')[0];
+    link.download = `sami-snack-center-backup-${dateStr}.zip`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    this.showToast('Data exported successfully as ZIP', 'success');
   }
 
   async importData() {
@@ -203,34 +275,102 @@ export class SettingsPage implements OnInit, OnDestroy {
   handleFileImport() {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.json';
-    input.onchange = (event: any) => {
+    input.accept = '.zip,.json';
+    input.onchange = async (event: any) => {
       const file = event.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = async (e: any) => {
-          try {
-            const data = JSON.parse(e.target.result);
-            if (data.records && Array.isArray(data.records)) {
-              // Save imported records
-              await this.storageService.importRecords(data.records);
-              this.showToast('Data imported successfully', 'success');
-              await this.loadStatistics();
-              setTimeout(() => {
-                this.router.navigate(['/home']);
-              }, 1000);
-            } else {
-              this.showToast('Invalid file format', 'danger');
-            }
-          } catch (error) {
-            this.showToast('Error reading file', 'danger');
-            console.error('Import error:', error);
+        try {
+          this.showToast('Importing data...', 'success');
+          
+          // Check if it's a ZIP file or JSON file
+          if (file.name.endsWith('.zip')) {
+            await this.importZipFile(file);
+          } else {
+            await this.importJsonFile(file);
           }
-        };
-        reader.readAsText(file);
+        } catch (error) {
+          this.showToast('Error importing file', 'danger');
+          console.error('Import error:', error);
+        }
       }
     };
     input.click();
+  }
+
+  async importZipFile(file: File) {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const zip = new JSZip();
+      const zipData = await zip.loadAsync(arrayBuffer);
+      
+      // Find the JSON file in the ZIP
+      const jsonFile = Object.keys(zipData.files).find(name => name.endsWith('.json'));
+      
+      if (!jsonFile) {
+        this.showToast('No JSON file found in ZIP', 'danger');
+        return;
+      }
+      
+      const jsonContent = await zipData.files[jsonFile].async('string');
+      const data = JSON.parse(jsonContent);
+      
+      await this.importDataFromObject(data);
+    } catch (error) {
+      this.showToast('Error reading ZIP file', 'danger');
+      console.error('ZIP import error:', error);
+    }
+  }
+
+  async importJsonFile(file: File) {
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e: any) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          await this.importDataFromObject(data);
+        } catch (error) {
+          this.showToast('Error reading JSON file', 'danger');
+          console.error('JSON import error:', error);
+        }
+      };
+      reader.readAsText(file);
+    } catch (error) {
+      this.showToast('Error reading file', 'danger');
+      console.error('File import error:', error);
+    }
+  }
+
+  async importDataFromObject(data: any) {
+    try {
+      // Import records
+      if (data.records && Array.isArray(data.records)) {
+        await this.storageService.importRecords(data.records);
+      }
+      
+      // Import production items
+      if (data.productionItems && Array.isArray(data.productionItems)) {
+        await this.productionItemsService.saveItems(data.productionItems);
+      }
+      
+      // Import expense items
+      if (data.expenseItems && Array.isArray(data.expenseItems)) {
+        await this.expenseItemsService.saveItems(data.expenseItems);
+      }
+      
+      // Import purchase items
+      if (data.purchaseItems && Array.isArray(data.purchaseItems)) {
+        await this.purchaseItemsService.saveItems(data.purchaseItems);
+      }
+      
+      this.showToast('Data imported successfully', 'success');
+      await this.loadStatistics();
+      setTimeout(() => {
+        this.router.navigate(['/home']);
+      }, 1000);
+    } catch (error) {
+      this.showToast('Error importing data', 'danger');
+      console.error('Import data error:', error);
+    }
   }
 
   async clearAllData() {
