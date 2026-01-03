@@ -46,23 +46,51 @@ export class PurchaseItemsService {
   private async initializeDefaultItems(): Promise<void> {
     if (this._items.length === 0) {
       const defaultItems: PurchaseItemOption[] = [
-        { name: 'Groceries' },
-        { name: 'Vegetables' },
-        { name: 'Fruits' },
-        { name: 'Dairy Products' },
-        { name: 'Spices' },
-        { name: 'Oil' },
-        { name: 'Rice' },
-        { name: 'Lentils' }
+        { name: 'Groceries', id: this.generateId() },
+        { name: 'Vegetables', id: this.generateId() },
+        { name: 'Fruits', id: this.generateId() },
+        { name: 'Dairy Products', id: this.generateId() },
+        { name: 'Spices', id: this.generateId() },
+        { name: 'Oil', id: this.generateId() },
+        { name: 'Rice', id: this.generateId() },
+        { name: 'Lentils', id: this.generateId() }
       ];
       await this.saveItems(defaultItems);
+    } else {
+      // Ensure all existing items have IDs
+      let needsUpdate = false;
+      this._items = this._items.map(item => {
+        if (!item.id) {
+          needsUpdate = true;
+          return { ...item, id: this.generateId() };
+        }
+        return item;
+      });
+      if (needsUpdate) {
+        await this.saveItems(this._items);
+      }
     }
   }
 
   async getAllItems(includeDeleted: boolean = false): Promise<PurchaseItemOption[]> {
     await this.ensureInitialized();
+    // Ensure all items have IDs before returning
+    // First, update _items if any are missing IDs
+    let needsUpdate = false;
+    const updatedItems = this._items.map(item => {
+      if (!item.id) {
+        needsUpdate = true;
+        return { ...item, id: this.generateId() };
+      }
+      return item;
+    });
+    if (needsUpdate) {
+      this._items = updatedItems;
+      await this.saveItems(this._items);
+    }
+    // Now filter and return
     if (includeDeleted) {
-    return [...this._items];
+      return [...this._items];
     }
     return [...this._items].filter(item => !item.isDeleted);
   }

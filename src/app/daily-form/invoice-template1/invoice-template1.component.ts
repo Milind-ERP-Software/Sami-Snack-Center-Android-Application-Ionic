@@ -17,6 +17,7 @@ export class InvoiceTemplate1Component {
   @Input() profitData: { profit: number; loss: number } = { profit: 0, loss: 0 };
   @Input() dateStr: string = '';
   @Input() timeStr: string = '';
+  @Input() companyName: string = 'Sami Snack Center';
 
   constructor() {}
 }

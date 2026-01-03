@@ -44,21 +44,48 @@ export class IncomeItemsService {
   private async initializeDefaultItems(): Promise<void> {
     if (this._items.length === 0) {
       const defaultItems: IncomeItemOption[] = [
-        { name: 'Catering' },
-        { name: 'Delivery' },
-        { name: 'Takeaway' },
-        { name: 'Dine-in' },
-        { name: 'Online Order' },
-        { name: 'Special Event' },
-        { name: 'Party Order' },
-        { name: 'Bulk Order' }
+        { name: 'Catering', id: this.generateId() },
+        { name: 'Delivery', id: this.generateId() },
+        { name: 'Takeaway', id: this.generateId() },
+        { name: 'Dine-in', id: this.generateId() },
+        { name: 'Online Order', id: this.generateId() },
+        { name: 'Special Event', id: this.generateId() },
+        { name: 'Party Order', id: this.generateId() },
+        { name: 'Bulk Order', id: this.generateId() }
       ];
       await this.saveItems(defaultItems);
+    } else {
+      // Ensure all existing items have IDs
+      let needsUpdate = false;
+      this._items = this._items.map(item => {
+        if (!item.id) {
+          needsUpdate = true;
+          return { ...item, id: this.generateId() };
+        }
+        return item;
+      });
+      if (needsUpdate) {
+        await this.saveItems(this._items);
+      }
     }
   }
 
   async getAllItems(): Promise<IncomeItemOption[]> {
     await this.ensureInitialized();
+    // Ensure all items have IDs before returning
+    // First, update _items if any are missing IDs
+    let needsUpdate = false;
+    const updatedItems = this._items.map(item => {
+      if (!item.id) {
+        needsUpdate = true;
+        return { ...item, id: this.generateId() };
+      }
+      return item;
+    });
+    if (needsUpdate) {
+      this._items = updatedItems;
+      await this.saveItems(this._items);
+    }
     return [...this._items];
   }
 

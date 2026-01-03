@@ -46,23 +46,51 @@ export class ProductionItemsService {
   private async initializeDefaultItems(): Promise<void> {
     if (this._items.length === 0) {
       const defaultItems: ProductionItemOption[] = [
-        { name: 'Idali' },
-        { name: 'Menduwada (40 plate)' },
-        { name: 'Dosa' },
-        { name: 'Vada' },
-        { name: 'Sambhar' },
-        { name: 'Uttapam' },
-        { name: 'Poha' },
-        { name: 'Upma' }
+        { name: 'Idali', id: this.generateId() },
+        { name: 'Menduwada (40 plate)', id: this.generateId() },
+        { name: 'Dosa', id: this.generateId() },
+        { name: 'Vada', id: this.generateId() },
+        { name: 'Sambhar', id: this.generateId() },
+        { name: 'Uttapam', id: this.generateId() },
+        { name: 'Poha', id: this.generateId() },
+        { name: 'Upma', id: this.generateId() }
       ];
       await this.saveItems(defaultItems);
+    } else {
+      // Ensure all existing items have IDs
+      let needsUpdate = false;
+      this._items = this._items.map(item => {
+        if (!item.id) {
+          needsUpdate = true;
+          return { ...item, id: this.generateId() };
+        }
+        return item;
+      });
+      if (needsUpdate) {
+        await this.saveItems(this._items);
+      }
     }
   }
 
   async getAllItems(includeDeleted: boolean = false): Promise<ProductionItemOption[]> {
     await this.ensureInitialized();
+    // Ensure all items have IDs before returning
+    // First, update _items if any are missing IDs
+    let needsUpdate = false;
+    const updatedItems = this._items.map(item => {
+      if (!item.id) {
+        needsUpdate = true;
+        return { ...item, id: this.generateId() };
+      }
+      return item;
+    });
+    if (needsUpdate) {
+      this._items = updatedItems;
+      await this.saveItems(this._items);
+    }
+    // Now filter and return
     if (includeDeleted) {
-    return [...this._items];
+      return [...this._items];
     }
     return [...this._items].filter(item => !item.isDeleted);
   }

@@ -2,7 +2,7 @@
   <div class="header">
     <div class="header-content">
       <div class="emoji">🌯</div>
-      <h1>SAMI SNACK CENTER</h1>
+      <h1>{{ companyName.toUpperCase() }}</h1>
     </div>
     <p class="subtitle">Business Tracker Summary</p>
     <p class="date-time">Date: {{ dateStr }} | Time: {{ timeStr }}</p>
@@ -82,7 +82,7 @@
     <p class="notes" *ngIf="recordData?.notes">
       Notes: <span class="notes-text">{{ recordData.notes }}</span>
     </p>
-    <p class="footer-text">Powered by Sami Snack Center Business Tracker</p>
+    <p class="footer-text">Powered by {{ companyName }} Business Tracker</p>
   </div>
 </div>
 

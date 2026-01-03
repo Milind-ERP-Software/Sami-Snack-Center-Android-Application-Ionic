@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar style="--background: #0066CC; background: #0066CC; --border-width: 0;">
-    <div class="navbar-container" (dblclick)="onSettingsTitleDoubleClick()" style="cursor: pointer;">
+  <ion-toolbar style="--background: #0066CC; background: #0066CC; --border-width: 0;" (dblclick)="toggleDeveloperToggleVisibility()">
+    <div class="navbar-container">
       <div class="navbar-left">
         <ion-button
           (click)="goToHome()"
@@ -11,9 +11,20 @@
         >
           <ion-icon name="arrow-back" slot="icon-only" style="font-size: 16px;"></ion-icon>
         </ion-button>
-        <ion-title class="navbar-title" (dblclick)="onSettingsTitleDoubleClick()" style="cursor: pointer;">
+        <ion-title class="navbar-title">
           Settings
         </ion-title>
+      </div>
+      <div class="navbar-right">
+        <div class="developer-mode-toggle" *ngIf="showDeveloperToggleInHeader">
+          <ion-icon name="code"></ion-icon>
+          <span>Dev</span>
+          <ion-toggle
+            [checked]="isDeveloperMode"
+            (ionChange)="toggleDeveloperMode()"
+            (click)="$event.stopPropagation()"
+          ></ion-toggle>
+        </div>
       </div>
     </div>
   </ion-toolbar>
@@ -410,6 +421,7 @@
                 [profitData]="previewData.profitData"
                 [dateStr]="previewData.dateStr"
                 [timeStr]="previewData.timeStr"
+                [companyName]="companyName"
               ></app-invoice-template1>
 
               <app-invoice-template2
@@ -421,6 +433,7 @@
                 [profitData]="previewData.profitData"
                 [dateStr]="previewData.dateStr"
                 [timeStr]="previewData.timeStr"
+                [companyName]="companyName"
               ></app-invoice-template2>
 
               <app-invoice-template3
@@ -432,6 +445,7 @@
                 [profitData]="previewData.profitData"
                 [dateStr]="previewData.dateStr"
                 [timeStr]="previewData.timeStr"
+                [companyName]="companyName"
               ></app-invoice-template3>
 
               <app-invoice-template4
@@ -443,6 +457,7 @@
                 [profitData]="previewData.profitData"
                 [dateStr]="previewData.dateStr"
                 [timeStr]="previewData.timeStr"
+                [companyName]="companyName"
               ></app-invoice-template4>
 
               <app-invoice-template5
@@ -454,6 +469,7 @@
                 [profitData]="previewData.profitData"
                 [dateStr]="previewData.dateStr"
                 [timeStr]="previewData.timeStr"
+                [companyName]="companyName"
               ></app-invoice-template5>
               <app-invoice-template6
                 *ngIf="previewTemplate === 'template6'"
@@ -464,6 +480,7 @@
                 [profitData]="previewData.profitData"
                 [dateStr]="previewData.dateStr"
                 [timeStr]="previewData.timeStr"
+                [companyName]="companyName"
               ></app-invoice-template6>
             </div>
 

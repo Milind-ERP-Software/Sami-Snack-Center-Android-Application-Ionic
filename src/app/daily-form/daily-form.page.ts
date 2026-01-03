@@ -64,7 +64,7 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 })
 export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('invoiceTemplate', { read: ElementRef }) invoiceTemplate?: ElementRef;
-  
+
   form!: FormGroup;
   recordId: string | null = null;
   isEditMode = false;
@@ -76,7 +76,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   isNavigating = false;
   createdAt: string | null = null;
   updatedAt: string | null = null;
-  
+
   // Invoice data for template
   invoiceData: any = null;
 
@@ -101,6 +101,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   calculationType: 'wholesale' | 'retail' = 'wholesale';
   showWholesaleButton: boolean = false;
   showRetailButton: boolean = true;
+  companyName: string = 'Sami Snack Center';
 
   // Options for dropdowns
   productionItemOptions: ProductionItemOption[] = [];
@@ -154,9 +155,17 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
 
     // Register back button handler to close action sheets
     this.setupBackButtonHandler();
-    
+
     // Load calculation buttons settings
     this.loadCalculationButtonsSettings();
+
+    // Load company name from storage
+    this.loadCompanyName();
+
+    // Subscribe to company name changes
+    this.storageService.companyNameChanged.subscribe((name: string) => {
+      this.companyName = name || 'Sami Snack Center';
+    });
 
     // Also handle browser back button for web
     this.browserBackHandler = this.handleBrowserBack.bind(this);
@@ -638,7 +647,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
       const formGroup = control as FormGroup;
       // Use getRawValue() to get disabled field values
       const rawValue = formGroup.getRawValue();
-      
+
       return {
         listOfItem: rawValue.listOfItem || '',
         qty: rawValue.qty || 0,
@@ -653,7 +662,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
       const formGroup = control as FormGroup;
       // Use getRawValue() to get disabled field values
       const rawValue = formGroup.getRawValue();
-      
+
       return {
         listOfItem: rawValue.listOfItem || '',
         qty: rawValue.qty || 0,
@@ -668,7 +677,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
       const formGroup = control as FormGroup;
       // Use getRawValue() to get disabled field values
       const rawValue = formGroup.getRawValue();
-      
+
       return {
         listOfItem: rawValue.listOfItem || '',
         qty: rawValue.qty || 0,
@@ -689,10 +698,21 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     this.expensePopoverEvent = undefined;
   }
 
+  async loadCompanyName() {
+    try {
+      const name = await this.storageService.get('company_name');
+      if (name) {
+        this.companyName = name;
+      }
+    } catch (error) {
+      console.error('Error loading company name:', error);
+    }
+  }
+
   async loadCalculationButtonsSettings() {
     const showWholesale = await this.storageService.get('show_wholesale_button');
     this.showWholesaleButton = showWholesale === 'true'; // Default to false
-    
+
     const showRetail = await this.storageService.get('show_retail_button');
     this.showRetailButton = showRetail !== 'false'; // Default to true
   }
@@ -1198,24 +1218,24 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
 
     try {
       this.showToast('Generating invoice...', 'success');
-      
+
       const formValue = this.form.getRawValue();
       const profitData = this.calculateDailyProfit();
       const totalIncome = this.getTotalTodayIncome();
       const totalExpense = this.getTotalExpense();
       const productionCost = this.getProductionCost();
-      
+
       // Format date
       const date = new Date(formValue.date);
-      const dateStr = date.toLocaleDateString('en-IN', { 
-        day: 'numeric', 
-        month: 'short', 
-        year: 'numeric' 
+      const dateStr = date.toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
       });
-      const timeStr = date.toLocaleTimeString('en-IN', { 
-        hour: '2-digit', 
+      const timeStr = date.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
         minute: '2-digit',
-        hour12: true 
+        hour12: true
       });
 
       // Set invoice data for component
@@ -1231,15 +1251,15 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
 
       // Get selected template from settings
       const selectedTemplate = await this.getSelectedTemplate();
-      
+
       // Always use HTML string approach for reliable image generation
       // Component approach doesn't work well when hidden off-screen
       const invoiceHTML = this.generateInvoiceHTML(formValue, profitData, totalIncome, totalExpense, productionCost, dateStr, timeStr, selectedTemplate);
-      
+
       // Create a visible but off-screen container for html2canvas with margins
       const tempDiv = document.createElement('div');
       tempDiv.style.cssText = 'position:fixed;left:-10000px;top:0;width:auto;height:auto;z-index:-9999;visibility:visible;opacity:1;background:#ffffff;padding:20px;';
-      
+
       // Add font imports for templates that need them
       let fontImports = '';
       if (selectedTemplate === 'template2') {
@@ -1247,18 +1267,18 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
       } else if (selectedTemplate === 'template3' || selectedTemplate === 'template4' || selectedTemplate === 'template5') {
         fontImports = '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">';
       }
-      
+
       // Wrap invoice in a container with margins
       const wrappedHTML = `<div style="margin: 0 auto; padding: 0 20px; background: #ffffff; display: inline-block;">${invoiceHTML}</div>`;
       tempDiv.innerHTML = fontImports + wrappedHTML;
       document.body.appendChild(tempDiv);
-      
+
       // Find the wrapper div first (the one with padding)
       let wrapperElement = tempDiv.querySelector('div[style*="padding: 0 20px"]') as HTMLElement;
-      
+
       // Find the actual invoice element (skip link/style tags)
       let invoiceElement: HTMLElement | null = null;
-      
+
       // Try to find the main invoice div by class or style attribute within wrapper
       if (wrapperElement) {
         invoiceElement = wrapperElement.querySelector('div[style*="width"]') as HTMLElement ||
@@ -1266,7 +1286,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
                         wrapperElement.querySelector('.receipt') as HTMLElement ||
                         wrapperElement.querySelector('.receipt-container') as HTMLElement;
       }
-      
+
       // Fallback: search in entire tempDiv
       if (!invoiceElement) {
         invoiceElement = tempDiv.querySelector('div[style*="width"]') as HTMLElement ||
@@ -1274,7 +1294,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
                         tempDiv.querySelector('.receipt') as HTMLElement ||
                         tempDiv.querySelector('.receipt-container') as HTMLElement;
       }
-      
+
       // If still not found, get first div element (skip link/style tags)
       if (!invoiceElement) {
         let child = tempDiv.firstElementChild;
@@ -1286,48 +1306,48 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
           child = child.nextElementSibling;
         }
       }
-      
+
       // Use wrapper element if found, otherwise use invoice element
       const elementToCapture = wrapperElement || invoiceElement;
-      
+
       // Ensure element exists and has style property
       if (!elementToCapture || !elementToCapture.style) {
         throw new Error('Could not find valid invoice element in generated HTML');
       }
-      
+
       // Ensure element is properly sized and visible
       elementToCapture.style.cssText = (elementToCapture.style.cssText || '') + 'display:block !important;visibility:visible !important;opacity:1 !important;position:relative !important;';
-      
+
       // Update invoiceElement reference for later use (for height calculation)
       if (!invoiceElement) {
         invoiceElement = elementToCapture;
       }
-      
+
       // Wait for fonts and styles to load (increased for proper rendering)
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Force layout recalculation to get accurate dimensions
       void invoiceElement.offsetHeight; // Trigger layout
-      
+
       // Wait a bit more for layout to settle
       await new Promise(resolve => setTimeout(resolve, 200));
-      
+
       // Get actual dimensions with multiple fallbacks for accurate height
       // Use wrapper element width if available (includes margins), otherwise use invoice element
-      const elementWidth = (wrapperElement ? wrapperElement.offsetWidth : invoiceElement.offsetWidth) || 
-                          invoiceElement.scrollWidth || 
-                          invoiceElement.clientWidth || 
+      const elementWidth = (wrapperElement ? wrapperElement.offsetWidth : invoiceElement.offsetWidth) ||
+                          invoiceElement.scrollWidth ||
+                          invoiceElement.clientWidth ||
                           460; // Increased default to account for margins
-      
+
       // Calculate height more accurately - use scrollHeight for full content
       let elementHeight = elementToCapture.scrollHeight || elementToCapture.offsetHeight;
-      
+
       // If height is still 0 or too small, calculate from content
       if (!elementHeight || elementHeight < 100) {
         const rect = elementToCapture.getBoundingClientRect();
         elementHeight = rect.height || 800;
       }
-      
+
       // Ensure we capture the full content - use the maximum of all height measurements
       const allHeights = [
         elementToCapture.scrollHeight,
@@ -1335,18 +1355,18 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
         elementToCapture.clientHeight,
         elementToCapture.getBoundingClientRect().height
       ].filter(h => h && h > 0);
-      
+
       if (allHeights.length > 0) {
         elementHeight = Math.max(...allHeights);
       }
-      
+
       // Add padding to ensure full content is captured (no cropping)
       elementHeight = Math.ceil(elementHeight * 1.15); // Add 15% padding to prevent any cropping
-      
-      console.log('Invoice dimensions:', { 
-        width: elementWidth, 
-        height: elementHeight, 
-        scrollHeight: invoiceElement.scrollHeight, 
+
+      console.log('Invoice dimensions:', {
+        width: elementWidth,
+        height: elementHeight,
+        scrollHeight: invoiceElement.scrollHeight,
         offsetHeight: invoiceElement.offsetHeight,
         clientHeight: invoiceElement.clientHeight
       });
@@ -1374,15 +1394,15 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
         onclone: (clonedDoc, element) => {
           // Find wrapper element first
           const clonedWrapper = clonedDoc.querySelector('div[style*="padding: 0 20px"]') as HTMLElement;
-          
+
           // Ensure fonts and styles are properly applied in cloned document
-          const clonedElement = clonedWrapper ? 
+          const clonedElement = clonedWrapper ?
                                (clonedWrapper.querySelector('div[style*="width"]') as HTMLElement ||
                                 clonedWrapper.querySelector('.invoice-container, .receipt, .receipt-container') as HTMLElement) :
-                               (clonedDoc.querySelector('div[style*="width"]') as HTMLElement || 
+                               (clonedDoc.querySelector('div[style*="width"]') as HTMLElement ||
                                 clonedDoc.querySelector('.invoice-container, .receipt, .receipt-container') as HTMLElement ||
                                 clonedDoc.querySelector('div') as HTMLElement);
-          
+
           // Ensure wrapper has proper styling
           if (clonedWrapper) {
             clonedWrapper.style.display = 'block';
@@ -1392,7 +1412,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
             clonedWrapper.style.margin = '0 auto';
             clonedWrapper.style.padding = '0 20px';
           }
-          
+
           if (clonedElement) {
             // Copy computed styles
             const computedStyle = getComputedStyle(invoiceElement);
@@ -1408,7 +1428,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
             clonedElement.style.position = 'relative';
             clonedElement.style.display = 'block';
           }
-          
+
           // Ensure all child elements have proper styles and visibility
           const allElements = clonedDoc.querySelectorAll('*');
           allElements.forEach((el: any) => {
@@ -1420,7 +1440,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
               }
             }
           });
-          
+
           // Ensure body and html have proper dimensions
           const clonedBody = clonedDoc.body;
           if (clonedBody) {
@@ -1441,17 +1461,17 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
 
       // Convert canvas to data URL with optimized quality (0.90 for good quality with faster processing)
       const imageDataUrl = canvas.toDataURL('image/jpeg', 0.90); // JPEG with 90% quality (still HD, faster encoding)
-      
+
       // Verify image data is valid
       if (!imageDataUrl || imageDataUrl === 'data:,') {
         throw new Error('Failed to generate image data');
       }
-      
+
       // Clean up temporary div immediately
       if (tempDiv && tempDiv.parentElement === document.body) {
         document.body.removeChild(tempDiv);
       }
-      
+
       // Share via WhatsApp with image
       await this.shareInvoiceImage(imageDataUrl, dateStr, totalIncome);
     } catch (error) {
@@ -1488,11 +1508,11 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     // Convert date and time to uppercase format like component
     const dateUpper = dateStr.toUpperCase();
     const timeUpper = timeStr.toUpperCase();
-    
+
     return `
       <div class="invoice-container" style="width: 420px !important; background: #ffffff !important; padding: 0 !important; border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; border: none !important; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important; color: #000 !important; margin: 0 auto !important; display: block !important;">
         <div class="header" style="background: #1e272e !important; color: white !important; padding: 30px 20px !important; text-align: center !important;">
-          <h1 style="margin: 0 !important; font-size: 22px !important; letter-spacing: 1px !important; text-transform: uppercase !important; color: white !important;">SAMI SNACK CENTER</h1>
+          <h1 style="margin: 0 !important; font-size: 22px !important; letter-spacing: 1px !important; text-transform: uppercase !important; color: white !important;">${this.companyName.toUpperCase()}</h1>
           <p style="margin: 5px 0 0 !important; font-size: 12px !important; opacity: 0.7 !important; letter-spacing: 2px !important; color: white !important;">Business Tracker</p>
         </div>
         <div class="content" style="padding: 25px !important;">
@@ -1532,7 +1552,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
           </div>
           ` : ''}
         </div>
-        <div class="footer-tag" style="text-align: center !important; padding: 20px !important; font-size: 10px !important; color: #bbb !important; letter-spacing: 1px !important; display: block !important; visibility: visible !important; opacity: 1 !important;">POWERED BY SAMI SNACK CENTER APP</div>
+        <div class="footer-tag" style="text-align: center !important; padding: 20px !important; font-size: 10px !important; color: #bbb !important; letter-spacing: 1px !important; display: block !important; visibility: visible !important; opacity: 1 !important;">POWERED BY ${this.companyName.toUpperCase()} APP</div>
       </div>
     `;
   }
@@ -1596,7 +1616,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     return `
       <div class="receipt-container" style="width: 400px !important; background-color: #ffffff !important; padding: 55px 45px !important; box-shadow: none !important; position: relative !important; font-family: 'Inter', sans-serif !important; color: #000 !important; display: block !important; overflow: visible !important; margin: 0 auto !important; border: none !important;">
         <div class="header" style="text-align: center !important; margin-bottom: 40px !important;">
-          <h1 style="font-size: 24px !important; font-weight: 700 !important; margin: 0 !important; letter-spacing: 1.5px !important; color: #000 !important; text-transform: uppercase !important;">Sami Snack Center</h1>
+          <h1 style="font-size: 24px !important; font-weight: 700 !important; margin: 0 !important; letter-spacing: 1.5px !important; color: #000 !important; text-transform: uppercase !important;">${this.companyName.toUpperCase()}</h1>
           <div class="subtitle" style="font-size: 13px !important; font-weight: 400 !important; color: #555 !important; margin-top: 10px !important; text-transform: uppercase !important; letter-spacing: 1px !important;">Daily Summary Invoice</div>
           <div class="date-time" style="font-size: 13px !important; color: #333 !important; margin-top: 5px !important;">${dateStr} • ${timeStr}</div>
         </div>
@@ -1646,7 +1666,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     return `
       <div class="receipt" style="width: 380px !important; background: #fff !important; padding: 38px 32px !important; border-radius: 0 !important; box-shadow: none !important; font-family: 'Inter', sans-serif !important; color: #000 !important; display: block !important; overflow: visible !important; margin: 0 auto !important; border: none !important;">
         <div class="header" style="text-align: center !important; margin-bottom: 24px !important;">
-          <h1 style="font-size: 20px !important; font-weight: 600 !important; margin: 0 !important; color: #000 !important;">Sami Snack Center</h1>
+          <h1 style="font-size: 20px !important; font-weight: 600 !important; margin: 0 !important; color: #000 !important;">${this.companyName}</h1>
           <p style="font-size: 13px !important; color: #666 !important; margin: 6px 0 0 !important;">Daily Summary • ${dateStr}, ${timeStr}</p>
         </div>
         <div class="divider" style="border-top: 1px solid #eee !important; margin: 20px 0 !important;"></div>
@@ -1690,7 +1710,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     return `
       <div class="receipt" style="width: 340px !important; background: #fff !important; padding: 28px !important; border: none !important; font-family: 'Inter', sans-serif !important; color: #000 !important; display: block !important; overflow: visible !important; margin: 0 auto !important; box-shadow: none !important;">
         <div class="header" style="text-align: center !important; margin-bottom: 16px !important;">
-          <h1 style="font-size: 16px !important; font-weight: 500 !important; margin: 0 !important; color: #000 !important;">Sami Snack Center</h1>
+          <h1 style="font-size: 16px !important; font-weight: 500 !important; margin: 0 !important; color: #000 !important;">${this.companyName}</h1>
           <p style="font-size: 12px !important; color: #777 !important; margin-top: 4px !important;">${dateStr} · ${timeStr}</p>
         </div>
         <div class="divider" style="border-top: 1px dashed #ddd !important; margin: 14px 0 !important;"></div>
@@ -1736,7 +1756,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
         <div class="header" style="text-align: center !important; margin-bottom: 24px !important;">
           <div class="header-content" style="display: flex !important; align-items: center !important; justify-content: center !important; gap: 12px !important; margin-bottom: 8px !important;">
             <div class="emoji" style="font-size: 48px !important; line-height: 1 !important;">🌯</div>
-            <h1 style="font-size: 28px !important; font-weight: bold !important; margin: 0 !important; color: #000 !important;">SAMI SNACK CENTER</h1>
+            <h1 style="font-size: 28px !important; font-weight: bold !important; margin: 0 !important; color: #000 !important;">${this.companyName.toUpperCase()}</h1>
           </div>
           <p class="subtitle" style="font-size: 18px !important; font-weight: 500 !important; margin: 8px 0 !important; color: #000 !important;">Business Tracker Summary</p>
           <p class="date-time" style="font-size: 14px !important; color: #666 !important; margin-top: 12px !important;">Date: ${dateStr} | Time: ${timeStr}</p>
@@ -1809,7 +1829,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
             Notes: <span class="notes-text" style="font-style: italic !important;">${formValue.notes}</span>
           </p>
           ` : ''}
-          <p class="footer-text" style="font-size: 12px !important; color: #6b7280 !important; font-style: italic !important; margin-top: 8px !important;">Powered by Sami Snack Center Business Tracker</p>
+          <p class="footer-text" style="font-size: 12px !important; color: #6b7280 !important; font-style: italic !important; margin-top: 8px !important;">Powered by ${this.companyName} Business Tracker</p>
         </div>
       </div>
     `;
@@ -1824,24 +1844,24 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
 
     try {
       this.showToast('Generating invoice...', 'success');
-      
+
       const formValue = this.form.getRawValue();
       const profitData = this.calculateDailyProfit();
       const totalIncome = this.getTotalTodayIncome();
       const totalExpense = this.getTotalExpense();
       const productionCost = this.getProductionCost();
-      
+
       // Format date
       const date = new Date(formValue.date);
-      const dateStr = date.toLocaleDateString('en-IN', { 
-        day: 'numeric', 
-        month: 'short', 
-        year: 'numeric' 
+      const dateStr = date.toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
       });
-      const timeStr = date.toLocaleTimeString('en-IN', { 
-        hour: '2-digit', 
+      const timeStr = date.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
         minute: '2-digit',
-        hour12: true 
+        hour12: true
       });
 
       // Create invoice HTML
@@ -1868,7 +1888,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
               font-size: 28px;
               font-weight: bold;
               margin-bottom: 5px;
-            ">Sami Snack Center</div>
+            ">${this.companyName}</div>
             <div style="
               color: rgba(255,255,255,0.9);
               font-size: 16px;
@@ -2053,7 +2073,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
             color: #6b7280;
             font-size: 12px;
           ">
-            <div style="margin-bottom: 5px;">Powered by Sami Snack Center</div>
+            <div style="margin-bottom: 5px;">Powered by ${this.companyName}</div>
             <div>Business Tracker Application</div>
           </div>
         </div>
@@ -2079,7 +2099,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
 
       // Convert canvas to data URL
       const imageDataUrl = canvas.toDataURL('image/png');
-      
+
       // Share via WhatsApp with image
       await this.shareInvoiceImage(imageDataUrl, dateStr, totalIncome);
 
@@ -2101,7 +2121,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
       // Extract base64 data from data URL
       const base64Data = imageDataUrl.includes(',') ? imageDataUrl.split(',')[1] : imageDataUrl;
       const fileName = `invoice-${dateStr.replace(/\s/g, '-')}.jpg`; // Changed to .jpg for faster processing
-      
+
       // Check if we're on mobile (Capacitor)
       if (this.platform.is('capacitor') && this.platform.is('mobile')) {
         try {
@@ -2116,7 +2136,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
           // Get proper file URI for sharing
           let fileUrl = fileUri.uri;
           console.log('File saved, URI:', fileUrl);
-          
+
           // For Android, get proper content URI that can be shared with WhatsApp
           if (this.platform.is('android')) {
             try {
@@ -2126,7 +2146,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
               });
               fileUrl = uriResult.uri;
               console.log('Android content URI for sharing:', fileUrl);
-              
+
               // Verify file exists
               const fileInfo = await Filesystem.stat({
                 path: fileName,
@@ -2141,7 +2161,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
           // Share using Capacitor Share plugin
           // IMPORTANT: For WhatsApp image sharing, we need to use url parameter only
           console.log('Attempting to share image file:', fileUrl);
-          
+
           try {
             // Share with URL only - this should share the image file to WhatsApp
             // Don't include text parameter as it might cause only text to be sent
@@ -2150,7 +2170,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
               url: fileUrl, // File URI - this should share the image
               dialogTitle: 'Share Invoice'
             });
-            
+
             console.log('Share result:', shareResult);
             return;
           } catch (shareError2: any) {
@@ -2194,7 +2214,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
         try {
           // Check if files can be shared
           const canShareFiles = navigator.canShare && navigator.canShare({ files: [file] });
-          
+
           if (canShareFiles) {
             // Share ONLY the file (no text) to ensure image is sent
             await navigator.share({
@@ -2225,7 +2245,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
       // Fallback: Download image
       this.downloadImage(imageDataUrl, fileName);
       this.showToast('Image downloaded. Please share it manually via WhatsApp', 'warning');
-      
+
     } catch (error) {
       console.error('Error sharing invoice:', error);
       throw error; // Re-throw to be caught by shareInvoice
@@ -2259,7 +2279,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   downloadAndOpenWhatsApp(imageDataUrl: string, dateStr: string, totalIncome: number, blob: Blob) {
     // Create object URL from blob
     const imageUrl = URL.createObjectURL(blob);
-    
+
     // Create a temporary link to download
     const link = document.createElement('a');
     link.href = imageUrl;
@@ -2267,7 +2287,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     // Clean up object URL after a delay
     setTimeout(() => {
       URL.revokeObjectURL(imageUrl);
@@ -2275,12 +2295,12 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
 
     // Try to open WhatsApp with message
     const message = `Daily Business Invoice for ${dateStr}\nTotal Income: ₹${totalIncome.toFixed(2)}\n\nPlease check the downloaded invoice image.`;
-    
+
     // For mobile, try WhatsApp app URL
     if (this.platform.is('mobile')) {
       const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
       window.location.href = whatsappUrl;
-      
+
       // Fallback to web if app doesn't open
       setTimeout(() => {
         const whatsappWebUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
@@ -2291,7 +2311,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
     }
-    
+
     this.showToast('Invoice downloaded! Opening WhatsApp...', 'success');
   }
 

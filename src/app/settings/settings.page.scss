@@ -95,6 +95,49 @@ ion-header {
   flex: 1;
 }
 
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.developer-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
+  ion-icon {
+    font-size: 14px;
+    color: white;
+  }
+  
+  span {
+    font-size: 11px;
+    color: white;
+    font-weight: 500;
+  }
+  
+  ion-toggle {
+    --handle-background-checked: #10b981;
+    --track-background-checked: rgba(16, 185, 129, 0.3);
+    --handle-background: white;
+    --track-background: rgba(255, 255, 255, 0.3);
+    --handle-width: 18px;
+    --handle-height: 18px;
+    --track-width: 36px;
+    --track-height: 20px;
+  }
+}
+
 .navbar-back-btn {
   border-radius: 0.5rem;
   transition: all 0.2s ease;

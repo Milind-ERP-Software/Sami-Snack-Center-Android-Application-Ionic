@@ -57,6 +57,7 @@ export class SettingsPage implements OnInit, OnDestroy {
   companyLogo: string | null = null;
   showSpeedDial: boolean = true;
   showDeveloperSection: boolean = false;
+  showDeveloperToggleInHeader: boolean = false;
   showWholesaleButton: boolean = false;
   showRetailButton: boolean = true;
   selectedInvoiceTemplate: string = 'template1';
@@ -129,6 +130,10 @@ export class SettingsPage implements OnInit, OnDestroy {
 
   onSettingsTitleDoubleClick() {
     this.showDeveloperSection = true;
+  }
+
+  toggleDeveloperToggleVisibility() {
+    this.showDeveloperToggleInHeader = !this.showDeveloperToggleInHeader;
   }
 
   async loadStatistics() {
@@ -580,7 +585,7 @@ export class SettingsPage implements OnInit, OnDestroy {
     return `
       <div style="width: 320px; max-width: 100%; background: white; border: 1px solid #000; padding: 16px; font-family: 'Courier New', monospace; margin: 0 auto; overflow: hidden;">
         <div style="text-align: center; margin-bottom: 12px;">
-          <div style="font-size: 20px; font-weight: bold; margin-bottom: 8px;">Sami Snack Center</div>
+          <div style="font-size: 20px; font-weight: bold; margin-bottom: 8px;">${this.companyName}</div>
           <div style="border-top: 2px dashed #000; border-bottom: 2px dashed #000; padding: 8px 0; margin: 8px 0;">
             <div style="font-size: 18px; font-weight: bold;">INVOICE</div>
           </div>
@@ -626,7 +631,7 @@ export class SettingsPage implements OnInit, OnDestroy {
           </div>
         ` : ''}
         <div style="border-top: 2px dashed #000; padding-top: 8px; margin-top: 12px; text-align: center; font-size: 9px;">
-          <div>Powered by Sami Snack Center</div>
+          <div>Powered by ${this.companyName}</div>
           <div>Business Tracker Application</div>
         </div>
       </div>
@@ -637,7 +642,7 @@ export class SettingsPage implements OnInit, OnDestroy {
     return `
       <div style="width: 380px; max-width: 100%; background: white; border: 1px solid #ddd; padding: 16px; font-family: 'Courier New', monospace; margin: 0 auto; overflow: hidden;">
         <div style="text-align: center; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 8px;">
-          <div style="font-size: 22px; font-weight: bold; margin-bottom: 4px;">Sami Snack Center</div>
+          <div style="font-size: 22px; font-weight: bold; margin-bottom: 4px;">${this.companyName}</div>
           <div style="font-size: 10px; margin-bottom: 4px;">Daily Business Invoice</div>
           <div style="font-size: 9px;">Date: ${data.dateStr} | Time: ${data.timeStr}</div>
         </div>
@@ -687,7 +692,7 @@ export class SettingsPage implements OnInit, OnDestroy {
     return `
       <div style="width: 340px; max-width: 100%; background: white; border: 2px solid #0066CC; padding: 14px; font-family: 'Arial', sans-serif; margin: 0 auto; overflow: hidden;">
         <div style="background: #0066CC; color: white; padding: 12px; margin: -14px -14px 12px -14px; text-align: center;">
-          <div style="font-size: 20px; font-weight: bold; margin-bottom: 4px;">Sami Snack Center</div>
+          <div style="font-size: 20px; font-weight: bold; margin-bottom: 4px;">${this.companyName}</div>
           <div style="font-size: 14px; font-weight: bold; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 6px; margin-top: 6px;">TAX INVOICE</div>
         </div>
         <div style="background: #e6f2ff; padding: 10px; margin: 12px 0; border-left: 4px solid #0066CC;">
@@ -739,7 +744,7 @@ export class SettingsPage implements OnInit, OnDestroy {
           </div>
         ` : ''}
         <div style="border-top: 2px solid #0066CC; padding-top: 10px; margin-top: 12px; text-align: center; font-size: 9px; color: #666;">
-          <div>Powered by Sami Snack Center</div>
+          <div>Powered by ${this.companyName}</div>
           <div>Business Tracker Application</div>
         </div>
       </div>
