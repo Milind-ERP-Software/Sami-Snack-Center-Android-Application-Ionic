@@ -1520,6 +1520,38 @@ p {
   }
 }
 
+.drawer-accordion {
+  .drawer-accordion-header {
+    border-bottom: 1px solid #f3f4f6;
+    
+    ion-icon:last-child {
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
+  }
+
+  .drawer-accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    
+    &.accordion-open {
+      max-height: 200px;
+    }
+  }
+
+  .drawer-sub-item {
+    padding-left: 2.5rem;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+    border-bottom: 1px solid #f3f4f6;
+    
+    span {
+      font-size: 0.8125rem;
+    }
+  }
+}
+
 .menu-badge {
   background: #fca5a5;
   color: #991b1b;
@@ -1860,6 +1892,21 @@ body.dark,
     &:active {
       background: #4b5563 !important;
       background-color: #4b5563 !important;
+    }
+  }
+
+  .drawer-accordion {
+    .drawer-accordion-header {
+      border-bottom: 1px solid #374151 !important;
+    }
+
+    .drawer-accordion-content {
+      border-bottom: none !important;
+    }
+
+    .drawer-sub-item {
+      border-bottom: 1px solid #374151 !important;
+      padding-left: 2.5rem !important;
     }
   }
 

@@ -35,8 +35,8 @@
         <div class="profit-badge" [class.developer-mode]="isDeveloperMode" *ngIf="!isLoading && filteredRecords.length > 0">
           <ion-icon name="trendingUp" class="badge-icon"></ion-icon>
           <div class="badge-content">
-            <span class="badge-label">Total Profit</span>
-            <span class="badge-value">{{ displayedProfit | number:'1.0-0' }}₹</span>
+            <span class="badge-label">This Month Balance</span>
+            <span class="badge-value">{{ displayedProfit | number:'1.0-0' }} ₹</span>
           </div>
         </div>
       </div>
@@ -69,17 +69,31 @@
         <ion-icon name="refresh" style="font-size: 20px; color: #0066CC;"></ion-icon>
         <span>Clear All Filters</span>
       </div>
-      <div class="drawer-item" (click)="goToProductionItems(); closeDrawer()">
-        <ion-icon name="list" style="font-size: 20px; color: #0066CC;"></ion-icon>
-        <span>Production Items</span>
-      </div>
-      <div class="drawer-item" (click)="goToExpenseItems(); closeDrawer()">
-        <ion-icon name="receipt" style="font-size: 20px; color: #0066CC;"></ion-icon>
-        <span>Expense Items</span>
-      </div>
-      <div class="drawer-item" (click)="goToPurchaseItems(); closeDrawer()">
-        <ion-icon name="bag" style="font-size: 20px; color: #0066CC;"></ion-icon>
-        <span>Purchase Items</span>
+      
+      <!-- Items Accordion -->
+      <div class="drawer-accordion">
+        <div class="drawer-item drawer-accordion-header" (click)="isItemsAccordionOpen = !isItemsAccordionOpen; $event.stopPropagation()">
+          <ion-icon name="list" style="font-size: 20px; color: #0066CC;"></ion-icon>
+          <span>Items</span>
+          <ion-icon 
+            [name]="isItemsAccordionOpen ? 'chevron-up' : 'chevron-down'" 
+            style="font-size: 18px; color: #0066CC; margin-left: auto; transition: transform 0.2s;"
+          ></ion-icon>
+        </div>
+        <div class="drawer-accordion-content" [class.accordion-open]="isItemsAccordionOpen">
+          <div class="drawer-item drawer-sub-item" (click)="goToProductionItems(); closeDrawer()">
+            <ion-icon name="list" style="font-size: 18px; color: #0066CC;"></ion-icon>
+            <span>Production Items</span>
+          </div>
+          <div class="drawer-item drawer-sub-item" (click)="goToExpenseItems(); closeDrawer()">
+            <ion-icon name="receipt" style="font-size: 18px; color: #0066CC;"></ion-icon>
+            <span>Expense Items</span>
+          </div>
+          <div class="drawer-item drawer-sub-item" (click)="goToPurchaseItems(); closeDrawer()">
+            <ion-icon name="bag" style="font-size: 18px; color: #0066CC;"></ion-icon>
+            <span>Purchase Items</span>
+          </div>
+        </div>
       </div>
       <div class="drawer-item" (click)="goToNotifications(); closeDrawer()">
         <ion-icon name="notifications" style="font-size: 20px; color: #0066CC;"></ion-icon>
@@ -164,8 +178,11 @@
     <div class="skeleton-button-large mb-1.5"></div>
 
     <!-- Filter Card Skeleton -->
-    <div class="filter-card skeleton-card rounded-lg shadow-sm p-1.5 mb-1.5">
-      <div class="skeleton-input-medium mb-1"></div>
+    <div class="filter-card skeleton-card rounded-lg shadow-sm p-1.5 space-y-1.5 mb-2.5">
+      <!-- Search Input Skeleton -->
+      <div class="skeleton-input-medium"></div>
+      
+      <!-- Month/Year Selectors Skeleton -->
       <div class="grid grid-cols-2 gap-1.5">
         <div>
           <div class="skeleton-label-tiny mb-0.5"></div>
@@ -176,7 +193,21 @@
           <div class="skeleton-input-small"></div>
         </div>
       </div>
-      <div class="skeleton-button-outline mt-1"></div>
+      
+      <!-- Date Inputs Skeleton -->
+      <div class="grid grid-cols-2 gap-1.5">
+        <div>
+          <div class="skeleton-label-tiny mb-0.5"></div>
+          <div class="skeleton-input-small"></div>
+        </div>
+        <div>
+          <div class="skeleton-label-tiny mb-0.5"></div>
+          <div class="skeleton-input-small"></div>
+        </div>
+      </div>
+      
+      <!-- Reset Button Skeleton -->
+      <div class="skeleton-button-outline"></div>
     </div>
 
     <!-- Records Header Skeleton -->
@@ -395,10 +426,46 @@
         </ion-button>
       </div>
 
+      <!-- Month/Year Filter -->
+      <div class="grid grid-cols-2 gap-1.5">
+        <div>
+          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Month</label>
+          <ion-select
+            [(ngModel)]="selectedMonth"
+            (ionChange)="onMonthYearChange()"
+            interface="popover"
+            placeholder="Select Month"
+            class="form-input-compact"
+            style="--padding-start: 6px; --padding-end: 6px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.375rem; font-size: 11px; height: 26px;"
+          >
+            <ion-select-option *ngFor="let month of getMonths()" [value]="month.value">
+              {{ month.label }}
+            </ion-select-option>
+          </ion-select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Year</label>
+          <ion-select
+            [(ngModel)]="selectedYear"
+            (ionChange)="onMonthYearChange()"
+            interface="popover"
+            placeholder="Select Year"
+            class="form-input-compact"
+            style="--padding-start: 6px; --padding-end: 6px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.375rem; font-size: 11px; height: 26px;"
+          >
+            <ion-select-option *ngFor="let year of getYears()" [value]="year">
+              {{ year }}
+            </ion-select-option>
+          </ion-select>
+        </div>
+      </div>
+
       <!-- Date Filter -->
       <div class="grid grid-cols-2 gap-1.5">
         <div>
-          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">From Date</label>
+          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">
+            From Date <span *ngIf="fromDate" class="text-gray-900 font-semibold">- {{ formatDateShort(fromDate) }}</span>
+          </label>
           <ion-input
             type="date"
             [(ngModel)]="fromDate"
@@ -408,7 +475,9 @@
           ></ion-input>
         </div>
         <div>
-          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">To Date</label>
+          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">
+            To Date <span *ngIf="toDate" class="text-gray-900 font-semibold">- {{ formatDateShort(toDate) }}</span>
+          </label>
           <ion-input
             type="date"
             [(ngModel)]="toDate"
@@ -453,6 +522,9 @@
             {{ filteredRecords.length }} {{ filteredRecords.length === 1 ? 'Record' : 'Records' }}
             <span *ngIf="searchQuery && filteredRecords.length !== records.length" class="text-gray-500">
               (of {{ records.length }})
+            </span>
+            <span *ngIf="fromDate || toDate" class="text-gray-500" style="font-weight: normal; margin-left: 4px;">
+              {{ getDateRangeText() }}
             </span>
           </h2>
 

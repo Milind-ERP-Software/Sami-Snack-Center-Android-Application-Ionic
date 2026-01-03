@@ -2,10 +2,10 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Cha
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonInput, IonToggle, IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton, IonFab, IonFabButton, IonFabList } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonInput, IonToggle, IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton, IonFab, IonFabButton, IonFabList, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
 import { AlertController, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications, share, refreshCircleOutline } from 'ionicons/icons';
+import { add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications, share, refreshCircleOutline, chevronDown, chevronUp } from 'ionicons/icons';
 import { StorageService, DailyRecord } from '../services/storage.service';
 import { ThemeService } from '../services/theme.service';
 import { NotificationService } from '../services/notification.service';
@@ -31,7 +31,9 @@ import { NotificationService } from '../services/notification.service';
     IonSegmentButton,
     IonFab,
     IonFabButton,
-    IonFabList
+    IonFabList,
+    IonSelect,
+    IonSelectOption
   ]
 })
 export class HomePage implements OnInit, OnDestroy, AfterViewInit {
@@ -42,6 +44,8 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   searchQuery: string = '';
   fromDate: string = '';
   toDate: string = '';
+  selectedMonth: number = 0;
+  selectedYear: number = 0;
   showDeleted: boolean = false;
   totalProfit = 0;
   totalLoss = 0;
@@ -53,6 +57,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   isDrawerOpen = false;
   isDarkMode = false;
   isDeveloperMode = false;
+  isItemsAccordionOpen = false;
   viewMode: 'card' | 'list' = 'card'; // Track current view mode
   companyName: string = 'Sami Snack Center';
   companyLogo: string | null = null;
@@ -76,7 +81,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
     private notificationService: NotificationService,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications, share, refreshCircleOutline });
+    addIcons({ add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications, share, refreshCircleOutline, chevronDown, chevronUp });
   }
 
   ngOnInit() {
@@ -169,13 +174,58 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
     const year = now.getFullYear();
     const month = now.getMonth();
 
-    // First day of current month
-    const firstDay = new Date(year, month, 1);
-    this.fromDate = firstDay.toISOString().split('T')[0];
+    this.selectedYear = year;
+    this.selectedMonth = month;
+    this.updateDateRangeFromMonthYear();
+  }
 
-    // Last day of current month
-    const lastDay = new Date(year, month + 1, 0);
-    this.toDate = lastDay.toISOString().split('T')[0];
+  updateDateRangeFromMonthYear() {
+    // Format date as YYYY-MM-DD to avoid timezone issues
+    const formatDate = (year: number, month: number, day: number): string => {
+      const monthStr = String(month + 1).padStart(2, '0');
+      const dayStr = String(day).padStart(2, '0');
+      return `${year}-${monthStr}-${dayStr}`;
+    };
+
+    // First day of selected month
+    this.fromDate = formatDate(this.selectedYear, this.selectedMonth, 1);
+
+    // Last day of selected month (day 0 of next month gives last day of current month)
+    const lastDay = new Date(this.selectedYear, this.selectedMonth + 1, 0).getDate();
+    this.toDate = formatDate(this.selectedYear, this.selectedMonth, lastDay);
+    
+    this.filterRecords();
+  }
+
+  onMonthYearChange() {
+    this.updateDateRangeFromMonthYear();
+  }
+
+  getMonths(): Array<{value: number, label: string}> {
+    return [
+      { value: 0, label: 'January' },
+      { value: 1, label: 'February' },
+      { value: 2, label: 'March' },
+      { value: 3, label: 'April' },
+      { value: 4, label: 'May' },
+      { value: 5, label: 'June' },
+      { value: 6, label: 'July' },
+      { value: 7, label: 'August' },
+      { value: 8, label: 'September' },
+      { value: 9, label: 'October' },
+      { value: 10, label: 'November' },
+      { value: 11, label: 'December' }
+    ];
+  }
+
+  getYears(): number[] {
+    const currentYear = new Date().getFullYear();
+    const years: number[] = [];
+    // Generate years from 2020 to current year + 1
+    for (let year = 2020; year <= currentYear + 1; year++) {
+      years.push(year);
+    }
+    return years.reverse(); // Show most recent years first
   }
 
   ionViewWillEnter() {
@@ -324,7 +374,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   clearAllFilters() {
     this.searchQuery = '';
     this.setDefaultDateRange(); // Reset to default date range (current month)
-    this.filterRecords();
+    // filterRecords is already called in setDefaultDateRange via updateDateRangeFromMonthYear
   }
 
   trackByRecordId(index: number, record: DailyRecord): string {
@@ -669,6 +719,39 @@ ${record.notes ? `📝 Notes: ${record.notes}` : ''}`;
       month: 'long',
       day: 'numeric'
     });
+  }
+
+  formatDateShort(dateString: string): string {
+    if (!dateString) return '';
+    // Parse YYYY-MM-DD format directly to avoid timezone issues
+    const parts = dateString.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const monthIndex = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+      const day = parseInt(parts[2], 10);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const dayStr = String(day).padStart(2, '0');
+      const monthStr = months[monthIndex];
+      return `${dayStr}-${monthStr}-${year}`;
+    }
+    // Fallback to Date object if format is different
+    const date = new Date(dateString);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  }
+
+  getDateRangeText(): string {
+    if (this.fromDate && this.toDate) {
+      return `(${this.formatDateShort(this.fromDate)} to ${this.formatDateShort(this.toDate)})`;
+    } else if (this.fromDate) {
+      return `(from ${this.formatDateShort(this.fromDate)})`;
+    } else if (this.toDate) {
+      return `(to ${this.formatDateShort(this.toDate)})`;
+    }
+    return '';
   }
 
   getDayOfWeek(dateString: string): number {
