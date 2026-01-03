@@ -90,7 +90,7 @@ export class ExpenseItemsService {
     }
     // Now filter and return
     if (includeDeleted) {
-      return [...this._items];
+    return [...this._items];
     }
     return [...this._items].filter(item => !item.isDeleted);
   }

@@ -73,7 +73,7 @@
       <!-- Items Accordion -->
       <div class="drawer-accordion">
         <div class="drawer-item drawer-accordion-header" (click)="isItemsAccordionOpen = !isItemsAccordionOpen; $event.stopPropagation()">
-          <ion-icon name="list" style="font-size: 20px; color: #0066CC;"></ion-icon>
+        <ion-icon name="list" style="font-size: 20px; color: #0066CC;"></ion-icon>
           <span>Items</span>
           <ion-icon 
             [name]="isItemsAccordionOpen ? 'chevron-up' : 'chevron-down'" 
@@ -83,15 +83,15 @@
         <div class="drawer-accordion-content" [class.accordion-open]="isItemsAccordionOpen">
           <div class="drawer-item drawer-sub-item" (click)="goToProductionItems(); closeDrawer()">
             <ion-icon name="list" style="font-size: 18px; color: #0066CC;"></ion-icon>
-            <span>Production Items</span>
-          </div>
+        <span>Production Items</span>
+      </div>
           <div class="drawer-item drawer-sub-item" (click)="goToExpenseItems(); closeDrawer()">
             <ion-icon name="receipt" style="font-size: 18px; color: #0066CC;"></ion-icon>
-            <span>Expense Items</span>
-          </div>
+        <span>Expense Items</span>
+      </div>
           <div class="drawer-item drawer-sub-item" (click)="goToPurchaseItems(); closeDrawer()">
             <ion-icon name="bag" style="font-size: 18px; color: #0066CC;"></ion-icon>
-            <span>Purchase Items</span>
+        <span>Purchase Items</span>
           </div>
         </div>
       </div>
