@@ -11,12 +11,6 @@ import { StatDetailsPopoverComponent } from './stat-details-popover.component';
 import { MenduwadaIdaliPage } from '../calculations/menduwada-idali/menduwada-idali.page';
 import { MenduwadaIdaliRetailPage } from '../calculations/menduwada-idali-retail/menduwada-idali-retail.page';
 import { InvoiceTemplateComponent } from './invoice-template/invoice-template.component';
-import { InvoiceTemplate1Component } from './invoice-template1/invoice-template1.component';
-import { InvoiceTemplate2Component } from './invoice-template2/invoice-template2.component';
-import { InvoiceTemplate3Component } from './invoice-template3/invoice-template3.component';
-import { InvoiceTemplate4Component } from './invoice-template4/invoice-template4.component';
-import { InvoiceTemplate5Component } from './invoice-template5/invoice-template5.component';
-import { InvoiceTemplate6Component } from './invoice-template6/invoice-template6.component';
 import { ProductionItemsService, ProductionItemOption } from '../services/production-items.service';
 import { ExpenseItemsService, ExpenseItemOption } from '../services/expense-items.service';
 import { PurchaseItemsService, PurchaseItemOption } from '../services/purchase-items.service';
@@ -53,13 +47,7 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
     StatDetailsPopoverComponent,
     MenduwadaIdaliPage,
     MenduwadaIdaliRetailPage,
-    InvoiceTemplateComponent,
-    InvoiceTemplate1Component,
-    InvoiceTemplate2Component,
-    InvoiceTemplate3Component,
-    InvoiceTemplate4Component,
-    InvoiceTemplate5Component,
-    InvoiceTemplate6Component
+    InvoiceTemplateComponent
   ],
 })
 export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
@@ -108,8 +96,12 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   expenseItemOptions: ExpenseItemOption[] = [];
   purchaseItemOptions: PurchaseItemOption[] = [];
 
+  // Cache for grouped expenses to avoid recalculation on every change detection
+  private _cachedExpensesByLabel: { label: string; items: any[]; total: number }[] | null = null;
+
   private backButtonSubscription?: any;
   private browserBackHandler?: (event: PopStateEvent) => void;
+  private backMoneyCalculationSubscriptions: any[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -207,7 +199,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  private handleBrowserBack(event: PopStateEvent) {
+  private async handleBrowserBack(event: PopStateEvent) {
     // Check if any action sheet is open
     const actionSheetBackdrop = document.querySelector('.action-sheet-backdrop');
     const actionSheetContainer = document.querySelector('.action-sheet-container');
@@ -219,7 +211,24 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
 
       // Close the action sheet
       this.closeActionSheet();
+      return;
     }
+
+    // Check if any alert/modal/popover is open
+    const alert = document.querySelector('ion-alert');
+    const modal = document.querySelector('ion-modal');
+    const popover = document.querySelector('ion-popover');
+
+    if (alert || modal || popover) {
+      // Push state back to prevent navigation
+      window.history.pushState(null, '', window.location.href);
+      return;
+    }
+
+    // If no overlays are open, prevent default navigation and show confirmation
+    event.preventDefault();
+    window.history.pushState(null, '', window.location.href);
+    await this.goToHome();
   }
 
   private closeActionSheet() {
@@ -299,6 +308,13 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     if (this.browserBackHandler) {
       window.removeEventListener('popstate', this.browserBackHandler);
     }
+    // Unsubscribe from back money calculation subscriptions
+    this.backMoneyCalculationSubscriptions.forEach(sub => {
+      if (sub && typeof sub.unsubscribe === 'function') {
+        sub.unsubscribe();
+      }
+    });
+    this.backMoneyCalculationSubscriptions = [];
   }
 
   private setupBackButtonHandler() {
@@ -330,7 +346,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
         }
       }
 
-      // If no overlays are open, navigate back
+      // If no overlays are open, show confirmation and navigate back
       if (!this.isNavigating) {
         this.goToHome();
       }
@@ -359,7 +375,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
         onDrawer: [0, [Validators.min(0)]],
         onOutsideOrder: [0, [Validators.min(0)]]
       }),
-      backMoneyInBag: [0, [Validators.required, Validators.min(0)]],
+      backMoneyInBag: [{value: 0, disabled: true}, [Validators.required, Validators.min(0)]],
       todayWasteMaterialList: [''],
       notes: [''],
       todayPurchases: this.fb.array([])
@@ -373,8 +389,170 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
 
     // Add initial empty items
     this.addProductionItem();
-    this.addExpenseItem();
-    this.addTodayPurchase();
+    // Don't create expense item here - it will be created when user clicks add
+    // this.createExpenseItem('', true);
+
+    // Setup auto-calculation for backMoneyInBag
+    this.setupBackMoneyAutoCalculation();
+  }
+
+  private setupBackMoneyAutoCalculation() {
+    // Unsubscribe from any existing subscriptions
+    this.backMoneyCalculationSubscriptions.forEach(sub => {
+      if (sub && typeof sub.unsubscribe === 'function') {
+        sub.unsubscribe();
+      }
+    });
+    this.backMoneyCalculationSubscriptions = [];
+
+    // Get form controls
+    const chainsControl = this.form.get('chains');
+    const backMoneyControl = this.form.get('backMoneyInBag');
+    const dailyIncomeAmountGroup = this.form.get('dailyIncomeAmount');
+    
+    if (!chainsControl || !backMoneyControl || !dailyIncomeAmountGroup) {
+      return;
+    }
+
+    // Function to calculate and update backMoneyInBag
+    const calculateBackMoney = () => {
+      const overallTotal = this.getOverallIncomeTotal();
+      const paidExpenses = this.getPaidExpenses();
+      const paidPurchases = this.getPaidPurchases();
+      const chainsValue = chainsControl.value || 0;
+      const totalDeductions = paidExpenses + paidPurchases + chainsValue;
+      const calculatedBackMoney = overallTotal - totalDeductions; // Allow negative values
+      
+      // Only update if the calculated value is different to avoid infinite loops
+      if (backMoneyControl.value !== calculatedBackMoney) {
+        // Enable the control temporarily to set the value, then disable it again
+        if (backMoneyControl.disabled) {
+          backMoneyControl.enable({ emitEvent: false });
+        }
+        backMoneyControl.setValue(calculatedBackMoney, { emitEvent: false });
+        backMoneyControl.disable({ emitEvent: false });
+      }
+    };
+
+    // Subscribe to chains changes
+    const chainsSub = chainsControl.valueChanges.subscribe(() => {
+      calculateBackMoney();
+    });
+    this.backMoneyCalculationSubscriptions.push(chainsSub);
+
+    // Subscribe to all income field changes (gpay, paytm, onDrawer, onOutsideOrder)
+    const gpayControl = dailyIncomeAmountGroup.get('gpay');
+    const paytmControl = dailyIncomeAmountGroup.get('paytm');
+    const onDrawerControl = dailyIncomeAmountGroup.get('onDrawer');
+    const onOutsideOrderControl = dailyIncomeAmountGroup.get('onOutsideOrder');
+
+    if (gpayControl) {
+      const gpaySub = gpayControl.valueChanges.subscribe(() => {
+        calculateBackMoney();
+      });
+      this.backMoneyCalculationSubscriptions.push(gpaySub);
+    }
+
+    if (paytmControl) {
+      const paytmSub = paytmControl.valueChanges.subscribe(() => {
+        calculateBackMoney();
+      });
+      this.backMoneyCalculationSubscriptions.push(paytmSub);
+    }
+
+    if (onDrawerControl) {
+      const onDrawerSub = onDrawerControl.valueChanges.subscribe(() => {
+        calculateBackMoney();
+      });
+      this.backMoneyCalculationSubscriptions.push(onDrawerSub);
+    }
+
+    if (onOutsideOrderControl) {
+      const onOutsideOrderSub = onOutsideOrderControl.valueChanges.subscribe(() => {
+        calculateBackMoney();
+      });
+      this.backMoneyCalculationSubscriptions.push(onOutsideOrderSub);
+    }
+
+    // Subscribe to expense items array changes (when items are added/removed)
+    const expenseItemsArray = this.form.get('dailyExpenseList') as FormArray;
+    const expenseArraySub = expenseItemsArray.valueChanges.subscribe(() => {
+      // Re-subscribe to new expense items
+      this.subscribeToExpenseAndPurchaseChanges();
+      calculateBackMoney();
+    });
+    this.backMoneyCalculationSubscriptions.push(expenseArraySub);
+
+    // Subscribe to purchase items array changes (when items are added/removed)
+    const purchaseItemsArray = this.form.get('todayPurchases') as FormArray;
+    const purchaseArraySub = purchaseItemsArray.valueChanges.subscribe(() => {
+      // Re-subscribe to new purchase items
+      this.subscribeToExpenseAndPurchaseChanges();
+      calculateBackMoney();
+    });
+    this.backMoneyCalculationSubscriptions.push(purchaseArraySub);
+
+    // Subscribe to individual expense and purchase item changes
+    this.subscribeToExpenseAndPurchaseChanges();
+
+    // Calculate initial value
+    calculateBackMoney();
+  }
+
+  private subscribeToExpenseAndPurchaseChanges() {
+    // Helper function to recalculate back money
+    const recalculateBackMoney = () => {
+      const overallTotal = this.getOverallIncomeTotal();
+      const paidExpenses = this.getPaidExpenses();
+      const paidPurchases = this.getPaidPurchases();
+      const chainsValue = this.form.get('chains')?.value || 0;
+      const totalDeductions = paidExpenses + paidPurchases + chainsValue;
+      const calculatedBackMoney = overallTotal - totalDeductions; // Allow negative values
+      const backMoneyControl = this.form.get('backMoneyInBag');
+      if (backMoneyControl && backMoneyControl.value !== calculatedBackMoney) {
+        if (backMoneyControl.disabled) {
+          backMoneyControl.enable({ emitEvent: false });
+        }
+        backMoneyControl.setValue(calculatedBackMoney, { emitEvent: false });
+        backMoneyControl.disable({ emitEvent: false });
+      }
+    };
+
+    // Subscribe to individual expense item changes (amount and paid status)
+    this.expenseItems.controls.forEach((control) => {
+      const amountControl = control.get('amount');
+      const paidControl = control.get('paid');
+      if (amountControl) {
+        const sub = amountControl.valueChanges.subscribe(() => {
+          recalculateBackMoney();
+        });
+        this.backMoneyCalculationSubscriptions.push(sub);
+      }
+      if (paidControl) {
+        const sub = paidControl.valueChanges.subscribe(() => {
+          recalculateBackMoney();
+        });
+        this.backMoneyCalculationSubscriptions.push(sub);
+      }
+    });
+
+    // Subscribe to individual purchase item changes (amount and paid status)
+    this.todayPurchases.controls.forEach((control) => {
+      const amountControl = control.get('amount');
+      const paidControl = control.get('paid');
+      if (amountControl) {
+        const sub = amountControl.valueChanges.subscribe(() => {
+          recalculateBackMoney();
+        });
+        this.backMoneyCalculationSubscriptions.push(sub);
+      }
+      if (paidControl) {
+        const sub = paidControl.valueChanges.subscribe(() => {
+          recalculateBackMoney();
+        });
+        this.backMoneyCalculationSubscriptions.push(sub);
+      }
+    });
   }
 
   // Production Items
@@ -413,10 +591,6 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async removeProductionItem(index: number) {
-    if (this.productionItems.length <= 1) {
-      return;
-    }
-
     const alert = await this.alertController.create({
       header: 'Delete Production Item',
       message: 'Are you sure you want to delete this production item?',
@@ -443,20 +617,129 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     return this.form.get('dailyExpenseList') as FormArray;
   }
 
-  addExpenseItem() {
+  async addExpenseItem() {
+    // First ask if they want to use a label
+    const useLabelAlert = await this.alertController.create({
+      header: 'Use Label?',
+      message: 'Do you want to assign a label to this expense item?',
+      buttons: [
+        {
+          text: 'No',
+          role: 'cancel',
+          handler: () => {
+            this.askPaidStatus('');
+          }
+        },
+        {
+          text: 'Yes',
+          cssClass: 'yes-button-red',
+          handler: () => {
+            this.showLabelSelection();
+          }
+        }
+      ]
+    });
+
+    await useLabelAlert.present();
+  }
+
+  async showLabelSelection() {
+    const labels = ['Milind', 'Sayali', 'Vandana', 'Family', 'Shop'];
+    
+    const labelAlert = await this.alertController.create({
+      header: 'Select Label',
+      message: 'Choose a label for this expense item:',
+      inputs: labels.map(label => ({
+        type: 'radio',
+        label: label,
+        value: label
+      })),
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          handler: () => {
+            this.askPaidStatus('');
+          }
+        },
+        {
+          text: 'OK',
+          handler: (selectedLabel) => {
+            this.askPaidStatus(selectedLabel || '');
+          }
+        }
+      ]
+    });
+
+    await labelAlert.present();
+  }
+
+  async askPaidStatus(label: string) {
+    const paidAlert = await this.alertController.create({
+      header: 'Payment Status',
+      message: 'Is this expense paid?',
+      buttons: [
+        {
+          text: 'Unpaid',
+          role: 'cancel',
+          handler: () => {
+            this.createExpenseItem(label, false);
+          }
+        },
+        {
+          text: 'Paid',
+          cssClass: 'yes-button-red',
+          handler: () => {
+            this.createExpenseItem(label, true);
+          }
+        }
+      ]
+    });
+
+    await paidAlert.present();
+  }
+
+  toggleExpensePaidStatus(index: number) {
+    const itemControl = this.expenseItems.at(index);
+    if (itemControl) {
+      const paidControl = itemControl.get('paid');
+      if (paidControl) {
+        const currentValue = paidControl.value;
+        paidControl.setValue(!currentValue);
+      }
+    }
+  }
+
+  togglePurchasePaidStatus(index: number) {
+    const itemControl = this.todayPurchases.at(index);
+    if (itemControl) {
+      const paidControl = itemControl.get('paid');
+      if (paidControl) {
+        const currentValue = paidControl.value;
+        paidControl.setValue(!currentValue);
+      }
+    }
+  }
+
+  createExpenseItem(label: string, paid: boolean = true) {
     const item = this.fb.group({
       listOfItem: ['', Validators.required],
       qty: [0, [Validators.required, Validators.min(0)]],
       rate: [0, [Validators.required, Validators.min(0)]],
-      amount: [{value: 0, disabled: true}, [Validators.required, Validators.min(0)]]
+      amount: [{value: 0, disabled: true}, [Validators.required, Validators.min(0)]],
+      label: [label || ''],
+      paid: [paid !== undefined ? paid : true] // Default to paid if not specified
     });
 
-    // Subscribe to qty and rate changes to calculate amount
+    // Ensure qty and rate controls are enabled
     const qtyControl = item.get('qty');
     const rateControl = item.get('rate');
     const amountControl = item.get('amount');
 
     if (qtyControl && rateControl && amountControl) {
+      qtyControl.enable();
+      rateControl.enable();
+      
       qtyControl.valueChanges.subscribe(() => this.calculateAmount(item));
       rateControl.valueChanges.subscribe(() => this.calculateAmount(item));
       // Calculate initial amount
@@ -467,10 +750,6 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async removeExpenseItem(index: number) {
-    if (this.expenseItems.length <= 1) {
-      return;
-    }
-
     const alert = await this.alertController.create({
       header: 'Delete Expense Item',
       message: 'Are you sure you want to delete this expense item?',
@@ -497,12 +776,38 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     return this.form.get('todayPurchases') as FormArray;
   }
 
-  addTodayPurchase() {
+  async addTodayPurchase() {
+    const paidAlert = await this.alertController.create({
+      header: 'Payment Status',
+      message: 'Is this purchase paid?',
+      buttons: [
+        {
+          text: 'Unpaid',
+          role: 'cancel',
+          handler: () => {
+            this.createPurchaseItem(false);
+          }
+        },
+        {
+          text: 'Paid',
+          cssClass: 'yes-button-red',
+          handler: () => {
+            this.createPurchaseItem(true);
+          }
+        }
+      ]
+    });
+
+    await paidAlert.present();
+  }
+
+  createPurchaseItem(paid: boolean = true) {
     const item = this.fb.group({
       listOfItem: ['', Validators.required],
       qty: [0, [Validators.required, Validators.min(0)]],
       rate: [0, [Validators.required, Validators.min(0)]],
-      amount: [{value: 0, disabled: true}, [Validators.required, Validators.min(0)]]
+      amount: [{value: 0, disabled: true}, [Validators.required, Validators.min(0)]],
+      paid: [paid !== undefined ? paid : true] // Default to paid if not specified
     });
 
     // Subscribe to qty and rate changes to calculate amount
@@ -521,10 +826,6 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async removeTodayPurchase(index: number) {
-    if (this.todayPurchases.length <= 1) {
-      return;
-    }
-
     const alert = await this.alertController.create({
       header: 'Delete Purchase Item',
       message: 'Are you sure you want to delete this purchase item?',
@@ -574,6 +875,31 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
 
   getOverallIncomeTotal(): number {
     return this.getOnlineTotal() + this.getOfflineTotal();
+  }
+
+  getBackMoneyCalculationString(): string {
+    // This method is now only used for the old format, new format uses HTML
+    const overallTotal = this.getOverallIncomeTotal();
+    const paidExpenses = this.getPaidExpenses();
+    const paidPurchases = this.getPaidPurchases();
+    const chainsValue = this.form.get('chains')?.value || 0;
+    return `₹${overallTotal.toFixed(2)} (Income) - ₹${paidExpenses.toFixed(2)} (Paid Expenses) - ₹${paidPurchases.toFixed(2)} (Paid Purchases) - ₹${chainsValue.toFixed(2)} (Chains)`;
+  }
+
+  getBackMoneyIncomeTotal(): number {
+    return this.getOverallIncomeTotal();
+  }
+
+  getBackMoneyPaidExpenses(): number {
+    return this.getPaidExpenses();
+  }
+
+  getBackMoneyPaidPurchases(): number {
+    return this.getPaidPurchases();
+  }
+
+  getBackMoneyChains(): number {
+    return this.form.get('chains')?.value || 0;
   }
 
   getCurrentProfit(): number {
@@ -633,11 +959,154 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     return total;
   }
 
+  getPaidExpenses(): number {
+    let total = 0;
+    this.expenseItems.controls.forEach((control) => {
+      const paid = control.get('paid')?.value !== false; // Default to paid if not set
+      const amount = control.get('amount')?.value || 0;
+      if (paid) {
+        total += amount;
+      }
+    });
+    return total;
+  }
+
+  getExpensesByLabel(): { label: string; items: any[]; total: number }[] {
+    const grouped: { [key: string]: any[] } = {};
+    const unlabeledItems: any[] = [];
+
+    this.expenseItems.controls.forEach((control, index) => {
+      const label = control.get('label')?.value || '';
+      
+      const itemData = {
+        control: control,
+        index: Number(index) // Ensure index is a number
+      };
+
+      if (label) {
+        if (!grouped[label]) {
+          grouped[label] = [];
+        }
+        grouped[label].push(itemData);
+      } else {
+        unlabeledItems.push(itemData);
+      }
+    });
+
+    // Convert to array: unlabeled items first, then labeled groups (alphabetically sorted)
+    const result: { label: string; items: any[]; total: number }[] = [];
+    
+    // Add unlabeled items first if any
+    if (unlabeledItems.length > 0) {
+      let total = 0;
+      unlabeledItems.forEach(itemData => {
+        const amount = itemData.control.get('amount')?.value || 0;
+        total += amount;
+      });
+      result.push({
+        label: '',
+        items: unlabeledItems,
+        total: total
+      });
+    }
+
+    // Add labeled groups with calculated totals (sorted alphabetically)
+    Object.keys(grouped).sort().forEach(label => {
+      let total = 0;
+      grouped[label].forEach(itemData => {
+        const amount = itemData.control.get('amount')?.value || 0;
+        total += amount;
+      });
+      result.push({
+        label: label,
+        items: grouped[label],
+        total: total
+      });
+    });
+
+    return result;
+  }
+
+  // Force recalculation when form values change
+  onExpenseValueChange() {
+    // This will trigger change detection and recalculate groups
+    this.cdr.detectChanges();
+  }
+
+  // Track by function for expense items
+  trackByExpenseIndex(index: number, itemData: any): number {
+    return itemData.index;
+  }
+
+  // Helper methods for grouping display
+  getItemLabel(index: number): string {
+    const control = this.expenseItems.at(index);
+    const label = control?.get('label')?.value || '';
+    // Return "Other" for empty labels
+    return label || 'Other';
+  }
+
+  getItemLabelRaw(index: number): string {
+    const control = this.expenseItems.at(index);
+    return control?.get('label')?.value || '';
+  }
+
+  shouldShowLabelHeader(index: number): boolean {
+    if (index === 0) {
+      // Always show header for first item (whether it has a label or not)
+      return true;
+    }
+    
+    const currentLabel = this.getItemLabelRaw(index);
+    const previousLabel = this.getItemLabelRaw(index - 1);
+    
+    // Show header if current item label is different from previous item label
+    return currentLabel !== previousLabel;
+  }
+
+  getLabelTotal(label: string): number {
+    let total = 0;
+    this.expenseItems.controls.forEach((control) => {
+      const itemLabel = control.get('label')?.value || '';
+      // Handle "Other" label (empty string)
+      const labelToCompare = label === 'Other' ? '' : label;
+      if (itemLabel === labelToCompare) {
+        const amount = control.get('amount')?.value || 0;
+        total += amount;
+      }
+    });
+    return total;
+  }
+
+  getExpenseTotalByLabel(label: string): number {
+    let total = 0;
+    this.expenseItems.controls.forEach((control) => {
+      const itemLabel = control.get('label')?.value || '';
+      if (itemLabel === label) {
+        const amount = control.get('amount')?.value || 0;
+        total += amount;
+      }
+    });
+    return total;
+  }
+
   getPurchaseTotal(): number {
     let total = 0;
     this.todayPurchases.controls.forEach((control) => {
       const amount = control.get('amount')?.value || 0;
       total += amount;
+    });
+    return total;
+  }
+
+  getPaidPurchases(): number {
+    let total = 0;
+    this.todayPurchases.controls.forEach((control) => {
+      const paid = control.get('paid')?.value !== false; // Default to paid if not set
+      const amount = control.get('amount')?.value || 0;
+      if (paid) {
+        total += amount;
+      }
     });
     return total;
   }
@@ -667,7 +1136,9 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
         listOfItem: rawValue.listOfItem || '',
         qty: rawValue.qty || 0,
         rate: rawValue.rate || 0,
-        amount: Number(rawValue.amount) || 0
+        amount: Number(rawValue.amount) || 0,
+        label: rawValue.label || '',
+        paid: rawValue.paid !== undefined ? rawValue.paid : true
       };
     }).filter(item => item.listOfItem); // Only return items with a name
   }
@@ -682,7 +1153,8 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
         listOfItem: rawValue.listOfItem || '',
         qty: rawValue.qty || 0,
         rate: rawValue.rate || 0,
-        amount: Number(rawValue.amount) || 0
+        amount: Number(rawValue.amount) || 0,
+        paid: rawValue.paid !== undefined ? rawValue.paid : true
       };
     }).filter(item => item.listOfItem); // Only return items with a name
   }
@@ -800,61 +1272,85 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
 
   async onSubmit() {
     if (this.form.valid) {
-      this.isSaving = true;
-      const profitData = this.calculateDailyProfit();
-
-      // Get form value including disabled fields
-      const formValue = this.form.getRawValue();
-
-      const record: DailyRecord = {
-        ...formValue,
-        dailyProfit: profitData,
-        id: this.recordId || undefined
-      };
-
-      try {
-        if (this.recordId) {
-          await this.storageService.updateRecord(record);
-        } else {
-          await this.storageService.saveRecord(record);
-        }
-
-        // Reload the record to get updated createdAt/updatedAt
-        if (this.recordId) {
-          const updatedRecord = await this.storageService.getRecordById(this.recordId);
-          if (updatedRecord) {
-            this.createdAt = updatedRecord.createdAt || null;
-            this.updatedAt = updatedRecord.updatedAt || null;
+      // Show confirmation dialog before saving
+      const confirmAlert = await this.alertController.create({
+        header: 'Save Record',
+        message: 'Kya aap form save karna chahte hain? (Do you want to save the form?)',
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+            cssClass: 'secondary'
+          },
+          {
+            text: 'Save',
+            cssClass: 'primary',
+            handler: async () => {
+              await this.performSave();
+            }
           }
-        } else {
-          // For new records, get the saved record ID and load dates
-          const allRecords = await this.storageService.getAllRecords();
-          // Find the record we just saved (most recent one matching date)
-          // Since saveRecord unshifts (adds to top), it should be the first one with matching date
-          const savedRecord = allRecords.find(r => r.date === record.date);
-          if (savedRecord) {
-            this.createdAt = savedRecord.createdAt || null;
-            this.updatedAt = savedRecord.updatedAt || null;
-            this.recordId = savedRecord.id || null;
-          }
-        }
+        ]
+      });
 
-        this.showToast(
-          this.isEditMode ? 'Record updated successfully!' : 'Record saved successfully!',
-          'success'
-        );
-        setTimeout(() => {
-          this.navigateToHome();
-        }, 500);
-      } catch (error) {
-        console.error('Error saving record:', error);
-        this.showToast('Error saving record', 'danger');
-      } finally {
-        this.isSaving = false;
-      }
+      await confirmAlert.present();
     } else {
       this.form.markAllAsTouched();
       this.showToast('Please fill all required fields', 'warning');
+    }
+  }
+
+  private async performSave() {
+    this.isSaving = true;
+    const profitData = this.calculateDailyProfit();
+
+    // Get form value including disabled fields
+    const formValue = this.form.getRawValue();
+
+    const record: DailyRecord = {
+      ...formValue,
+      dailyProfit: profitData,
+      id: this.recordId || undefined
+    };
+
+    try {
+      if (this.recordId) {
+        await this.storageService.updateRecord(record);
+      } else {
+        await this.storageService.saveRecord(record);
+      }
+
+      // Reload the record to get updated createdAt/updatedAt
+      if (this.recordId) {
+        const updatedRecord = await this.storageService.getRecordById(this.recordId);
+        if (updatedRecord) {
+          this.createdAt = updatedRecord.createdAt || null;
+          this.updatedAt = updatedRecord.updatedAt || null;
+        }
+      } else {
+        // For new records, get the saved record ID and load dates
+        const allRecords = await this.storageService.getAllRecords();
+        // Find the record we just saved (most recent one matching date)
+        // Since saveRecord unshifts (adds to top), it should be the first one with matching date
+        const savedRecord = allRecords.find(r => r.date === record.date);
+        if (savedRecord) {
+          this.createdAt = savedRecord.createdAt || null;
+          this.updatedAt = savedRecord.updatedAt || null;
+          this.recordId = savedRecord.id || null;
+        }
+      }
+
+      this.showToast(
+        this.isEditMode ? 'Record updated successfully!' : 'Record saved successfully!',
+        'success'
+      );
+      setTimeout(() => {
+        this.navigateToHome();
+      }, 500);
+    } catch (error) {
+      console.error('Error saving record:', error);
+      this.showToast('Error saving record', 'danger');
+    } finally {
+      this.isSaving = false;
     }
   }
 
@@ -880,7 +1376,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
         this.todayPurchases.removeAt(0);
       }
 
-      // Populate form
+      // Populate form (use patchValue with emitEvent: false to avoid triggering auto-calculation during load)
       this.form.patchValue({
         date: record.date,
         chains: record.chains,
@@ -889,7 +1385,30 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
         backMoneyInBag: record.backMoneyInBag,
         todayWasteMaterialList: record.todayWasteMaterialList,
         notes: record.notes
-      });
+      }, { emitEvent: false });
+
+      // Recalculate backMoneyInBag after loading all form data
+      // This ensures the value is automatically calculated based on new formula:
+      // Income Overall Total - (Paid Expenses + Paid Purchases + Chains)
+      setTimeout(() => {
+        const overallTotal = this.getOverallIncomeTotal();
+        const paidExpenses = this.getPaidExpenses();
+        const paidPurchases = this.getPaidPurchases();
+        const chainsValue = this.form.get('chains')?.value || 0;
+        const totalDeductions = paidExpenses + paidPurchases + chainsValue;
+        const calculatedBackMoney = overallTotal - totalDeductions; // Allow negative values
+        const backMoneyControl = this.form.get('backMoneyInBag');
+        if (backMoneyControl) {
+          // Enable the control temporarily to set the value, then disable it again
+          if (backMoneyControl.disabled) {
+            backMoneyControl.enable({ emitEvent: false });
+          }
+          backMoneyControl.setValue(calculatedBackMoney, { emitEvent: false });
+          backMoneyControl.disable({ emitEvent: false });
+        }
+        // Re-setup subscriptions after loading record
+        this.setupBackMoneyAutoCalculation();
+      }, 200);
 
       // Add production items
       record.production.forEach(item => {
@@ -924,7 +1443,9 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
             listOfItem: [item.listOfItem || '', Validators.required],
             qty: [item.qty || 0, [Validators.required, Validators.min(0)]],
             rate: [rate, [Validators.required, Validators.min(0)]],
-            amount: [{value: item.amount || 0, disabled: true}, [Validators.required, Validators.min(0)]]
+            amount: [{value: item.amount || 0, disabled: true}, [Validators.required, Validators.min(0)]],
+            label: [item.label || ''],
+            paid: [item.paid !== undefined ? item.paid : true] // Default to paid for backward compatibility
         });
 
           // Subscribe to qty and rate changes to calculate amount
@@ -940,8 +1461,8 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
         this.expenseItems.push(itemGroup);
       });
       } else {
-        // Ensure at least one empty expense item
-        this.addExpenseItem();
+        // Ensure at least one empty expense item (default to paid)
+        this.createExpenseItem('', true);
       }
 
       // Add today purchases
@@ -954,7 +1475,8 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
               listOfItem: [item.listOfItem || '', Validators.required],
               qty: [qty, [Validators.required, Validators.min(0)]],
               rate: [rate, [Validators.required, Validators.min(0)]],
-              amount: [{value: item.amount || 0, disabled: true}, [Validators.required, Validators.min(0)]]
+              amount: [{value: item.amount || 0, disabled: true}, [Validators.required, Validators.min(0)]],
+              paid: [item.paid !== undefined ? item.paid : true] // Default to paid for backward compatibility
         });
 
             // Subscribe to qty and rate changes to calculate amount
@@ -1070,8 +1592,28 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  goToHome() {
-    this.navigateToHome();
+  async goToHome() {
+    // Show confirmation dialog before navigating back
+    const confirmAlert = await this.alertController.create({
+      header: 'Leave Form',
+      message: 'Kya aap form ko save kiye bina bahar jana chahte hain? (Do you want to leave without saving?)',
+      buttons: [
+        {
+          text: 'Continue Editing',
+          role: 'cancel',
+          cssClass: 'secondary'
+        },
+        {
+          text: 'Leave Without Saving',
+          cssClass: 'danger',
+          handler: () => {
+            this.navigateToHome();
+          }
+        }
+      ]
+    });
+
+    await confirmAlert.present();
   }
 
   getProductionItems() {

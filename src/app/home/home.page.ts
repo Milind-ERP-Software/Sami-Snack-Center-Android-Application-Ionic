@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonInput, IonToggle, IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton, IonFab, IonFabButton, IonFabList, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
 import { AlertController, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications, share, refreshCircleOutline, chevronDown, chevronUp } from 'ionicons/icons';
+import { add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications, share, refreshCircleOutline, chevronDown, chevronUp, checkmark } from 'ionicons/icons';
 import { StorageService, DailyRecord } from '../services/storage.service';
 import { ThemeService } from '../services/theme.service';
 import { NotificationService } from '../services/notification.service';
@@ -64,8 +64,12 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   notificationCount = 0;
   isSpeedDialOpen = false;
   showSpeedDial = true;
+  isMultiSelectMode = false; // Track multi-select mode
+  selectedRecords: Set<string> = new Set(); // Track selected record IDs
   private touchStartX = 0;
   private touchEndX = 0;
+  private longPressTimer?: any;
+  private longPressDuration = 500; // 500ms for long press
   private profitAnimationId?: number;
   private lossAnimationId?: number;
   private scrollTimeout?: any;
@@ -81,7 +85,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
     private notificationService: NotificationService,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications, share, refreshCircleOutline, chevronDown, chevronUp });
+    addIcons({ add, calendar, cash, trendingUp, trendingDown, trash, create, documentText, close, search, menu, refresh, settings, logOut, list, receipt, wallet, bag, moon, sunny, grid, calculator, notifications, share, refreshCircleOutline, chevronDown, chevronUp, checkmark });
   }
 
   ngOnInit() {
@@ -198,7 +202,21 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onMonthYearChange() {
-    this.updateDateRangeFromMonthYear();
+    // Auto-fill dates if both month and year are selected
+    if (this.selectedMonth !== null && this.selectedMonth !== undefined && 
+        this.selectedYear !== null && this.selectedYear !== undefined && 
+        this.selectedYear > 0 && this.selectedMonth >= 0) {
+      this.updateDateRangeFromMonthYear();
+    }
+  }
+
+  getSelectedMonthName(): string {
+    if (this.selectedMonth === null || this.selectedMonth === undefined) {
+      return 'Month';
+    }
+    const months = this.getMonths();
+    const month = months.find(m => m.value === this.selectedMonth);
+    return month ? month.label.toUpperCase() : 'MONTH';
   }
 
   getMonths(): Array<{value: number, label: string}> {
@@ -235,9 +253,18 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
 
   async loadRecords() {
     this.isLoading = true;
+    this.cdr.detectChanges(); // Force UI update immediately
+    
     // Reset displayed values to 0 for smooth animation on load
     this.displayedProfit = 0;
     this.displayedLoss = 0;
+
+    // Safety timeout: Ensure isLoading is always set to false, even if storage hangs
+    const safetyTimeout = setTimeout(() => {
+      console.warn('loadRecords: Safety timeout triggered - forcing isLoading to false');
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }, 5000); // 5 second maximum timeout
 
     // Ensure minimum loading time for better UX
     const startTime = Date.now();
@@ -250,12 +277,17 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
       await this.checkNotifications();
     } catch (error) {
       console.error('Error loading records:', error);
+      // On error, still show empty state instead of stuck loading
+      this.records = [];
+      this.filteredRecords = [];
     } finally {
+      clearTimeout(safetyTimeout); // Clear safety timeout if we got here normally
       const elapsedTime = Date.now() - startTime;
       const remainingTime = Math.max(0, 800 - elapsedTime);
 
       setTimeout(() => {
         this.isLoading = false;
+        this.cdr.detectChanges(); // Force UI update
       }, remainingTime);
     }
   }
@@ -477,6 +509,35 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
   async deleteRecord(id: string | undefined) {
     if (!id) return;
 
+    // Skip countdown if in developer mode
+    if (this.isDeveloperMode) {
+      const alert = await this.alertController.create({
+        header: 'Delete Record',
+        message: 'Are you sure you want to delete this record? This action cannot be undone.',
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+            cssClass: 'secondary'
+          },
+          {
+            text: 'Delete',
+            role: 'destructive',
+            cssClass: 'danger',
+            handler: () => {
+              this.storageService.deleteRecord(id);
+              this.loadRecords();
+              this.showToast('Record deleted successfully', 'danger');
+              return true;
+            }
+          }
+        ]
+      });
+
+      await alert.present();
+      return;
+    }
+
     let countdown = 10;
     let countdownInterval: any;
     let deleteButton: any;
@@ -587,6 +648,35 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
 
   async permanentDeleteRecord(id: string | undefined) {
     if (!id) return;
+
+    // Skip countdown if in developer mode
+    if (this.isDeveloperMode) {
+      const alert = await this.alertController.create({
+        header: 'Permanent Delete',
+        message: 'Are you sure you want to permanently delete this record? This action cannot be undone.',
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+            cssClass: 'secondary'
+          },
+          {
+            text: 'Permanent Delete',
+            role: 'destructive',
+            cssClass: 'danger',
+            handler: () => {
+              this.storageService.permanentDeleteRecord(id);
+              this.loadRecords();
+              this.showToast('Record permanently deleted', 'danger');
+              return true;
+            }
+          }
+        ]
+      });
+
+      await alert.present();
+      return;
+    }
 
     let countdown = 10;
     let countdownInterval: any;
@@ -796,6 +886,144 @@ ${record.notes ? `📝 Notes: ${record.notes}` : ''}`;
     return totalExpenses + totalPurchases;
   }
 
+  getPaidExpense(record: DailyRecord): number {
+    // Calculate only paid expenses (Daily Expenses section)
+    const paidExpenses = record.dailyExpenseList?.reduce((sum, item) => {
+      const isPaid = item.paid !== undefined ? item.paid : true; // Default to paid for backward compatibility
+      return sum + (isPaid ? (item.amount || 0) : 0);
+    }, 0) || 0;
+
+    // Calculate only paid purchases (What buy from today Income section)
+    const paidPurchases = record.todayPurchases?.reduce((sum, item) => {
+      const isPaid = item.paid !== undefined ? item.paid : true; // Default to paid for backward compatibility
+      return sum + (isPaid ? (item.amount || 0) : 0);
+    }, 0) || 0;
+
+    // Return sum of paid expenses and purchases
+    return paidExpenses + paidPurchases;
+  }
+
+  getMonthlyBalance(): number {
+    // Monthly balance calculation:
+    // Starts from 0 on 1st of selected month
+    // Credit: All income (gpay + paytm + onDrawer + onOutsideOrder)
+    // Debit: Only paid expenses and purchases
+    
+    let balance = 0;
+    
+    // Get records for selected month
+    const monthStartDate = `${this.selectedYear}-${String(this.selectedMonth + 1).padStart(2, '0')}-01`;
+    
+    // Filter records for the selected month
+    const monthRecords = this.filteredRecords.filter(record => {
+      const recordDate = record.date;
+      const recordYear = parseInt(recordDate.split('-')[0], 10);
+      const recordMonth = parseInt(recordDate.split('-')[1], 10) - 1; // 0-indexed month
+      return recordYear === this.selectedYear && recordMonth === this.selectedMonth;
+    });
+    
+    // Calculate balance: income (credit) - paid expenses (debit)
+    monthRecords.forEach(record => {
+      // Add income (credit)
+      const income = this.getTotalIncome(record);
+      balance += income;
+      
+      // Subtract paid expenses (debit)
+      const paidExpense = this.getPaidExpense(record);
+      balance -= paidExpense;
+    });
+    
+    return balance;
+  }
+
+  getExpensesByLabel(record: DailyRecord): { label: string; total: number }[] {
+    const grouped: { [key: string]: number } = {};
+    let unlabeledTotal = 0;
+
+    // Group expenses by label
+    record.dailyExpenseList?.forEach(item => {
+      const label = item.label || '';
+      const amount = item.amount || 0;
+      
+      if (label) {
+        if (!grouped[label]) {
+          grouped[label] = 0;
+        }
+        grouped[label] += amount;
+      } else {
+        unlabeledTotal += amount;
+      }
+    });
+
+    // Convert to array: unlabeled first, then labeled (alphabetically sorted)
+    const result: { label: string; total: number }[] = [];
+    
+    if (unlabeledTotal > 0) {
+      result.push({ label: '', total: unlabeledTotal });
+    }
+
+    Object.keys(grouped).sort().forEach(label => {
+      if (grouped[label] > 0) {
+        result.push({ label: label, total: grouped[label] });
+      }
+    });
+
+    return result;
+  }
+
+  // Get all unique expense categories from all filtered records
+  getAllExpenseCategories(): string[] {
+    const categories = new Set<string>();
+    
+    this.filteredRecords.forEach(record => {
+      record.dailyExpenseList?.forEach(item => {
+        const label = item.label || '';
+        if (label) {
+          categories.add(label);
+        } else {
+          categories.add('Other');
+        }
+      });
+    });
+    
+    // Convert to array: 'Other' first, then sorted alphabetically
+    const result: string[] = [];
+    const sortedCategories = Array.from(categories).sort();
+    
+    if (sortedCategories.includes('Other')) {
+      result.push('Other');
+      sortedCategories.forEach(cat => {
+        if (cat !== 'Other') {
+          result.push(cat);
+        }
+      });
+    } else {
+      result.push(...sortedCategories);
+    }
+    
+    return result;
+  }
+
+  // Get expense amount for a specific category in a record
+  getExpenseAmountForCategory(record: DailyRecord, category: string): number {
+    const expenses = this.getExpensesByLabel(record);
+    const categoryLabel = category === 'Other' ? '' : category;
+    const found = expenses.find(exp => {
+      if (category === 'Other') {
+        return !exp.label || exp.label === '';
+      }
+      return exp.label === category;
+    });
+    return found ? found.total : 0;
+  }
+
+  // Get total expense for a specific category across all filtered records
+  getTotalExpenseForCategory(category: string): number {
+    return this.filteredRecords.reduce((sum, record) => {
+      return sum + this.getExpenseAmountForCategory(record, category);
+    }, 0);
+  }
+
   // Totals for list view footer
   getTotalChains(): number {
     return this.filteredRecords.reduce((sum, record) => sum + (record.chains || 0), 0);
@@ -934,6 +1162,152 @@ ${record.notes ? `📝 Notes: ${record.notes}` : ''}`;
       this.expandedRecords.delete(recordId);
     } else {
       this.expandedRecords.add(recordId);
+    }
+  }
+
+  // Multi-select functionality (Developer Mode only)
+  onRecordCardTouchStart(event: TouchEvent | MouseEvent, recordId: string | undefined) {
+    if (!this.isDeveloperMode || !recordId) return;
+
+    const touchTarget = event.target as HTMLElement;
+    // Don't trigger if clicking on buttons or links
+    if (touchTarget.closest('ion-button') || touchTarget.closest('a')) return;
+
+    // If already in multi-select mode, don't start another long press
+    if (this.isMultiSelectMode) return;
+
+    this.longPressTimer = setTimeout(() => {
+      this.enterMultiSelectMode(recordId);
+    }, this.longPressDuration);
+  }
+
+  onRecordCardTouchEnd(event: TouchEvent | MouseEvent, recordId: string | undefined) {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = undefined;
+    }
+  }
+
+  onRecordCardTouchMove() {
+    // Cancel long press if user moves finger
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = undefined;
+    }
+  }
+
+  onRecordCardClick(event: Event, recordId: string | undefined) {
+    // Only handle selection if in multi-select mode
+    if (!this.isMultiSelectMode || !recordId || !this.isDeveloperMode) return;
+
+    const target = event.target as HTMLElement;
+    // Don't trigger if clicking on buttons
+    if (target.closest('ion-button')) return;
+
+    this.toggleRecordSelection(recordId);
+  }
+
+  enterMultiSelectMode(firstRecordId: string) {
+    this.isMultiSelectMode = true;
+    this.isSpeedDialOpen = false; // Close speed dial when entering multi-select mode
+    this.selectedRecords.clear();
+    this.selectedRecords.add(firstRecordId);
+    // Toast message removed as per user request
+    this.cdr.detectChanges();
+  }
+
+  exitMultiSelectMode() {
+    this.isMultiSelectMode = false;
+    this.selectedRecords.clear();
+    this.cdr.detectChanges();
+  }
+
+  toggleRecordSelection(recordId: string | undefined) {
+    if (!this.isMultiSelectMode || !recordId) return;
+
+    if (this.selectedRecords.has(recordId)) {
+      this.selectedRecords.delete(recordId);
+    } else {
+      this.selectedRecords.add(recordId);
+    }
+    this.cdr.detectChanges();
+  }
+
+  isRecordSelected(recordId: string | undefined): boolean {
+    if (!recordId) return false;
+    return this.selectedRecords.has(recordId);
+  }
+
+  async deleteSelectedRecords() {
+    if (this.selectedRecords.size === 0) return;
+
+    const count = this.selectedRecords.size;
+    const confirmAlert = await this.alertController.create({
+      header: 'Delete Multiple Records',
+      message: `Kya aap ${count} record(s) delete karna chahte hain? (Do you want to delete ${count} record(s)?)`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary'
+        },
+        {
+          text: 'Delete',
+          cssClass: 'danger',
+          handler: async () => {
+            await this.performBulkDelete();
+          }
+        }
+      ]
+    });
+
+    await confirmAlert.present();
+  }
+
+  private async performBulkDelete() {
+    const recordIds = Array.from(this.selectedRecords).filter(id => id); // Filter out undefined/null
+    
+    if (recordIds.length === 0) {
+      this.exitMultiSelectMode();
+      return;
+    }
+
+    // Store selected IDs before clearing (for UI update)
+    const selectedIds = new Set(this.selectedRecords);
+
+    try {
+      // Exit multi-select mode immediately for better UX
+      this.exitMultiSelectMode();
+      
+      // Update UI optimistically (before actual delete) - instant feedback
+      this.filteredRecords = this.filteredRecords.filter(record => !selectedIds.has(record.id || ''));
+      this.records = this.records.map(record => {
+        if (selectedIds.has(record.id || '')) {
+          return { ...record, isDeleted: true };
+        }
+        return record;
+      });
+      
+      // Recalculate totals immediately
+      this.calculateTotals();
+      this.cdr.detectChanges(); // Force UI update
+      
+      // Perform actual delete in background (optimized - single save operation)
+      const deletedCount = await this.storageService.bulkDeleteRecords(recordIds);
+      
+      if (deletedCount > 0) {
+        this.showToast(`${deletedCount} record(s) deleted successfully`, 'success');
+      } else {
+        // If delete failed, reload to restore state
+        await this.loadRecords();
+        this.showToast('No records were deleted', 'warning');
+      }
+      
+    } catch (error) {
+      console.error('Error during bulk delete:', error);
+      // Reload on error to restore correct state
+      await this.loadRecords();
+      this.showToast('Error deleting records. Please try again.', 'danger');
     }
   }
 

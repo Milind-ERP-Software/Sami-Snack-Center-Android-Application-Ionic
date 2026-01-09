@@ -35,8 +35,8 @@
         <div class="profit-badge" [class.developer-mode]="isDeveloperMode" *ngIf="!isLoading && filteredRecords.length > 0">
           <ion-icon name="trendingUp" class="badge-icon"></ion-icon>
           <div class="badge-content">
-            <span class="badge-label">This Month Balance</span>
-            <span class="badge-value">{{ displayedProfit | number:'1.0-0' }} ₹</span>
+            <span class="badge-label">THIS {{ getSelectedMonthName() }} BALANCE</span>
+            <span class="badge-value">{{ getTotalBack() | number:'1.0-0' }} ₹</span>
           </div>
         </div>
       </div>
@@ -69,14 +69,14 @@
         <ion-icon name="refresh" style="font-size: 20px; color: #0066CC;"></ion-icon>
         <span>Clear All Filters</span>
       </div>
-      
+
       <!-- Items Accordion -->
       <div class="drawer-accordion">
         <div class="drawer-item drawer-accordion-header" (click)="isItemsAccordionOpen = !isItemsAccordionOpen; $event.stopPropagation()">
         <ion-icon name="list" style="font-size: 20px; color: #0066CC;"></ion-icon>
           <span>Items</span>
-          <ion-icon 
-            [name]="isItemsAccordionOpen ? 'chevron-up' : 'chevron-down'" 
+          <ion-icon
+            [name]="isItemsAccordionOpen ? 'chevron-up' : 'chevron-down'"
             style="font-size: 18px; color: #0066CC; margin-left: auto; transition: transform 0.2s;"
           ></ion-icon>
         </div>
@@ -181,7 +181,7 @@
     <div class="filter-card skeleton-card rounded-lg shadow-sm p-1.5 space-y-1.5 mb-2.5">
       <!-- Search Input Skeleton -->
       <div class="skeleton-input-medium"></div>
-      
+
       <!-- Month/Year Selectors Skeleton -->
       <div class="grid grid-cols-2 gap-1.5">
         <div>
@@ -193,7 +193,7 @@
           <div class="skeleton-input-small"></div>
         </div>
       </div>
-      
+
       <!-- Date Inputs Skeleton -->
       <div class="grid grid-cols-2 gap-1.5">
         <div>
@@ -205,7 +205,7 @@
           <div class="skeleton-input-small"></div>
         </div>
       </div>
-      
+
       <!-- Reset Button Skeleton -->
       <div class="skeleton-button-outline"></div>
     </div>
@@ -383,12 +383,12 @@
       <!-- Summary Cards -->
       <div class="grid grid-cols-2 gap-1.5 mb-1.5">
       <div class="summary-card profit-card">
-        <p class="text-xs text-white/90 mb-0.5 font-medium" style="font-size: 10px;">Total Profit</p>
-        <p class="text-lg font-bold text-white" style="font-size: 15px; line-height: 1.2;">{{ displayedProfit | number:'1.2-2' }} ₹</p>
+        <p class="text-xs text-white/90 mb-0.5 font-medium" style="font-size: 10px;">Total Income</p>
+        <p class="text-lg font-bold text-white" style="font-size: 15px; line-height: 1.2;">{{ getTotalIncomes() | number:'1.2-2' }} ₹</p>
       </div>
       <div class="summary-card loss-card">
-        <p class="text-xs text-gray-600 mb-0.5 font-medium" style="font-size: 10px;">Total Loss</p>
-        <p class="text-lg font-bold text-gray-900" style="font-size: 15px; line-height: 1.2;">{{ displayedLoss | number:'1.2-2' }} ₹</p>
+        <p class="text-xs text-gray-600 mb-0.5 font-medium" style="font-size: 10px;">Total Expense</p>
+        <p class="text-lg font-bold text-gray-900" style="font-size: 15px; line-height: 1.2;">{{ getTotalExpenses() | number:'1.2-2' }} ₹</p>
       </div>
       </div>
 
@@ -515,7 +515,9 @@
     </div>
 
     <!-- Records List -->
-    <div class="space-y-2 records-container scrollable-records" #scrollableRecords>
+    <div class="space-y-2 records-container scrollable-records"
+         [style.padding-bottom.px]="isMultiSelectMode && isDeveloperMode ? 70 : 0"
+         #scrollableRecords>
       <div class="records-header-section">
         <div class="records-header-top">
           <h2 class="text-xs font-bold text-black records-count">
@@ -561,7 +563,21 @@
         <div
           *ngFor="let record of filteredRecords; trackBy: trackByRecordId"
           class="record-card bg-white rounded-lg shadow-sm p-1.5 animate-fade-in"
+          [class.record-selected]="isRecordSelected(record.id)"
+          [class.multi-select-mode]="isMultiSelectMode"
+          (touchstart)="onRecordCardTouchStart($event, record.id)"
+          (touchend)="onRecordCardTouchEnd($event, record.id)"
+          (touchmove)="onRecordCardTouchMove()"
+          (mousedown)="onRecordCardTouchStart($event, record.id)"
+          (mouseup)="onRecordCardTouchEnd($event, record.id)"
+          (click)="onRecordCardClick($event, record.id)"
         >
+          <!-- Selection Checkbox (Developer Mode Only) -->
+          <div *ngIf="isMultiSelectMode && isDeveloperMode" class="record-select-indicator">
+            <div class="select-checkbox" [class.selected]="isRecordSelected(record.id)">
+              <ion-icon *ngIf="isRecordSelected(record.id)" name="checkmark" style="color: white; font-size: 14px;"></ion-icon>
+            </div>
+          </div>
         <!-- Header -->
         <div class="flex justify-between items-start mb-1.5 pb-1.5 border-b border-gray-100">
           <div class="flex-1">
@@ -569,37 +585,40 @@
             <p class="text-xs text-gray-500" style="font-size: 10px;">Chains: <span class="font-semibold text-gray-700">{{ record.chains }} ₹</span></p>
           </div>
           <div class="flex gap-0.5">
-            <!-- Normal Actions (when not deleted) -->
-            <ng-container *ngIf="!record.isDeleted">
+            <!-- Hide action buttons in multi-select mode -->
+            <ng-container *ngIf="!isMultiSelectMode">
+              <!-- Normal Actions (when not deleted) -->
+              <ng-container *ngIf="!record.isDeleted">
+                <ion-button
+                  (click)="shareRecord(record); $event.stopPropagation()"
+                  fill="clear"
+                  size="small"
+                  style="--color: #10b981; --border-radius: 50%; border-radius: 50%;"
+                  class="h-7 w-7 p-0"
+                >
+                  <ion-icon name="share" slot="icon-only" style="font-size: 14px;"></ion-icon>
+                </ion-button>
               <ion-button
-                (click)="shareRecord(record)"
+                (click)="editRecord(record.id); $event.stopPropagation()"
                 fill="clear"
                 size="small"
-                style="--color: #10b981; --border-radius: 50%; border-radius: 50%;"
+                style="--color: #0066CC; --border-radius: 50%; border-radius: 50%;"
                 class="h-7 w-7 p-0"
+                [disabled]="!record.id"
               >
-                <ion-icon name="share" slot="icon-only" style="font-size: 14px;"></ion-icon>
+                <ion-icon name="create" slot="icon-only" style="font-size: 14px;"></ion-icon>
               </ion-button>
-            <ion-button
-              (click)="editRecord(record.id)"
-              fill="clear"
-              size="small"
-              style="--color: #0066CC; --border-radius: 50%; border-radius: 50%;"
-              class="h-7 w-7 p-0"
-              [disabled]="!record.id"
-            >
-              <ion-icon name="create" slot="icon-only" style="font-size: 14px;"></ion-icon>
-            </ion-button>
-            <ion-button
-              (click)="deleteRecord(record.id)"
-              fill="clear"
-              size="small"
-              style="--color: #ef4444; --border-radius: 50%; border-radius: 50%;"
-              class="h-7 w-7 p-0"
-              [disabled]="!record.id"
-            >
-              <ion-icon name="trash" slot="icon-only" style="font-size: 14px;"></ion-icon>
-            </ion-button>
+              <ion-button
+                (click)="deleteRecord(record.id); $event.stopPropagation()"
+                fill="clear"
+                size="small"
+                style="--color: #ef4444; --border-radius: 50%; border-radius: 50%;"
+                class="h-7 w-7 p-0"
+                [disabled]="!record.id"
+              >
+                <ion-icon name="trash" slot="icon-only" style="font-size: 14px;"></ion-icon>
+              </ion-button>
+              </ng-container>
             </ng-container>
             <!-- Deleted Actions (when deleted) -->
             <ng-container *ngIf="record.isDeleted">
@@ -699,7 +718,12 @@
               <div class="list-view-row header-row">
                 <div class="list-col date-col">Date</div>
                 <div class="list-col chains-col">Chains</div>
-                <div class="list-col expense-col">Expense</div>
+                <div class="list-col expense-col">
+                  <div class="expense-header-main">Expense</div>
+                  <div class="expense-sub-headers">
+                    <div *ngFor="let category of getAllExpenseCategories()" class="expense-sub-header">{{ category }}</div>
+                  </div>
+                </div>
                 <div class="list-col income-col">Income</div>
                 <div class="list-col expected-col">Expected</div>
                 <div class="list-col back-col">Back</div>
@@ -725,7 +749,16 @@
               </div>
               <div class="list-col expense-col">
                 <div class="list-cell-content">
-                  <div class="list-cell-value">{{ getTotalExpense(record) | number:'1.0-0' }} ₹</div>
+                  <div class="list-cell-value">
+                    <div class="expense-amounts-row">
+                      <div *ngFor="let category of getAllExpenseCategories()" class="expense-amount-cell">
+                        {{ getExpenseAmountForCategory(record, category) | number:'1.0-0' }} ₹
+                      </div>
+                    </div>
+                    <div class="expense-total-cell">
+                      Total: {{ getTotalExpense(record) | number:'1.0-0' }} ₹
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="list-col income-col">
@@ -821,7 +854,16 @@
                 </div>
                 <div class="list-col expense-col">
                   <div class="list-cell-content">
-                    <div class="list-cell-value" style="font-weight: 700;">{{ getTotalExpenses() | number:'1.0-0' }} ₹</div>
+                    <div class="list-cell-value">
+                      <div class="expense-totals-row">
+                        <div *ngFor="let category of getAllExpenseCategories()" class="expense-total-amount-cell">
+                          {{ getTotalExpenseForCategory(category) | number:'1.0-0' }} ₹
+                        </div>
+                      </div>
+                      <div class="expense-total-cell-footer">
+                        Total: {{ getTotalExpenses() | number:'1.0-0' }} ₹
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div class="list-col income-col">
@@ -854,7 +896,7 @@
   </div>
 
   <!-- Floating Action Button with Speed Dial - Modern Grid Layout -->
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed" [activated]="isSpeedDialOpen" *ngIf="showSpeedDial">
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" [activated]="isSpeedDialOpen" *ngIf="showSpeedDial && !isMultiSelectMode">
     <ion-fab-button (click)="toggleSpeedDial()" class="main-fab-button">
       <ion-icon [name]="isSpeedDialOpen ? 'close' : 'add'"></ion-icon>
     </ion-fab-button>
@@ -883,5 +925,37 @@
         </button>
       </div>
     </ion-fab-list>
-  </ion-fab>
+    </ion-fab>
+
+    <!-- Multi-Select Action Bar (Developer Mode Only) -->
+    <div *ngIf="isMultiSelectMode && isDeveloperMode" class="multi-select-action-bar">
+      <div class="multi-select-bar-content">
+        <div class="multi-select-info">
+          <span class="multi-select-count">{{ selectedRecords.size }}</span>
+          <span class="multi-select-text">record(s) selected</span>
+        </div>
+        <div class="multi-select-actions">
+          <ion-button
+            (click)="exitMultiSelectMode()"
+            fill="clear"
+            size="small"
+            style="--color: #6b7280;"
+            class="h-8"
+          >
+            Cancel
+          </ion-button>
+          <ion-button
+            (click)="deleteSelectedRecords()"
+            fill="solid"
+            size="small"
+            style="--background: #ef4444; --color: white;"
+            class="h-8"
+            [disabled]="selectedRecords.size === 0"
+          >
+            <ion-icon name="trash" slot="start" style="font-size: 16px;"></ion-icon>
+            Delete ({{ selectedRecords.size }})
+          </ion-button>
+        </div>
+      </div>
+    </div>
 </ion-content>

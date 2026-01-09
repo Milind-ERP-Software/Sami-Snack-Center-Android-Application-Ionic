@@ -647,7 +647,7 @@
                   (ionFocus)="selectAllText($event)"
                 ></ion-input>
               </div>
-              <div style="width: 75px;">
+              <div style="width: 95px;">
                 <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Amount</label>
                 <div class="amount-input-wrapper">
                 <ion-input
@@ -655,16 +655,15 @@
                   formControlName="amount"
                   placeholder="0"
                   class="form-input-compact"
-                  style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+                  style="--padding-start: 6px; --padding-end: 22px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
                   min="0"
-                  [disabled]="true"
                   (ionFocus)="selectAllText($event)"
                 ></ion-input>
                   <span class="currency-symbol">₹</span>
                 </div>
               </div>
               <ion-button
-                *ngIf="productionItems.length > 1"
+                *ngIf="productionItems.length > 0"
                 (click)="removeProductionItem(i)"
                 fill="clear"
                 size="small"
@@ -704,95 +703,126 @@
         </ion-button>
       </div>
       <div class="p-1 accordion-content" *ngIf="isExpensesExpanded">
-        <div formArrayName="dailyExpenseList" class="space-y-0.5">
-          <div
-            *ngFor="let item of expenseItems.controls; let i = index"
-            [formGroupName]="i"
-            class="item-card bg-gray-50 rounded border border-gray-200 p-0.5 animate-slide-in"
-          >
-            <div class="flex gap-1 items-end">
-              <div class="flex-1">
-                <div class="flex items-center gap-1 mb-0.5">
-                  <span class="text-xs font-medium text-gray-600" style="font-size: 10px;">Item #{{ i + 1 }}</span>
+        <div formArrayName="dailyExpenseList" class="space-y-1">
+          <!-- Iterate through all items and group them visually -->
+          <ng-container *ngFor="let item of expenseItems.controls; let i = index">
+            <!-- Show label header before first item of each group -->
+            <ng-container *ngIf="shouldShowLabelHeader(i)">
+              <div class="mb-0.5">
+                <div class="flex items-center justify-between px-1 py-0.5 bg-blue-50 rounded border border-blue-200 mb-0.5">
+                  <span class="text-xs font-bold text-blue-700" style="font-size: 11px;">{{ getItemLabel(i) }}</span>
+                  <span class="text-xs font-semibold text-blue-600" style="font-size: 10px;">{{ getLabelTotal(getItemLabel(i)) | number:'1.2-2' }} ₹</span>
                 </div>
-                <ion-select
-                  formControlName="listOfItem"
-                  placeholder="Select item"
-                  interface="action-sheet"
-                  [interfaceOptions]="{
-                    header: 'Select Expense Item',
-                    cssClass: 'expense-item-picker'
-                  }"
-                  class="form-input-compact"
-                  style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
-                  (ionChange)="onExpenseItemSelect($event, i)"
+              </div>
+            </ng-container>
+
+            <!-- Expense Item -->
+            <div
+              [formGroupName]="i"
+              class="item-card rounded border p-0.5 animate-slide-in"
+              [ngClass]="!getItemLabelRaw(i) ? 'bg-gray-100' : 'bg-gray-50'"
+              [style.border-color]="!getItemLabelRaw(i) ? '#d1d5db' : '#e5e7eb'"
+              [style.background-color]="!getItemLabelRaw(i) ? '#f3f4f6' : '#f9fafb'"
+            >
+              <div class="flex gap-1 items-end">
+                <div class="flex-1">
+                  <div class="flex items-center gap-1 mb-0.5">
+                    <span class="text-xs font-medium text-gray-600" style="font-size: 10px;">Item #{{ i + 1 }}</span>
+                    <span *ngIf="expenseItems.at(i)?.get('paid')?.value === false"
+                          class="text-xs font-semibold text-red-600 bg-red-50 px-1 py-0.5 rounded cursor-pointer hover:bg-red-100 transition-colors"
+                          style="font-size: 9px; border: 1px solid #fca5a5;"
+                          (click)="toggleExpensePaidStatus(i)">
+                      Unpaid
+                    </span>
+                    <span *ngIf="expenseItems.at(i)?.get('paid')?.value !== false"
+                          class="text-xs font-semibold text-green-600 bg-green-50 px-1 py-0.5 rounded cursor-pointer hover:bg-green-100 transition-colors"
+                          style="font-size: 9px; border: 1px solid #86efac;"
+                          (click)="toggleExpensePaidStatus(i)">
+                      Paid
+                    </span>
+                  </div>
+                  <ion-select
+                    formControlName="listOfItem"
+                    placeholder="Select item"
+                    interface="action-sheet"
+                    [interfaceOptions]="{
+                      header: 'Select Expense Item',
+                      cssClass: 'expense-item-picker'
+                    }"
+                    class="form-input-compact"
+                    style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+                    (ionChange)="onExpenseItemSelect($event, i)"
+                  >
+                    <ion-select-option *ngFor="let item of getExpenseItems()" [value]="item.name">
+                      {{ item.name }}
+                    </ion-select-option>
+                    <ion-select-option value="__CREATE_NEW__" class="create-new-option">
+                      ⊕ Create New Item In Expense
+                    </ion-select-option>
+                  </ion-select>
+                </div>
+                <div style="width: 55px;">
+                  <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Qty</label>
+                  <ion-input
+                    type="number"
+                    formControlName="qty"
+                    placeholder="0"
+                    class="form-input-compact"
+                    style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+                    min="0"
+                    step="any"
+                    (ionInput)="onExpenseValueChange()"
+                    (ionFocus)="selectAllText($event)"
+                  ></ion-input>
+                </div>
+                <div style="width: 55px;">
+                  <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Rate</label>
+                  <ion-input
+                    type="number"
+                    formControlName="rate"
+                    placeholder="0"
+                    class="form-input-compact"
+                    style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+                    min="0"
+                    step="any"
+                    (ionInput)="onExpenseValueChange()"
+                    (ionFocus)="selectAllText($event)"
+                  ></ion-input>
+                </div>
+                <div style="width: 95px;">
+                  <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Amount</label>
+                  <div class="amount-input-wrapper">
+                  <ion-input
+                    type="number"
+                    formControlName="amount"
+                    placeholder="0"
+                    class="form-input-compact"
+                    style="--padding-start: 6px; --padding-end: 22px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+                    min="0"
+                    (ionFocus)="selectAllText($event)"
+                  ></ion-input>
+                    <span class="currency-symbol">₹</span>
+                  </div>
+                </div>
+                <ion-button
+                  *ngIf="expenseItems.length > 0"
+                  (click)="removeExpenseItem(i)"
+                  fill="clear"
+                  size="small"
+                  style="--color: #ef4444;"
+                  class="h-6 w-6 p-0 mb-0.5"
                 >
-                  <ion-select-option *ngFor="let item of getExpenseItems()" [value]="item.name">
-                    {{ item.name }}
-                  </ion-select-option>
-                  <ion-select-option value="__CREATE_NEW__" class="create-new-option">
-                    ⊕ Create New Item In Expense
-                  </ion-select-option>
-                </ion-select>
+                  <ion-icon name="trash" slot="icon-only" style="font-size: 10px;"></ion-icon>
+                </ion-button>
               </div>
-              <div style="width: 55px;">
-                <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Qty</label>
-                <ion-input
-                  type="number"
-                  formControlName="qty"
-                  placeholder="0"
-                  class="form-input-compact"
-                  style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
-                  min="0"
-                  (ionFocus)="selectAllText($event)"
-                ></ion-input>
-              </div>
-              <div style="width: 55px;">
-                <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Rate</label>
-                <ion-input
-                  type="number"
-                  formControlName="rate"
-                  placeholder="0"
-                  class="form-input-compact"
-                  style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
-                  min="0"
-                  (ionFocus)="selectAllText($event)"
-                ></ion-input>
-              </div>
-              <div style="width: 75px;">
-                <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Amount</label>
-                <div class="amount-input-wrapper">
-                <ion-input
-                  type="number"
-                  formControlName="amount"
-                  placeholder="0"
-                  class="form-input-compact"
-                  style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
-                  min="0"
-                  [disabled]="true"
-                  (ionFocus)="selectAllText($event)"
-                ></ion-input>
-                  <span class="currency-symbol">₹</span>
-                </div>
-              </div>
-              <ion-button
-                *ngIf="expenseItems.length > 1"
-                (click)="removeExpenseItem(i)"
-                fill="clear"
-                size="small"
-                style="--color: #ef4444;"
-                class="h-6 w-6 p-0 mb-0.5"
-              >
-                <ion-icon name="trash" slot="icon-only" style="font-size: 10px;"></ion-icon>
-              </ion-button>
             </div>
-          </div>
+          </ng-container>
         </div>
-        <!-- Expenses Total -->
-        <div class="mt-1 pt-1 border-t border-gray-200">
+        <!-- Expenses Overall Total -->
+        <div class="mt-1 pt-1 border-t-2 border-gray-300">
           <div class="flex justify-between items-center">
-            <label class="text-xs font-semibold text-gray-800" style="font-size: 10px;">Total</label>
-            <span class="text-xs font-semibold text-blue-600" style="font-size: 10px;">{{ getDailyExpenses() | number:'1.2-2' }} ₹</span>
+            <label class="text-xs font-bold text-gray-800" style="font-size: 11px;">Total</label>
+            <span class="text-xs font-bold text-blue-600" style="font-size: 11px;">{{ getDailyExpenses() | number:'1.2-2' }} ₹</span>
           </div>
         </div>
       </div>
@@ -825,6 +855,18 @@
               <div class="flex-1">
                 <div class="flex items-center gap-1 mb-0.5">
                 <span class="text-xs font-medium text-gray-600" style="font-size: 10px;">Item #{{ i + 1 }}</span>
+                <span *ngIf="todayPurchases.at(i)?.get('paid')?.value === false"
+                      class="text-xs font-semibold text-red-600 bg-red-50 px-1 py-0.5 rounded cursor-pointer hover:bg-red-100 transition-colors"
+                      style="font-size: 9px; border: 1px solid #fca5a5;"
+                      (click)="togglePurchasePaidStatus(i)">
+                  Unpaid
+                </span>
+                <span *ngIf="todayPurchases.at(i)?.get('paid')?.value !== false"
+                      class="text-xs font-semibold text-green-600 bg-green-50 px-1 py-0.5 rounded cursor-pointer hover:bg-green-100 transition-colors"
+                      style="font-size: 9px; border: 1px solid #86efac;"
+                      (click)="togglePurchasePaidStatus(i)">
+                  Paid
+                </span>
                 </div>
               <ion-select
                   formControlName="listOfItem"
@@ -870,7 +912,7 @@
                   (ionFocus)="selectAllText($event)"
                 ></ion-input>
               </div>
-              <div style="width: 75px;">
+              <div style="width: 95px;">
                 <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Amount</label>
                 <div class="amount-input-wrapper">
                 <ion-input
@@ -878,16 +920,15 @@
                   formControlName="amount"
                   placeholder="0"
                   class="form-input-compact"
-                  style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+                  style="--padding-start: 6px; --padding-end: 22px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
                   min="0"
-                  [disabled]="true"
                   (ionFocus)="selectAllText($event)"
                 ></ion-input>
                   <span class="currency-symbol">₹</span>
                 </div>
               </div>
               <ion-button
-              *ngIf="todayPurchases.length > 1"
+              *ngIf="todayPurchases.length > 0"
                 fill="clear"
                 size="small"
               (click)="removeTodayPurchase(i)"
@@ -1034,7 +1075,20 @@
       </div>
       <div class="p-1 space-y-1 accordion-content" *ngIf="isAdditionalInfoExpanded">
         <div>
-          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Back Money (Rs.)</label>
+          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">
+            Back Money = 
+            <span class="back-money-calculation">
+              <span class="calc-income">₹{{ getBackMoneyIncomeTotal() | number:'1.2-2' }} <span class="calc-label">(Income)</span></span>
+              <span class="calc-operator"> - </span>
+              <span class="calc-group-start">{{ '{' }}</span>
+              <span class="calc-expense">₹{{ getBackMoneyPaidExpenses() | number:'1.2-2' }} <span class="calc-label">(Paid Expenses)</span></span>
+              <span class="calc-operator"> + </span>
+              <span class="calc-purchase">₹{{ getBackMoneyPaidPurchases() | number:'1.2-2' }} <span class="calc-label">(Paid Purchases)</span></span>
+              <span class="calc-operator"> + </span>
+              <span class="calc-chains">₹{{ getBackMoneyChains() | number:'1.2-2' }} <span class="calc-label">(Chains)</span></span>
+              <span class="calc-group-end">{{ '}' }}</span>
+            </span>
+          </label>
           <div class="amount-input-wrapper">
           <ion-input
             type="number"
@@ -1043,6 +1097,7 @@
             class="form-input-compact"
             style="--padding-start: 6px; --padding-end: 6px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 11px; height: 26px;"
             min="0"
+            [disabled]="true"
             (ionFocus)="selectAllText($event)"
           ></ion-input>
             <span class="currency-symbol">₹</span>

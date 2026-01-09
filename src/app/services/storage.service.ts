@@ -13,6 +13,8 @@ export interface ExpenseItem {
   qty: number;
   rate?: number;
   amount: number;
+  label?: string;
+  paid?: boolean; // true if paid, false if unpaid (default: true for backward compatibility)
 }
 
 export interface IncomeItem {
@@ -43,6 +45,7 @@ export interface DailyRecord {
     qty?: number;
     rate?: number;
     amount: number;
+    paid?: boolean; // true if paid, false if unpaid (default: true for backward compatibility)
   }[];
   dailyProfit: {
     loss: number;
@@ -70,32 +73,116 @@ export class StorageService {
   }
 
   async init() {
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:73',message:'init START',data:{_storageExists:!!this._storage},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     // If already initialized, return
     if (this._storage) {
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:76',message:'init EARLY RETURN - already initialized',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       return;
     }
 
-    const storage = await this.storage.create();
-    this._storage = storage;
+    try {
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:79',message:'BEFORE storage.create()',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      // Add timeout to prevent hanging on Android
+      const storage = await Promise.race([
+        this.storage.create(),
+        new Promise<Storage>((_, reject) => 
+          setTimeout(() => reject(new Error('Storage.create() timeout after 8 seconds')), 8000)
+        )
+      ]);
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:80',message:'AFTER storage.create()',data:{storageCreated:!!storage},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      this._storage = storage;
 
-    // Load records into memory
-    const stored = await this._storage.get(this.STORAGE_KEY);
-    if (stored) {
-      this._records = JSON.parse(stored);
-    } else {
+      // Load records into memory
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:83',message:'BEFORE _storage.get()',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      const stored = await Promise.race([
+        this._storage.get(this.STORAGE_KEY),
+        new Promise<string | null>((_, reject) => 
+          setTimeout(() => reject(new Error('Storage.get() timeout after 5 seconds')), 5000)
+        )
+      ]).catch(() => null); // Return null on timeout instead of throwing
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:84',message:'AFTER _storage.get()',data:{storedExists:!!stored,storedLength:stored?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      if (stored) {
+        try {
+          this._records = JSON.parse(stored);
+        } catch (parseError) {
+          console.error('Error parsing stored records:', parseError);
+          this._records = [];
+        }
+      } else {
+        this._records = [];
+      }
+      
+      // Perform initial checks with timeout protection
+      try {
+        await Promise.race([
+          this.fixDuplicateIds(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('fixDuplicateIds timeout')), 3000))
+        ]).catch((err) => console.warn('fixDuplicateIds error:', err));
+      } catch (error) {
+        console.warn('fixDuplicateIds failed:', error);
+      }
+      
+      try {
+        await Promise.race([
+          this.initializeSampleData(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('initializeSampleData timeout')), 5000))
+        ]).catch((err) => console.warn('initializeSampleData error:', err));
+      } catch (error) {
+        console.warn('initializeSampleData failed:', error);
+      }
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:91',message:'init COMPLETED',data:{recordsCount:this._records.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+    } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:93',message:'ERROR in init',data:{errorMessage:error instanceof Error?error.message:String(error),errorStack:error instanceof Error?error.stack:undefined},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+      console.error('Storage init error:', error);
+      // Initialize with empty records instead of throwing
       this._records = [];
+      // Don't throw - allow app to continue with empty storage
     }
-    
-    // Perform initial checks
-    await this.fixDuplicateIds();
-    await this.initializeSampleData();
   }
 
   // Ensure storage is ready before any operation
   private async ensureInitialized() {
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:96',message:'ensureInitialized START',data:{_storageExists:!!this._storage},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     if (!this._storage) {
-      await this.init();
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:98',message:'ensureInitialized calling init',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      // Add timeout to prevent hanging
+      await Promise.race([
+        this.init(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Storage initialization timeout')), 10000)
+        )
+      ]).catch((error) => {
+        console.error('Storage initialization error:', error);
+        // Continue with empty storage if init fails
+        if (!this._storage) {
+          this._records = [];
+        }
+      });
     }
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:100',message:'ensureInitialized COMPLETED',data:{_storageExists:!!this._storage},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
   }
 
   // Fix any records with duplicate or missing IDs - reassign all IDs sequentially from 1
@@ -333,12 +420,30 @@ export class StorageService {
   // Public API - Now Async
 
   async getAllRecords(includeDeleted: boolean = false): Promise<DailyRecord[]> {
-    await this.ensureInitialized();
-    // Return a copy to prevent direct mutation
-    if (includeDeleted) {
-    return [...this._records];
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:336',message:'getAllRecords START',data:{includeDeleted},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    try {
+      await Promise.race([
+        this.ensureInitialized(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('ensureInitialized timeout')), 10000)
+        )
+      ]);
+    } catch (error) {
+      console.error('getAllRecords: ensureInitialized failed:', error);
+      // Return empty array if initialization fails
+      return [];
     }
-    return [...this._records].filter(record => !record.isDeleted);
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:338',message:'getAllRecords after ensureInitialized',data:{_recordsCount:this._records.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    // Return a copy to prevent direct mutation
+    const result = includeDeleted ? [...this._records] : [...this._records].filter(record => !record.isDeleted);
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:342',message:'getAllRecords COMPLETED',data:{resultCount:result.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    return result;
   }
 
   async getRecordById(id: string): Promise<DailyRecord | undefined> {
@@ -411,6 +516,34 @@ export class StorageService {
       this._records.splice(index, 1);
       await this.saveRecordsToStorage();
     }
+  }
+
+  // Optimized bulk delete - updates all records in memory, then saves once
+  async bulkDeleteRecords(ids: string[]): Promise<number> {
+    await this.ensureInitialized();
+    
+    if (ids.length === 0) return 0;
+    
+    const idSet = new Set(ids);
+    const now = new Date().toISOString();
+    let deletedCount = 0;
+    
+    // Update all records in memory first (single pass)
+    for (let i = 0; i < this._records.length; i++) {
+      if (idSet.has(this._records[i].id || '')) {
+        this._records[i].isDeleted = true;
+        this._records[i].deletedAt = now;
+        this._records[i].updatedAt = now;
+        deletedCount++;
+      }
+    }
+    
+    // Save to storage only once
+    if (deletedCount > 0) {
+      await this.saveRecordsToStorage();
+    }
+    
+    return deletedCount;
   }
 
   async clearAll(): Promise<void> {

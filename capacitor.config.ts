@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Sami Snack Center',
   webDir: 'www',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'http'
   }
 };
 
