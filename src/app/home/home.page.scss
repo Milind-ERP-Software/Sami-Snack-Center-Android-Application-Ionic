@@ -4854,3 +4854,22 @@ ion-fab-list {
   align-items: center;
   gap: 0.5rem;
 }
+
+// Dark Mode for Multi-Select Action Bar
+:host-context(body.dark) .multi-select-action-bar,
+body.dark .multi-select-action-bar {
+  background: #1f2937 !important;
+  border-top-color: #374151 !important;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+:host-context(body.dark) .multi-select-text,
+body.dark .multi-select-text {
+  color: #d1d5db !important;
+}
+
+:host-context(body.dark) .multi-select-count,
+body.dark .multi-select-count {
+  background: #0066CC !important;
+  color: white !important;
+}

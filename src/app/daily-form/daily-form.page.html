@@ -1105,18 +1105,6 @@
         </div>
 
         <div>
-          <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Waste Materials</label>
-          <ion-textarea
-            formControlName="todayWasteMaterialList"
-            rows="2"
-            placeholder="List materials..."
-            class="form-textarea-compact"
-            style="--padding-start: 6px; --padding-end: 6px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 11px; min-height: 45px;"
-            (ionFocus)="selectAllText($event)"
-          ></ion-textarea>
-        </div>
-
-        <div>
           <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Notes</label>
           <ion-textarea
             formControlName="notes"
@@ -1126,6 +1114,119 @@
             style="--padding-start: 6px; --padding-end: 6px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 11px; min-height: 45px;"
             (ionFocus)="selectAllText($event)"
           ></ion-textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Waste Materials Section -->
+    <div class="form-section bg-white rounded-lg border border-gray-200">
+      <div class="section-header bg-orange-50 border-b border-gray-200 px-1.5 py-1 flex justify-between items-center rounded-t-lg cursor-pointer" (click)="toggleWasteMaterials()">
+        <div class="flex items-center gap-2">
+          <ion-icon [name]="isWasteMaterialsExpanded ? 'caret-up' : 'caret-down'" class="accordion-icon"></ion-icon>
+          <h3 class="text-xs font-bold text-gray-800" style="font-size: 13px;">Waste Materials</h3>
+        </div>
+        <div class="flex items-center gap-2" style="border-left: 1px solid #e5e7eb; padding-left: 8px; margin-left: 4px;">
+          <ion-button
+            (click)="addWasteMaterialItem(); $event.stopPropagation()"
+            size="small"
+            fill="clear"
+            style="--color: #f97316; --background: rgba(249, 115, 22, 0.1); border-radius: 6px;"
+            class="h-7 w-7 p-0"
+          >
+            <ion-icon name="add" slot="icon-only" style="font-size: 16px;"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+      <div class="p-1 accordion-content" *ngIf="isWasteMaterialsExpanded">
+        <div formArrayName="todayWasteMaterialList" class="space-y-0.5">
+          <div
+            *ngFor="let item of wasteMaterialItems.controls; let i = index"
+            [formGroupName]="i"
+            class="item-card bg-gray-50 rounded border border-gray-200 p-0.5 animate-slide-in"
+          >
+            <div class="flex gap-1 items-end">
+              <div class="flex-1">
+                <div class="flex items-center gap-1 mb-0.5">
+                  <span class="text-xs font-medium text-gray-600" style="font-size: 10px;">Item #{{ i + 1 }}</span>
+                </div>
+                <ion-select
+                  formControlName="listOfItem"
+                  placeholder="Select item"
+                  interface="action-sheet"
+                  [interfaceOptions]="{
+                    header: 'Select Waste Material Item',
+                    cssClass: 'waste-material-item-picker'
+                  }"
+                  class="form-input-compact"
+                  style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+                  (ionChange)="onWasteMaterialItemSelect($event, i)"
+                >
+                  <ion-select-option *ngFor="let item of getWasteMaterialItems()" [value]="item.name">
+                    {{ item.name }}
+                  </ion-select-option>
+                  <ion-select-option value="__CREATE_NEW__" class="create-new-option">
+                    + Create New Item In Waste Materials
+                  </ion-select-option>
+                </ion-select>
+              </div>
+              <div style="width: 55px;">
+                <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Qty</label>
+                <ion-input
+                  type="number"
+                  formControlName="qty"
+                  placeholder="0"
+                  class="form-input-compact"
+                  style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+                  min="0"
+                  (ionFocus)="selectAllText($event)"
+                ></ion-input>
+              </div>
+              <div style="width: 55px;">
+                <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Rate</label>
+                <ion-input
+                  type="number"
+                  formControlName="rate"
+                  placeholder="0"
+                  class="form-input-compact"
+                  style="--padding-start: 5px; --padding-end: 5px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+                  min="0"
+                  (ionFocus)="selectAllText($event)"
+                ></ion-input>
+              </div>
+              <div style="width: 95px;">
+                <label class="block text-xs font-medium mb-0.5 text-gray-600" style="font-size: 10px;">Amount</label>
+                <div class="amount-input-wrapper">
+                <ion-input
+                  type="number"
+                  formControlName="amount"
+                  placeholder="0"
+                  class="form-input-compact"
+                  style="--padding-start: 6px; --padding-end: 22px; --padding-top: 4px; --padding-bottom: 4px; --border-radius: 0.25rem; font-size: 10px; width: 100%; height: 24px;"
+                  min="0"
+                  (ionFocus)="selectAllText($event)"
+                ></ion-input>
+                  <span class="currency-symbol">₹</span>
+                </div>
+              </div>
+              <ion-button
+                *ngIf="wasteMaterialItems.length > 0"
+                (click)="removeWasteMaterialItem(i)"
+                fill="clear"
+                size="small"
+                style="--color: #ef4444;"
+                class="h-6 w-6 p-0 mb-0.5"
+              >
+                <ion-icon name="trash" slot="icon-only" style="font-size: 10px;"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        </div>
+        <!-- Waste Materials Total -->
+        <div class="mt-1 pt-1 border-t border-gray-200">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-semibold text-gray-800" style="font-size: 10px;">Total</label>
+            <span class="text-xs font-semibold text-orange-600" style="font-size: 10px;">{{ getWasteMaterialsTotal() | number:'1.2-2' }} ₹</span>
+          </div>
         </div>
       </div>
     </div>

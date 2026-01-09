@@ -98,9 +98,11 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
       this.isDarkMode = isDark;
     });
     
-    // Listen to developer mode changes
-    this.storageService.developerModeChanged.subscribe((isEnabled: boolean) => {
+    // Listen to developer mode changes and reload records
+    this.storageService.developerModeChanged.subscribe(async (isEnabled: boolean) => {
       this.isDeveloperMode = isEnabled;
+      // Reload records when developer mode changes to show/hide dummy data
+      await this.loadRecords();
     });
     
     // Listen to company settings changes
@@ -358,8 +360,19 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
         )) return true;
 
         // Search in waste materials
-        if (record.todayWasteMaterialList &&
-            record.todayWasteMaterialList.toLowerCase().includes(query)) return true;
+        const wasteMaterialList = record.todayWasteMaterialList;
+        if (wasteMaterialList) {
+          if (typeof wasteMaterialList === 'string') {
+            // Backward compatibility: handle old string format
+            if (wasteMaterialList.toLowerCase().includes(query)) return true;
+          } else if (Array.isArray(wasteMaterialList)) {
+            // New array format
+            const wasteMaterialsText = wasteMaterialList
+              .map((item: any) => `${item.listOfItem || ''} ${item.notes || ''}`.toLowerCase())
+              .join(' ');
+            if (wasteMaterialsText.includes(query)) return true;
+          }
+        }
 
         // Search in amounts (chains, expected income, etc.)
         if (record.chains.toString().includes(query)) return true;
@@ -886,6 +899,25 @@ ${record.notes ? `📝 Notes: ${record.notes}` : ''}`;
     return totalExpenses + totalPurchases;
   }
 
+  getWasteMaterialsTotal(record: DailyRecord): number {
+    // Calculate total waste materials amount
+    if (!record.todayWasteMaterialList) {
+      return 0;
+    }
+    
+    if (typeof record.todayWasteMaterialList === 'string') {
+      // Backward compatibility: old string format returns 0
+      return 0;
+    }
+    
+    if (Array.isArray(record.todayWasteMaterialList)) {
+      return record.todayWasteMaterialList.reduce((sum, item) =>
+        sum + (item.amount || 0), 0);
+    }
+    
+    return 0;
+  }
+
   getPaidExpense(record: DailyRecord): number {
     // Calculate only paid expenses (Daily Expenses section)
     const paidExpenses = record.dailyExpenseList?.reduce((sum, item) => {
@@ -1027,6 +1059,10 @@ ${record.notes ? `📝 Notes: ${record.notes}` : ''}`;
   // Totals for list view footer
   getTotalChains(): number {
     return this.filteredRecords.reduce((sum, record) => sum + (record.chains || 0), 0);
+  }
+
+  getTotalWasteMaterials(): number {
+    return this.filteredRecords.reduce((sum, record) => sum + this.getWasteMaterialsTotal(record), 0);
   }
 
   getTotalExpenses(): number {
@@ -1313,8 +1349,8 @@ ${record.notes ? `📝 Notes: ${record.notes}` : ''}`;
 
   async clearLocalStorage() {
     const alert = await this.alertController.create({
-      header: 'Clear LocalStorage',
-      message: '⚠️ WARNING: This will delete ALL your records permanently! This action cannot be undone. Are you sure?',
+      header: 'Clear All Dummy Data',
+      message: '⚠️ This will delete all dummy/test data permanently. Your client data will remain safe. Continue?',
       buttons: [
         {
           text: 'Cancel',
@@ -1325,7 +1361,7 @@ ${record.notes ? `📝 Notes: ${record.notes}` : ''}`;
           }
         },
         {
-          text: 'Clear All Data',
+          text: 'Clear Dummy Data',
           role: 'destructive',
           cssClass: 'danger',
           handler: async () => {
@@ -1340,9 +1376,8 @@ ${record.notes ? `📝 Notes: ${record.notes}` : ''}`;
                 this.lossAnimationId = undefined;
               }
 
-              await this.storageService.clearAll();
-              // Clear notifications as well
-              await this.notificationService.clearAllNotifications();
+              // Only clear dummy data, preserve client data
+              await this.storageService.clearDummyDataOnly();
               this.records = [];
               this.filteredRecords = [];
               this.totalProfit = 0;
@@ -1354,14 +1389,14 @@ ${record.notes ? `📝 Notes: ${record.notes}` : ''}`;
               this.toDate = '';
               this.setDefaultDateRange();
               this.notificationCount = 0;
-              this.showToast('All data cleared successfully', 'success');
+              this.showToast('All dummy data cleared successfully. Client data is safe.', 'success');
               this.closeDrawer();
               // Reload records to show empty state
               setTimeout(() => {
                 this.loadRecords();
               }, 500);
             } catch (error) {
-              this.showToast('Error clearing data', 'danger');
+              this.showToast('Error clearing dummy data', 'danger');
               console.error('Error clearing data:', error);
             }
           }
@@ -1382,6 +1417,10 @@ ${record.notes ? `📝 Notes: ${record.notes}` : ''}`;
 
   goToPurchaseItems() {
     this.router.navigate(['/purchase-items']);
+  }
+
+  goToWasteMaterialItems() {
+    this.router.navigate(['/waste-material-items'], { state: { returnUrl: this.router.url } });
   }
 
   goToSettings() {

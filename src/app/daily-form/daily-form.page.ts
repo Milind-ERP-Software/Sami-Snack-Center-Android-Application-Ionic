@@ -5,13 +5,14 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonInput, IonText
 import { AlertController, ToastController, Platform } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { add, trash, save, calendar, arrowBack, documentText, calculator, trendingDown, trendingUp, close, addCircle, wallet, cash, chevronDown, chevronUp, chevronDownOutline, chevronUpOutline, caretDown, caretUp, receipt, business, share } from 'ionicons/icons';
-import { StorageService, DailyRecord, ProductionItem, ExpenseItem, IncomeItem } from '../services/storage.service';
+import { StorageService, DailyRecord, ProductionItem, ExpenseItem, IncomeItem, WasteMaterialItem } from '../services/storage.service';
 import { ExpenseDetailsPopoverComponent } from './expense-details-popover.component';
 import { StatDetailsPopoverComponent } from './stat-details-popover.component';
 import { MenduwadaIdaliPage } from '../calculations/menduwada-idali/menduwada-idali.page';
 import { MenduwadaIdaliRetailPage } from '../calculations/menduwada-idali-retail/menduwada-idali-retail.page';
 import { InvoiceTemplateComponent } from './invoice-template/invoice-template.component';
 import { ProductionItemsService, ProductionItemOption } from '../services/production-items.service';
+import { WasteMaterialItemsService, WasteMaterialItemOption } from '../services/waste-material-items.service';
 import { ExpenseItemsService, ExpenseItemOption } from '../services/expense-items.service';
 import { PurchaseItemsService, PurchaseItemOption } from '../services/purchase-items.service';
 import { ActivatedRoute, Router, NavigationExtras } from '@angular/router';
@@ -70,6 +71,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
 
   // Accordion states
   isProductionExpanded = true;
+  isWasteMaterialsExpanded = true;
   isExpensesExpanded = true;
   isPurchaseExpanded = true;
   isIncomeDetailsExpanded = true;
@@ -95,6 +97,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   productionItemOptions: ProductionItemOption[] = [];
   expenseItemOptions: ExpenseItemOption[] = [];
   purchaseItemOptions: PurchaseItemOption[] = [];
+  wasteMaterialItemOptions: WasteMaterialItemOption[] = [];
 
   // Cache for grouped expenses to avoid recalculation on every change detection
   private _cachedExpensesByLabel: { label: string; items: any[]; total: number }[] | null = null;
@@ -109,6 +112,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     private productionItemsService: ProductionItemsService,
     private expenseItemsService: ExpenseItemsService,
     private purchaseItemsService: PurchaseItemsService,
+    private wasteMaterialItemsService: WasteMaterialItemsService,
     private route: ActivatedRoute,
     private _router: Router,
     private alertController: AlertController,
@@ -193,6 +197,15 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
         await this.purchaseItemsService.addItem('Vegetables');
         await this.purchaseItemsService.addItem('Fruits');
         this.purchaseItemOptions = await this.purchaseItemsService.getAllItems();
+      }
+
+      this.wasteMaterialItemOptions = await this.wasteMaterialItemsService.getAllItems();
+      if (this.wasteMaterialItemOptions.length === 0) {
+        // Force initialization if empty
+        await this.wasteMaterialItemsService.addItem('Rice');
+        await this.wasteMaterialItemsService.addItem('Lentils');
+        await this.wasteMaterialItemsService.addItem('Oil residue');
+        this.wasteMaterialItemOptions = await this.wasteMaterialItemsService.getAllItems();
       }
     } catch (error) {
       console.error('Error ensuring default items:', error);
@@ -376,7 +389,7 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
         onOutsideOrder: [0, [Validators.min(0)]]
       }),
       backMoneyInBag: [{value: 0, disabled: true}, [Validators.required, Validators.min(0)]],
-      todayWasteMaterialList: [''],
+      todayWasteMaterialList: this.fb.array([]),
       notes: [''],
       todayPurchases: this.fb.array([])
     });
@@ -959,6 +972,15 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     return total;
   }
 
+  getWasteMaterialsTotal(): number {
+    let total = 0;
+    this.wasteMaterialItems.controls.forEach((control) => {
+      const amount = control.get('amount')?.value || 0;
+      total += amount;
+    });
+    return total;
+  }
+
   getPaidExpenses(): number {
     let total = 0;
     this.expenseItems.controls.forEach((control) => {
@@ -1375,6 +1397,9 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
       while (this.todayPurchases.length !== 0) {
         this.todayPurchases.removeAt(0);
       }
+      while (this.wasteMaterialItems.length !== 0) {
+        this.wasteMaterialItems.removeAt(0);
+      }
 
       // Populate form (use patchValue with emitEvent: false to avoid triggering auto-calculation during load)
       this.form.patchValue({
@@ -1383,9 +1408,64 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
         expectedIncome: record.expectedIncome,
         dailyIncomeAmount: record.dailyIncomeAmount,
         backMoneyInBag: record.backMoneyInBag,
-        todayWasteMaterialList: record.todayWasteMaterialList,
         notes: record.notes
       }, { emitEvent: false });
+
+      // Handle waste materials - support backward compatibility (string to array conversion)
+      if (record.todayWasteMaterialList) {
+        if (typeof record.todayWasteMaterialList === 'string') {
+          // Convert old string format to array format
+          const wasteText = (record.todayWasteMaterialList as string).trim();
+          if (wasteText) {
+            // Split by newlines and create array items
+            const wasteLines = wasteText.split('\n').filter((line: string) => line.trim());
+            wasteLines.forEach((line: string) => {
+              const item = this.fb.group({
+                listOfItem: [line.trim(), Validators.required],
+                qty: [0, [Validators.required, Validators.min(0)]],
+                rate: [0, [Validators.required, Validators.min(0)]],
+                amount: [{value: 0, disabled: true}, [Validators.required, Validators.min(0)]]
+              });
+              
+              // Subscribe to qty and rate changes to calculate amount
+              const qtyControl = item.get('qty');
+              const rateControl = item.get('rate');
+              if (qtyControl && rateControl) {
+                qtyControl.valueChanges.subscribe(() => this.calculateAmount(item));
+                rateControl.valueChanges.subscribe(() => this.calculateAmount(item));
+                // Calculate initial amount
+                this.calculateAmount(item);
+              }
+              
+              this.wasteMaterialItems.push(item);
+            });
+          }
+        } else if (Array.isArray(record.todayWasteMaterialList)) {
+          // New array format
+          record.todayWasteMaterialList.forEach((item: any) => {
+            // Calculate rate from existing data if not present (for backward compatibility)
+            const rate = item.rate !== undefined ? item.rate : (item.qty > 0 ? item.amount / item.qty : 0);
+            const itemGroup = this.fb.group({
+              listOfItem: [item.listOfItem || '', Validators.required],
+              qty: [item.qty || 0, [Validators.required, Validators.min(0)]],
+              rate: [rate, [Validators.required, Validators.min(0)]],
+              amount: [{value: item.amount || 0, disabled: true}, [Validators.required, Validators.min(0)]]
+            });
+
+            // Subscribe to qty and rate changes to calculate amount
+            const qtyControl = itemGroup.get('qty');
+            const rateControl = itemGroup.get('rate');
+            if (qtyControl && rateControl) {
+              qtyControl.valueChanges.subscribe(() => this.calculateAmount(itemGroup));
+              rateControl.valueChanges.subscribe(() => this.calculateAmount(itemGroup));
+              // Calculate initial amount
+              this.calculateAmount(itemGroup);
+            }
+
+            this.wasteMaterialItems.push(itemGroup);
+          });
+        }
+      }
 
       // Recalculate backMoneyInBag after loading all form data
       // This ensures the value is automatically calculated based on new formula:
@@ -1628,6 +1708,76 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
     return this.purchaseItemOptions;
   }
 
+  getWasteMaterialItems() {
+    return this.wasteMaterialItemOptions;
+  }
+
+  // Waste Materials Items
+  get wasteMaterialItems(): FormArray {
+    return this.form.get('todayWasteMaterialList') as FormArray;
+  }
+
+  addWasteMaterialItem() {
+    const item = this.fb.group({
+      listOfItem: ['', Validators.required],
+      qty: [0, [Validators.required, Validators.min(0)]],
+      rate: [0, [Validators.required, Validators.min(0)]],
+      amount: [{value: 0, disabled: true}, [Validators.required, Validators.min(0)]]
+    });
+
+    // Subscribe to qty and rate changes to calculate amount
+    const qtyControl = item.get('qty');
+    const rateControl = item.get('rate');
+    const amountControl = item.get('amount');
+
+    if (qtyControl && rateControl && amountControl) {
+      qtyControl.valueChanges.subscribe(() => this.calculateAmount(item));
+      rateControl.valueChanges.subscribe(() => this.calculateAmount(item));
+      // Calculate initial amount
+      this.calculateAmount(item);
+    }
+
+    this.wasteMaterialItems.push(item);
+  }
+
+  async onWasteMaterialItemSelect(event: any, index: number) {
+    const value = event.detail.value;
+    if (value === '__CREATE_NEW__') {
+      // Reset the select to prevent __CREATE_NEW__ from being saved
+      this.wasteMaterialItems.at(index).patchValue({ listOfItem: '' });
+      // Open waste material items page to create new item
+      const navigationExtras: NavigationExtras = {
+        state: { returnUrl: this._router.url }
+      };
+      this._router.navigate(['/waste-material-items'], navigationExtras);
+    } else {
+      // Explicitly set the value to ensure form control updates
+      this.wasteMaterialItems.at(index).patchValue({ listOfItem: value });
+    }
+  }
+
+  async removeWasteMaterialItem(index: number) {
+    const alert = await this.alertController.create({
+      header: 'Delete Waste Material',
+      message: 'Are you sure you want to delete this waste material item?',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: () => {
+            this.wasteMaterialItems.removeAt(index);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
   async onPurchaseItemSelect(event: any, index: number) {
     const value = event.detail.value;
     if (value === '__CREATE_NEW__') {
@@ -1734,6 +1884,10 @@ export class DailyFormPage implements OnInit, OnDestroy, AfterViewInit {
   // Accordion toggle methods
   toggleProduction() {
     this.isProductionExpanded = !this.isProductionExpanded;
+  }
+
+  toggleWasteMaterials() {
+    this.isWasteMaterialsExpanded = !this.isWasteMaterialsExpanded;
   }
 
   toggleExpenses() {

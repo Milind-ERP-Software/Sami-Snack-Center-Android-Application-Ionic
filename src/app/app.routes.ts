@@ -30,6 +30,10 @@ export const routes: Routes = [
     loadComponent: () => import('./purchase-items/purchase-items.page').then((m) => m.PurchaseItemsPage),
   },
   {
+    path: 'waste-material-items',
+    loadComponent: () => import('./waste-material-items/waste-material-items.page').then((m) => m.WasteMaterialItemsPage),
+  },
+  {
     path: 'settings',
     loadComponent: () => import('./settings/settings.page').then((m) => m.SettingsPage),
   },

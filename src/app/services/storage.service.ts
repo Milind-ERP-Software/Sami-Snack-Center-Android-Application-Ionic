@@ -22,6 +22,13 @@ export interface IncomeItem {
   amount: number;
 }
 
+export interface WasteMaterialItem {
+  listOfItem: string;
+  qty: number;
+  rate?: number;
+  amount: number;
+}
+
 export interface DailyRecord {
   id?: string;
   date: string;
@@ -38,7 +45,7 @@ export interface DailyRecord {
     onOutsideOrder: number;
   };
   backMoneyInBag: number;
-  todayWasteMaterialList: string;
+  todayWasteMaterialList: WasteMaterialItem[] | string; // Support both array (new) and string (old) for backward compatibility
   notes: string;
   todayPurchases?: {
     listOfItem: string;
@@ -55,6 +62,7 @@ export interface DailyRecord {
   updatedAt?: string;
   isDeleted?: boolean;
   deletedAt?: string;
+  isDummyData?: boolean; // true for test/dummy data, false or undefined for real client data
 }
 
 @Injectable({
@@ -218,10 +226,20 @@ export class StorageService {
     }
   }
 
-  // Initialize sample data if no records exist or less than 33 records
+  // Initialize sample data if developer mode is ON and no records exist or less than 33 records
   private async initializeSampleData(): Promise<void> {
+    // Check if developer mode is enabled
+    const developerMode = await this.get('developer_mode');
+    const isDeveloperMode = developerMode === 'true';
+    
+    // Only create dummy data if developer mode is ON
+    if (!isDeveloperMode) {
+      return;
+    }
+    
     const targetRecords = 33;
-    if (this._records.length < targetRecords) {
+    const totalRecords = this._records.length;
+    if (totalRecords < targetRecords) {
       const now = new Date().toISOString();
       // Get the highest existing ID or start from 1
       let maxId = 0;
@@ -229,8 +247,9 @@ export class StorageService {
         maxId = Math.max(...this._records.map(r => parseInt(r.id || '0', 10)));
       }
       let recordId = maxId + 1;
-      const sampleRecords: DailyRecord[] = [...this._records]; // Keep existing records
-      const recordsToAdd = targetRecords - this._records.length;
+      // Keep all existing records (both dummy and real)
+      const sampleRecords: DailyRecord[] = [...this._records];
+      const recordsToAdd = targetRecords - totalRecords;
       
       // Production items variations
       const productionVariations = [
@@ -383,7 +402,7 @@ export class StorageService {
             onOutsideOrder: onOutsideOrder
           },
           backMoneyInBag: backMoney,
-          todayWasteMaterialList: i % 3 === 0 ? 'Rice, Lentils' : i % 3 === 1 ? 'Oil residue' : '',
+          todayWasteMaterialList: i % 3 === 0 ? [{ listOfItem: 'Rice', qty: 1, rate: 0, amount: 0 }] : i % 3 === 1 ? [{ listOfItem: 'Oil residue', qty: 1, rate: 0, amount: 0 }] : [],
           notes: notesVariations[noteIndex],
           todayPurchases: i % 2 === 0 ? [
             { listOfItem: 'Groceries', amount: 300 + (i % 300) },
@@ -396,7 +415,8 @@ export class StorageService {
             profit: netProfit
           },
           createdAt: dateObj.toISOString(),
-          updatedAt: dateObj.toISOString()
+          updatedAt: dateObj.toISOString(),
+          isDummyData: true // Mark as dummy/test data
         };
         
         sampleRecords.push(record);
@@ -438,8 +458,24 @@ export class StorageService {
     // #region agent log
     fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:338',message:'getAllRecords after ensureInitialized',data:{_recordsCount:this._records.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
     // #endregion
-    // Return a copy to prevent direct mutation
-    const result = includeDeleted ? [...this._records] : [...this._records].filter(record => !record.isDeleted);
+    
+    // Check developer mode - filter dummy data if developer mode is OFF
+    const developerMode = await this.get('developer_mode');
+    const isDeveloperMode = developerMode === 'true';
+    
+    // Filter records based on deleted status and dummy data status
+    let result = [...this._records];
+    
+    // Filter deleted records if not including deleted
+    if (!includeDeleted) {
+      result = result.filter(record => !record.isDeleted);
+    }
+    
+    // Filter dummy data if developer mode is OFF
+    if (!isDeveloperMode) {
+      result = result.filter(record => !record.isDummyData);
+    }
+    
     // #region agent log
     fetch('http://127.0.0.1:7246/ingest/1ee2aeda-2639-4067-92ed-c7bc42374a29',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'storage.service.ts:342',message:'getAllRecords COMPLETED',data:{resultCount:result.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
     // #endregion
@@ -464,6 +500,11 @@ export class StorageService {
       record.createdAt = new Date().toISOString();
     }
     
+    // Mark as real client data (not dummy) if not already set
+    if (record.isDummyData === undefined) {
+      record.isDummyData = false;
+    }
+    
     record.updatedAt = new Date().toISOString();
     
     this._records.unshift(record); // Add to beginning
@@ -475,6 +516,12 @@ export class StorageService {
     
     const index = this._records.findIndex(r => r.id === updatedRecord.id);
     if (index !== -1) {
+      // Preserve isDummyData flag if updating existing record (to maintain dummy vs real distinction)
+      // If record doesn't have isDummyData set, mark it as real client data
+      if (updatedRecord.isDummyData === undefined) {
+        // If existing record is dummy, keep it dummy; otherwise mark as real
+        updatedRecord.isDummyData = this._records[index].isDummyData || false;
+      }
       updatedRecord.updatedAt = new Date().toISOString();
       this._records[index] = updatedRecord;
       await this.saveRecordsToStorage();
@@ -548,17 +595,30 @@ export class StorageService {
 
   async clearAll(): Promise<void> {
     await this.ensureInitialized();
-    if (this._storage) {
-      await this._storage.clear();
-      // Also clear notifications explicitly
-      await this._storage.remove('notifications');
-    }
-    this._records = [];
+    // Only clear dummy data, preserve client data
+    this._records = this._records.filter(record => !record.isDummyData);
+    await this.saveRecordsToStorage();
+  }
+
+  async clearDummyDataOnly(): Promise<void> {
+    await this.ensureInitialized();
+    // Only clear dummy data, preserve client data
+    this._records = this._records.filter(record => !record.isDummyData);
+    await this.saveRecordsToStorage();
   }
 
   async importRecords(records: DailyRecord[]): Promise<void> {
     await this.ensureInitialized();
-    this._records = records;
+    // Mark all imported records as client data (not dummy)
+    const clientRecords = records.map(record => ({
+      ...record,
+      isDummyData: false // Ensure imported data is marked as client data
+    }));
+    
+    // Preserve existing dummy data (if any) and replace/add client records
+    const existingDummyData = this._records.filter(r => r.isDummyData === true);
+    this._records = [...existingDummyData, ...clientRecords];
+    
     await this.saveRecordsToStorage();
   }
 
@@ -577,7 +637,13 @@ export class StorageService {
       await this._storage.set(key, value);
       // Emit events when settings change
       if (key === 'developer_mode') {
-        this.developerModeChanged.emit(value === 'true');
+        const isDeveloperMode = value === 'true';
+        this.developerModeChanged.emit(isDeveloperMode);
+        // If developer mode is turned ON, create dummy data if needed
+        if (isDeveloperMode) {
+          // Trigger dummy data creation asynchronously (don't block)
+          this.initializeSampleData().catch(err => console.warn('Error creating dummy data:', err));
+        }
       } else if (key === 'company_name') {
         this.companyNameChanged.emit(value);
       } else if (key === 'company_logo') {

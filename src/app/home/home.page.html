@@ -93,6 +93,10 @@
             <ion-icon name="bag" style="font-size: 18px; color: #0066CC;"></ion-icon>
         <span>Purchase Items</span>
           </div>
+          <div class="drawer-item drawer-sub-item" (click)="goToWasteMaterialItems(); closeDrawer()">
+            <ion-icon name="trash" style="font-size: 18px; color: #f97316;"></ion-icon>
+        <span>Waste Material Items</span>
+          </div>
         </div>
       </div>
       <div class="drawer-item" (click)="goToNotifications(); closeDrawer()">
@@ -582,7 +586,7 @@
         <div class="flex justify-between items-start mb-1.5 pb-1.5 border-b border-gray-100">
           <div class="flex-1">
             <h3 class="text-sm font-bold text-gray-900 mb-0.5" style="font-size: 12px; line-height: 1.3;" [class.saturday-date-text]="isSaturday(record.date)" [class.sunday-date-text]="isSunday(record.date)">{{ formatDate(record.date) }}</h3>
-            <p class="text-xs text-gray-500" style="font-size: 10px;">Chains: <span class="font-semibold text-gray-700">{{ record.chains }} ₹</span></p>
+            <p class="text-xs text-gray-500" style="font-size: 10px;">Chains: <span class="font-semibold text-gray-700">{{ record.chains }} ₹</span> | Waste Materials: <span class="font-semibold text-orange-600">{{ getWasteMaterialsTotal(record) | number:'1.0-0' }} ₹</span></p>
           </div>
           <div class="flex gap-0.5">
             <!-- Hide action buttons in multi-select mode -->
@@ -717,7 +721,7 @@
             <div class="list-view-header rounded-t-lg">
               <div class="list-view-row header-row">
                 <div class="list-col date-col">Date</div>
-                <div class="list-col chains-col">Chains</div>
+                <div class="list-col chains-col">Chains / Waste</div>
                 <div class="list-col expense-col">
                   <div class="expense-header-main">Expense</div>
                   <div class="expense-sub-headers">
@@ -744,7 +748,10 @@
               </div>
               <div class="list-col chains-col">
                 <div class="list-cell-content">
-                  <div class="list-cell-value">{{ record.chains | number:'1.0-0' }} ₹</div>
+                  <div class="list-cell-value" style="font-size: 9px; line-height: 1.3;">
+                    <div>Chains: {{ record.chains | number:'1.0-0' }} ₹</div>
+                    <div style="color: #f97316;">Waste: {{ getWasteMaterialsTotal(record) | number:'1.0-0' }} ₹</div>
+                  </div>
                 </div>
               </div>
               <div class="list-col expense-col">
@@ -849,7 +856,10 @@
                 </div>
                 <div class="list-col chains-col">
                   <div class="list-cell-content">
-                    <div class="list-cell-value" style="font-weight: 700;">{{ getTotalChains() | number:'1.0-0' }} ₹</div>
+                    <div class="list-cell-value" style="font-weight: 700; font-size: 9px; line-height: 1.3;">
+                      <div>Chains: {{ getTotalChains() | number:'1.0-0' }} ₹</div>
+                      <div style="color: #f97316;">Waste: {{ getTotalWasteMaterials() | number:'1.0-0' }} ₹</div>
+                    </div>
                   </div>
                 </div>
                 <div class="list-col expense-col">

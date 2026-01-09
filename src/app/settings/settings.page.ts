@@ -13,6 +13,7 @@ import { NotificationService } from '../services/notification.service';
 import { ProductionItemsService } from '../services/production-items.service';
 import { ExpenseItemsService } from '../services/expense-items.service';
 import { PurchaseItemsService } from '../services/purchase-items.service';
+import { WasteMaterialItemsService } from '../services/waste-material-items.service';
 import JSZip from 'jszip';
 import { InvoiceTemplate1Component } from '../daily-form/invoice-template1/invoice-template1.component';
 import { InvoiceTemplate2Component } from '../daily-form/invoice-template2/invoice-template2.component';
@@ -94,6 +95,7 @@ export class SettingsPage implements OnInit, OnDestroy {
     private productionItemsService: ProductionItemsService,
     private expenseItemsService: ExpenseItemsService,
     private purchaseItemsService: PurchaseItemsService,
+    private wasteMaterialItemsService: WasteMaterialItemsService,
     private platform: Platform
   ) {
     addIcons({ arrowBack, informationCircle, download, cloudUpload, trash, statsChart, documentText, business, moon, sunny, phonePortrait, code, image, text, add, calculator, checkmarkCircle, close });
@@ -102,7 +104,7 @@ export class SettingsPage implements OnInit, OnDestroy {
   ngOnInit() {
     // Reset developer section visibility when entering settings page
     this.showDeveloperSection = false;
-    
+
     this.loadStatistics();
     this.updateThemeState();
     this.loadDeveloperMode();
@@ -120,7 +122,7 @@ export class SettingsPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     // Reset developer section visibility when leaving settings page
     this.showDeveloperSection = false;
-    
+
     // Clear developer mode timer if it exists
     if (this.developerModeTimer) {
       clearTimeout(this.developerModeTimer);
@@ -168,12 +170,14 @@ export class SettingsPage implements OnInit, OnDestroy {
   async exportData() {
     try {
       this.showToast('Exporting data...', 'success');
-      
-      // Get all data
-      const records = await this.storageService.getAllRecords(true); // Include deleted
+
+      // Get all records but filter out dummy data - only export client data
+      const allRecords = await this.storageService.getAllRecords(true); // Include deleted
+      const records = allRecords.filter(record => !record.isDummyData); // Only client data
       const productionItems = await this.productionItemsService.getAllItems(true); // Include deleted
       const expenseItems = await this.expenseItemsService.getAllItems(true); // Include deleted
       const purchaseItems = await this.purchaseItemsService.getAllItems(true); // Include deleted
+      const wasteMaterialItems = await this.wasteMaterialItemsService.getAllItems(true); // Include deleted
 
       // Create data object
       const data = {
@@ -181,6 +185,7 @@ export class SettingsPage implements OnInit, OnDestroy {
         productionItems: productionItems,
         expenseItems: expenseItems,
         purchaseItems: purchaseItems,
+        wasteMaterialItems: wasteMaterialItems,
         exportDate: new Date().toISOString(),
         appName: this.appName,
         version: this.appVersion
@@ -190,10 +195,10 @@ export class SettingsPage implements OnInit, OnDestroy {
       const zip = new JSZip();
       const dataStr = JSON.stringify(data, null, 2);
       zip.file('backup-data.json', dataStr);
-      
+
       // Generate ZIP blob
       const zipBlob = await zip.generateAsync({ type: 'blob' });
-      
+
       // Try to use Capacitor Share for mobile, fallback to download for web
       if (this.platform.is('capacitor') && this.platform.is('mobile')) {
         try {
@@ -203,29 +208,29 @@ export class SettingsPage implements OnInit, OnDestroy {
             const base64Data = (reader.result as string).split(',')[1];
             const dateStr = new Date().toISOString().split('T')[0];
             const fileName = `sami-snack-center-backup-${dateStr}.zip`;
-            
+
             // Save to filesystem
             const { Filesystem } = await import('@capacitor/filesystem');
             const { Directory } = await import('@capacitor/filesystem');
             const { Share } = await import('@capacitor/share');
-            
+
             await Filesystem.writeFile({
               path: fileName,
               data: base64Data,
               directory: Directory.External,
               recursive: false
             });
-            
+
             const fileUri = await Filesystem.getUri({
               path: fileName,
               directory: Directory.External
             });
-            
+
             await Share.share({
               url: fileUri.uri,
               title: 'Sami Snack Center Backup'
             });
-            
+
             this.showToast('Data exported successfully as ZIP', 'success');
           };
           reader.readAsDataURL(zipBlob);
@@ -286,7 +291,7 @@ export class SettingsPage implements OnInit, OnDestroy {
       if (file) {
         try {
           this.showToast('Importing data...', 'success');
-          
+
           // Check if it's a ZIP file or JSON file
           if (file.name.endsWith('.zip')) {
             await this.importZipFile(file);
@@ -307,18 +312,18 @@ export class SettingsPage implements OnInit, OnDestroy {
       const arrayBuffer = await file.arrayBuffer();
       const zip = new JSZip();
       const zipData = await zip.loadAsync(arrayBuffer);
-      
+
       // Find the JSON file in the ZIP
       const jsonFile = Object.keys(zipData.files).find(name => name.endsWith('.json'));
-      
+
       if (!jsonFile) {
         this.showToast('No JSON file found in ZIP', 'danger');
         return;
       }
-      
+
       const jsonContent = await zipData.files[jsonFile].async('string');
       const data = JSON.parse(jsonContent);
-      
+
       await this.importDataFromObject(data);
     } catch (error) {
       this.showToast('Error reading ZIP file', 'danger');
@@ -351,22 +356,27 @@ export class SettingsPage implements OnInit, OnDestroy {
       if (data.records && Array.isArray(data.records)) {
         await this.storageService.importRecords(data.records);
       }
-      
+
       // Import production items
       if (data.productionItems && Array.isArray(data.productionItems)) {
         await this.productionItemsService.saveItems(data.productionItems);
       }
-      
+
       // Import expense items
       if (data.expenseItems && Array.isArray(data.expenseItems)) {
         await this.expenseItemsService.saveItems(data.expenseItems);
       }
-      
+
       // Import purchase items
       if (data.purchaseItems && Array.isArray(data.purchaseItems)) {
         await this.purchaseItemsService.saveItems(data.purchaseItems);
       }
-      
+
+      // Import waste material items
+      if (data.wasteMaterialItems && Array.isArray(data.wasteMaterialItems)) {
+        await this.wasteMaterialItemsService.saveItems(data.wasteMaterialItems);
+      }
+
       this.showToast('Data imported successfully', 'success');
       await this.loadStatistics();
       setTimeout(() => {
@@ -380,29 +390,28 @@ export class SettingsPage implements OnInit, OnDestroy {
 
   async clearAllData() {
     const alert = await this.alertController.create({
-      header: 'Clear All Data',
-      message: '⚠️ WARNING: This will delete ALL your records permanently! This action cannot be undone. Are you sure?',
+      header: 'Clear All Dummy Data',
+      message: '⚠️ This will delete all dummy/test data permanently. Your client data will remain safe. Continue?',
       buttons: [
         {
           text: 'Cancel',
           role: 'cancel'
         },
         {
-          text: 'Clear All Data',
+          text: 'Clear Dummy Data',
           role: 'destructive',
           cssClass: 'danger',
           handler: async () => {
             try {
-              await this.storageService.clearAll();
-              // Clear notifications as well
-              await this.notificationService.clearAllNotifications();
-              this.showToast('All data cleared successfully', 'success');
+              // Only clear dummy data, preserve client data
+              await this.storageService.clearDummyDataOnly();
+              this.showToast('All dummy data cleared successfully. Client data is safe.', 'success');
               await this.loadStatistics();
               setTimeout(() => {
                 this.router.navigate(['/home']);
               }, 1000);
             } catch (error) {
-              this.showToast('Error clearing data', 'danger');
+              this.showToast('Error clearing dummy data', 'danger');
               console.error('Clear error:', error);
             }
           }
@@ -420,7 +429,7 @@ export class SettingsPage implements OnInit, OnDestroy {
   async toggleDeveloperMode() {
     this.isDeveloperMode = !this.isDeveloperMode;
     await this.storageService.set('developer_mode', this.isDeveloperMode.toString());
-    
+
     if (this.isDeveloperMode) {
       // Developer mode turned ON - set timer to auto-disable after 1 minute
       this.developerModeTimer = setTimeout(async () => {
@@ -438,7 +447,7 @@ export class SettingsPage implements OnInit, OnDestroy {
       }
       this.showToast('Developer mode disabled', 'success');
     }
-    
+
     if (this.isDeveloperMode) {
       this.showToast('Developer mode enabled (will auto-disable in 1 minute)', 'success');
     }
@@ -449,7 +458,7 @@ export class SettingsPage implements OnInit, OnDestroy {
     if (name) {
       this.companyName = name;
     }
-    
+
     const logo = await this.storageService.get('company_logo');
     if (logo) {
       this.companyLogo = logo;
@@ -514,7 +523,7 @@ export class SettingsPage implements OnInit, OnDestroy {
   async loadCalculationButtonsSettings() {
     const showWholesale = await this.storageService.get('show_wholesale_button');
     this.showWholesaleButton = showWholesale === 'true'; // Default to false
-    
+
     const showRetail = await this.storageService.get('show_retail_button');
     this.showRetailButton = showRetail !== 'false'; // Default to true
   }
@@ -577,7 +586,7 @@ export class SettingsPage implements OnInit, OnDestroy {
       default:
         html = this.getTemplate1Preview(sampleData);
     }
-    
+
     return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
